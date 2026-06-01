@@ -1,0 +1,18 @@
+[project]
+name = "votesync"
+version = "0.1.0"
+description = "Projeto FastAPI com PostgreSQL em containers"
+readme = "README.md"
+requires-python = ">=3.10"
+
+dependencies = [
+    "fastapi",
+    "uvicorn[standard]",
+    "psycopg[binary]",
+    "sqlalchemy",
+    "python-dotenv"
+]
+
+[build-system]
+requires = ["setuptools", "wheel"]
+build-backend = "setuptools.build_meta"
