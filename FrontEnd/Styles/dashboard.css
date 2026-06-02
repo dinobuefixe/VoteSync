@@ -184,6 +184,19 @@ body {
     font-size: 18px;
 }
 
+.decision-create-btn {
+    border: none;
+    cursor: pointer;
+    color: #ffffff;
+    background: var(--accent);
+    box-shadow: 0 3px 10px rgba(86, 102, 233, 0.35);
+    border-radius: 8px;
+    font-family: var(--font-ui);
+    font-size: 0.8rem;
+    font-weight: 600;
+    padding: 0.4rem 0.7rem;
+}
+
 .list-item {
     background: var(--soft-box);
     border-radius: 10px;
@@ -252,6 +265,269 @@ body {
     box-shadow: 0 8px 15px rgba(84, 178, 238, 0.25);
 }
 
+.decision-modal-overlay {
+    position: fixed;
+    inset: 0;
+    background: rgba(24, 32, 51, 0.6);
+    display: grid;
+    place-items: center;
+    padding: 1rem;
+    z-index: 200;
+}
+
+.decision-modal-overlay[hidden] {
+    display: none;
+}
+
+.decision-modal {
+    width: min(100%, 800px);
+    max-height: 92vh;
+    overflow: auto;
+    background: #ffffff;
+    border-radius: 24px;
+    padding: 2rem;
+    box-shadow: 0 18px 35px rgba(0, 0, 0, 0.25);
+}
+
+.decision-modal-header-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 0.8rem;
+}
+
+.decision-modal-header-row h3 {
+    font-size: 1.1rem;
+    font-weight: 700;
+}
+
+.decision-modal-close {
+    width: 32px;
+    height: 32px;
+    border: 1px solid #e0e0e0;
+    background: #ffffff;
+    border-radius: 8px;
+    cursor: pointer;
+    font-size: 1.2rem;
+    line-height: 1;
+}
+
+.decision-modal-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 0.8rem;
+    margin-bottom: 1.1rem;
+}
+
+.decision-input-title {
+    border: none;
+    outline: none;
+    font-size: 1.05rem;
+    font-weight: 500;
+    color: #333333;
+    width: 100%;
+}
+
+.decision-input-title::placeholder {
+    color: #9c9c9c;
+}
+
+.decision-current-date {
+    background-color: #f5f5f7;
+    color: #7a7a7a;
+    padding: 0.38rem 0.8rem;
+    border-radius: 20px;
+    font-size: 0.78rem;
+    white-space: nowrap;
+}
+
+.decision-end-date-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 0.8rem;
+    margin-bottom: 0.9rem;
+}
+
+.decision-end-date-label {
+    font-family: var(--font-ui);
+    font-size: 0.9rem;
+    font-weight: 600;
+    color: #333333;
+}
+
+.decision-end-date-input {
+    border: 1px solid #dde2ee;
+    border-radius: 10px;
+    padding: 0.45rem 0.6rem;
+    min-width: 165px;
+    font-family: var(--font-ui);
+    font-size: 0.9rem;
+    color: #333333;
+    background: #fbfcff;
+}
+
+.decision-end-date-input:focus {
+    outline: 2px solid rgba(47, 128, 237, 0.22);
+    border-color: #7f8ce8;
+}
+
+.decision-textarea-description {
+    width: 100%;
+    min-height: 86px;
+    border: none;
+    outline: none;
+    resize: vertical;
+    font-size: 0.95rem;
+    color: #333333;
+    margin-bottom: 1.1rem;
+    line-height: 1.5;
+}
+
+.decision-textarea-description::placeholder {
+    color: #9c9c9c;
+}
+
+.decision-form-message {
+    min-height: 1.1rem;
+    font-family: var(--font-ui);
+    font-size: 0.82rem;
+    margin-bottom: 0.2rem;
+}
+
+.decision-form-message.is-error {
+    color: #cc3448;
+}
+
+.decision-form-message.is-success {
+    color: #1f8a52;
+}
+
+.decision-voting-section {
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+    margin-bottom: 1.35rem;
+}
+
+#decision-options-list {
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+}
+
+.decision-section-label {
+    font-size: 0.95rem;
+    font-weight: 600;
+    color: #2c2c2c;
+}
+
+.decision-option-row {
+    display: flex;
+    gap: 0.75rem;
+    width: 100%;
+    align-items: stretch;
+}
+
+.decision-option-input-wrapper {
+    flex-grow: 1;
+    border-radius: 12px;
+    height: 52px;
+    display: flex;
+    align-items: center;
+    padding: 0 1rem;
+}
+
+.decision-option-icon-box {
+    width: 52px;
+    height: 52px;
+    border-radius: 12px;
+    flex: 0 0 52px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1rem;
+}
+
+.dotted-border {
+    border: 1.5px dashed #a5a5a5;
+}
+
+.filled-bg {
+    background-color: #f8f5ff;
+    border: 1px solid #ede8fa;
+}
+
+.focus-blue {
+    border: 2px solid #0084ff;
+    border-radius: 10px;
+    padding: 4px;
+    margin: 0;
+}
+
+.decision-input-option {
+    width: 100%;
+    border: none;
+    outline: none;
+    background: transparent;
+    font-size: 0.95rem;
+    color: #333333;
+}
+
+.decision-input-option::placeholder {
+    color: #9c9c9c;
+}
+
+.decision-btn-add-option {
+    width: 100%;
+    height: 48px;
+    background: transparent;
+    border: 1.5px dashed #d2b4ff;
+    border-radius: 12px;
+    color: #8b00ff;
+    font-size: 0.95rem;
+    font-weight: 500;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+}
+
+.decision-btn-add-option:hover {
+    background-color: #f6efff;
+}
+
+.decision-card-footer {
+    display: flex;
+    gap: 1rem;
+    border-top: 1px solid #f0f0f0;
+    padding-top: 1rem;
+}
+
+.decision-btn-cancel,
+.decision-btn-create {
+    flex: 1;
+    height: 46px;
+    border-radius: 12px;
+    font-size: 0.95rem;
+    font-weight: 600;
+    cursor: pointer;
+}
+
+.decision-btn-cancel {
+    background: #ffffff;
+    border: 1px solid #e0e0e0;
+    color: #333333;
+}
+
+.decision-btn-create {
+    background: #8b00ff;
+    border: none;
+    color: #ffffff;
+}
+
 @media (max-width: 980px) {
     .navbar {
         flex-wrap: wrap;
@@ -276,5 +552,31 @@ body {
     .brand-icon {
         width: 44px;
         height: 44px;
+    }
+
+    .decision-modal {
+        padding: 1rem;
+    }
+
+    .decision-modal-header {
+        flex-direction: column;
+        align-items: flex-start;
+    }
+
+    .decision-end-date-row {
+        flex-direction: column;
+        align-items: flex-start;
+    }
+
+    .decision-end-date-input {
+        width: 100%;
+    }
+
+    .decision-option-row {
+        flex-direction: column;
+    }
+
+    .decision-option-icon-box {
+        width: 100%;
     }
 }

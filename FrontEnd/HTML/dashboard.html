@@ -63,7 +63,10 @@
 
         <!-- Próximo Destino -->
         <section class="card">
-            <h2>Decisões Criadas</h2>
+            <div class="card-header">
+                <h2>Decisões Criadas</h2>
+                <button class="decision-create-btn" type="button">+ (Criar novo)</button>
+            </div>
 
             <div class="info-box">
                 <span>Estado:</span>
@@ -75,7 +78,7 @@
                 <h3>-</h3>
             </div>
 
-            <button class="view-btn">
+            <button class="view-btn decision-view-more-btn" type="button">
                 View More <i class="fa-solid fa-angle-right"></i>
             </button>
         </section>
@@ -98,7 +101,10 @@
 
         <!-- Restaurante -->
         <section class="card">
-            <h2>Decisões Criadas</h2>
+            <div class="card-header">
+                <h2>Decisões Criadas</h2>
+                <button class="decision-create-btn" type="button">+ (Criar novo)</button>
+            </div>
 
             <div class="info-box">
                 <span>Estado:</span>
@@ -110,12 +116,71 @@
                 <h3>-</h3>
             </div>
 
-            <button class="view-btn">
+            <button class="view-btn decision-view-more-btn" type="button">
                 View More <i class="fa-solid fa-angle-right"></i>
             </button>
         </section>
 
     </main>
+
+    <div class="decision-modal-overlay" id="decision-modal-overlay" hidden>
+        <div class="decision-modal" role="dialog" aria-modal="true" aria-labelledby="decision-modal-title">
+            <div class="decision-modal-header-row">
+                <h3 id="decision-modal-title">Criar Decisão</h3>
+                <button class="decision-modal-close" id="decision-modal-close" type="button"
+                    aria-label="Fechar modal">×</button>
+            </div>
+
+            <div class="decision-modal-header">
+                <input type="text" class="decision-input-title" id="decision-title-input"
+                    placeholder="Título da decisão...">
+                <span class="decision-current-date" id="decision-current-date">--/--/----</span>
+            </div>
+
+            <div class="decision-end-date-row">
+                <label class="decision-end-date-label" for="decision-end-date-input">Data de término</label>
+                <input class="decision-end-date-input" id="decision-end-date-input" type="date">
+            </div>
+
+            <textarea class="decision-textarea-description" id="decision-description-input"
+                placeholder="Descreva sua decisão aqui. Forneça contexto e detalhes relevantes..."></textarea>
+            <p class="decision-form-message" id="decision-form-message" aria-live="polite"></p>
+
+            <section class="decision-voting-section">
+                <label class="decision-section-label">Vote na sua opção preferida:</label>
+
+                <div id="decision-options-list">
+                    <div class="decision-option-row focus-blue">
+                        <div class="decision-option-input-wrapper dotted-border">
+                            <input type="text" class="decision-input-option" placeholder="Nome da opção...">
+                        </div>
+                        <div class="decision-option-icon-box dotted-border">
+                            <i class="fa-solid fa-sun"></i>
+                        </div>
+                    </div>
+
+                    <div class="decision-option-row">
+                        <div class="decision-option-input-wrapper filled-bg">
+                            <input type="text" class="decision-input-option" placeholder="Nome da opção...">
+                        </div>
+                        <div class="decision-option-icon-box filled-bg">
+                            <i class="fa-solid fa-building-columns"></i>
+                        </div>
+                    </div>
+                </div>
+
+                <button class="decision-btn-add-option" id="decision-add-option-btn" type="button">
+                    <i class="fa-solid fa-plus"></i> Adicionar opção
+                </button>
+            </section>
+
+            <footer class="decision-card-footer">
+                <button class="decision-btn-cancel" id="decision-cancel-btn" type="button">Cancelar</button>
+                <button class="decision-btn-create" id="decision-create-confirm-btn" type="button">Criar
+                    Decisão</button>
+            </footer>
+        </div>
+    </div>
 
     <script src="../JS/dashboard.js"></script>
 
