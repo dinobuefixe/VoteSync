@@ -1,20 +1,24 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>VoteSync</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700;800&family=Sora:wght@400;600;700&display=swap" rel="stylesheet">
+    <link
+        href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700;800&family=Sora:wght@400;600;700&display=swap"
+        rel="stylesheet">
     <link rel="stylesheet" href="../Styles/index.css">
 </head>
+
 <body>
     <main class="page-shell">
         <header class="topbar">
             <div class="brand">
                 <span class="brand-icon" aria-hidden="true">
-                  <a href="../HTML/index.html"><img src="../IMG/votesync_logo.png" alt="VoteSync logo" /></a>  
+                    <a href="../HTML/index.html"><img src="../IMG/votesync_logo.png" alt="VoteSync logo" /></a>
                 </span>
                 <span>VoteSync</span>
             </div>
@@ -98,7 +102,8 @@
                     <label for="login-password">Password</label>
                     <div class="input-with-icon">
                         <input id="login-password" type="password" placeholder="Enter your password" required>
-                        <button class="input-icon-btn" type="button" data-toggle-password="login-password" aria-label="Show or hide password">◉</button>
+                        <button class="input-icon-btn" type="button" data-toggle-password="login-password"
+                            aria-label="Show or hide password">◉</button>
                     </div>
                     <p class="field-error" data-error-for="login-password"></p>
 
@@ -128,14 +133,17 @@
                     <label for="register-password">Password</label>
                     <div class="input-with-icon">
                         <input id="register-password" type="password" placeholder="Create a password" required>
-                        <button class="input-icon-btn" type="button" data-toggle-password="register-password" aria-label="Show or hide password">◉</button>
+                        <button class="input-icon-btn" type="button" data-toggle-password="register-password"
+                            aria-label="Show or hide password">◉</button>
                     </div>
                     <p class="field-error" data-error-for="register-password"></p>
 
                     <label for="register-confirm-password">Confirm Password</label>
                     <div class="input-with-icon">
-                        <input id="register-confirm-password" type="password" placeholder="Confirm your password" required>
-                        <button class="input-icon-btn" type="button" data-toggle-password="register-confirm-password" aria-label="Show or hide password">◉</button>
+                        <input id="register-confirm-password" type="password" placeholder="Confirm your password"
+                            required>
+                        <button class="input-icon-btn" type="button" data-toggle-password="register-confirm-password"
+                            aria-label="Show or hide password">◉</button>
                     </div>
                     <p class="field-error" data-error-for="register-confirm-password"></p>
 
@@ -149,13 +157,18 @@
                 </form>
 
                 <div class="switch-row">
-                    <p id="switch-login">Don't have an account? <button class="text-btn" type="button" data-switch-to="register">Sign up</button></p>
-                    <p id="switch-register" hidden>Already have an account? <button class="text-btn" type="button" data-switch-to="login">Sign in</button></p>
+                    <p id="switch-login">Don't have an account? <button class="text-btn" type="button"
+                            data-switch-to="register">Sign up</button></p>
+                    <p id="switch-register" hidden>Already have an account? <button class="text-btn" type="button"
+                            data-switch-to="login">Sign in</button></p>
                 </div>
 
                 <div id="session-row" class="session-row" hidden>
                     <p id="session-text"></p>
-                    <button id="logout-btn" class="secondary-btn" type="button">Logout</button>
+                    <button id="logout-btn" class="secondary-btn" type="button">
+                        <img class="logout-icon" src="../IMG/Logout.png" alt="Logout icon">
+                        Logout
+                    </button>
                 </div>
 
                 <p class="secure-note">Secure login powered by VoteSync</p>
@@ -165,4 +178,5 @@
 
     <script src="../JS/index.js"></script>
 </body>
+
 </html>

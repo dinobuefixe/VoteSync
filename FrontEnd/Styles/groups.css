@@ -7,7 +7,8 @@
 }
 
 body {
-    background-color: #F4F0FA; /* Fundo lilás claro idêntico ao da imagem de referência */
+    background-color: #F4F0FA;
+    /* Fundo lilás claro idêntico ao da imagem de referência */
     color: #1A1A1A;
     min-height: 100vh;
     display: flex;
@@ -35,11 +36,11 @@ body {
     color: inherit;
 }
 
-/* Ícone customizado em SVG para o VoteSync (urna/voto com visto) */
 .logo-icon {
     width: 32px;
     height: 32px;
-    color: #4338CA;
+    display: block;
+    object-fit: contain;
 }
 
 .logo-text {
@@ -61,7 +62,8 @@ body {
     padding: 10px 16px 10px 40px;
     border-radius: 20px;
     border: 1px solid #E2E8F0;
-    background-color: #E2ECF9; /* Tom azulado suave de pesquisa */
+    background-color: #E2ECF9;
+    /* Tom azulado suave de pesquisa */
     font-size: 14px;
     outline: none;
     transition: all 0.2s ease;
@@ -94,7 +96,8 @@ body {
 }
 
 .btn-logout {
-    background-color: #D1D5DB; /* Cinzento do botão logout da imagem */
+    background-color: #D1D5DB;
+    /* Cinzento do botão logout da imagem */
     color: #1F2937;
     border: none;
     padding: 8px 16px;
@@ -112,9 +115,17 @@ body {
     background-color: #9CA3AF;
 }
 
+.logout-icon {
+    width: 16px;
+    height: 16px;
+    display: block;
+    object-fit: contain;
+}
+
 /* CONTEÚDO PRINCIPAL */
 .main-container {
-    max-width: 834px; /* Otimizado para a largura de tablet da imagem */
+    max-width: 834px;
+    /* Otimizado para a largura de tablet da imagem */
     width: 100%;
     margin: 40px auto;
     padding: 0 24px;
@@ -145,7 +156,8 @@ body {
 
 .empty-state-card {
     background-color: #FFFFFF;
-    border: 2px dashed #BDB2FF; /* Limite tracejado suave */
+    border: 2px dashed #BDB2FF;
+    /* Limite tracejado suave */
     border-radius: 24px;
     padding: 48px 32px;
     max-width: 500px;
@@ -175,7 +187,8 @@ body {
 
 /* BOTÃO DE CRIAÇÃO */
 .btn-create-first {
-    background-color: #64B5F6; /* Azul suave do botão "View More" */
+    background-color: #64B5F6;
+    /* Azul suave do botão "View More" */
     color: #FFFFFF;
     border: none;
     padding: 12px 28px;
