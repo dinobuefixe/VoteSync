@@ -1,0 +1,64 @@
+<!DOCTYPE html>
+<html lang="pt">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>VoteSync - Amigos</title>
+    <!-- Importação da fonte Google Inter para um aspeto moderno e limpo -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <!-- Vinculação do ficheiro CSS separado -->
+    <link rel="stylesheet" href="../Styles/friends.css">
+</head>
+
+<body>
+
+    <!-- CABEÇALHO DA PÁGINA (Com o título VoteSync e sem o botão + ao lado do Logout) -->
+    <header class="navbar">
+        <a href="../HTML/index.html" class="logo-area">
+            <img class="logo-icon" src="../IMG/votesync_logo.png" alt="VoteSync logo" />
+            <span class="logo-text">VoteSync</span>
+        </a>
+
+        <div class="search-bar">
+            <span class="search-icon">🔍</span>
+            <input type="text" placeholder="Search for friends">
+        </div>
+
+        <div class="nav-actions">
+            <button class="btn-logout">
+                <img class="logout-icon" src="../IMG/Logout.png" alt="Logout icon" />
+                Logout
+            </button>
+        </div>
+    </header>
+
+    <!-- CONTEÚDO PRINCIPAL -->
+    <main class="main-container">
+        <h1 class="main-title">Friends</h1>
+        <p class="main-subtitle">0 friends in your network</p>
+
+        <!-- SEÇÃO ESTADO VAZIO (Sem amigos ainda) -->
+        <section class="empty-state-container">
+            <div class="empty-state-card">
+                <div class="empty-icon">
+                    <svg width="64" height="64" viewBox="0 0 24 24" fill="none" stroke="#BDB2FF" stroke-width="1.5"
+                        stroke-linecap="round" stroke-linejoin="round">
+                        <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2" />
+                        <circle cx="9" cy="7" r="4" />
+                        <path d="M23 21v-2a4 4 0 0 0-3-3.87" />
+                        <path d="M16 3.13a4 4 0 0 1 0 7.75" />
+                    </svg>
+                </div>
+                <h2>A tua rede de amigos está vazia</h2>
+                <p>Encontra os teus amigos pesquisando por eles na barra superior para os adicionares à tua rede e
+                    começarem a votar em conjunto!</p>
+                <button class="btn-search-trigger"
+                    onclick="document.querySelector('.search-bar input').focus();">Procurar amigos</button>
+            </div>
+        </section>
+    </main>
+
+</body>
+
+</html>
