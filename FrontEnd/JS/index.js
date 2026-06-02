@@ -275,7 +275,7 @@ function restoreSession() {
 	}
 
 	showSession(session.user);
-	setStatus("Session restored.", "is-success");
+	window.location.href = "./dashboard.html";
 }
 
 function handleLoginSubmit(event) {
@@ -293,6 +293,7 @@ function handleLoginSubmit(event) {
 		loginForm.reset();
 		showSession(session.user);
 		setStatus("Login successful.", "is-success");
+		window.location.href = "./dashboard.html";
 	} catch {
 		setStatus("Email or password is incorrect.", "is-error");
 	} finally {
