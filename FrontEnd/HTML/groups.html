@@ -1,0 +1,59 @@
+<!DOCTYPE html>
+<html lang="pt">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>VoteSync - Grupos</title>
+    <!-- Importação da fonte Google Inter para um aspeto moderno e limpo -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <!-- Vinculação do ficheiro CSS separado -->
+    <link rel="stylesheet" href="../Styles/groups.css">
+</head>
+<body>
+
+    <!-- CABEÇALHO DA PÁGINA -->
+    <header class="navbar">
+        <a href="#" class="logo-area">
+            <!-- Ícone VoteSync em SVG -->
+            <svg class="logo-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M9 11l3 3L22 4"/>
+                <path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/>
+            </svg>
+            <span class="logo-text">VoteSync</span>
+        </a>
+        
+        <div class="search-bar">
+            <span class="search-icon">🔍</span>
+            <input type="text" placeholder="Search for friends">
+        </div>
+
+        <div class="nav-actions">
+            <button class="btn-logout">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/>
+                    <polyline points="16 17 21 12 16 7"/>
+                    <line x1="21" y1="12" x2="9" y2="12"/>
+                </svg>
+                Logout
+            </button>
+        </div>
+    </header>
+
+    <!-- CONTEÚDO PRINCIPAL -->
+    <main class="main-container">
+        <h1 class="main-title">Groups</h1>
+        <p class="main-subtitle">0 groups you're part of</p>
+
+        <!-- SEÇÃO ESTADO VAZIO -->
+        <section class="empty-state-container">
+            <div class="empty-state-card">
+                <div class="empty-icon">👥</div>
+                <h2>Ainda não geres nenhum grupo</h2>
+                <p>Cria o teu primeiro grupo para começares a organizar votações e a tomar decisões em conjunto de forma simples e digital.</p>
+                <button class="btn-create-first">Criar o meu primeiro grupo</button>
+            </div>
+        </section>
+    </main>
+
+</body>
+</html>

@@ -1,0 +1,198 @@
+/* RESET DE ESTILOS GERAIS */
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+    font-family: 'Inter', sans-serif;
+}
+
+body {
+    background-color: #F4F0FA; /* Fundo lilás claro idêntico ao da imagem de referência */
+    color: #1A1A1A;
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+}
+
+/* CABEÇALHO / NAVBAR */
+.navbar {
+    background-color: #FFFFFF;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 12px 24px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
+    position: sticky;
+    top: 0;
+    z-index: 100;
+}
+
+.logo-area {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    text-decoration: none;
+    color: inherit;
+}
+
+/* Ícone customizado em SVG para o VoteSync (urna/voto com visto) */
+.logo-icon {
+    width: 32px;
+    height: 32px;
+    color: #4338CA;
+}
+
+.logo-text {
+    font-size: 22px;
+    font-weight: 700;
+    color: #1A1A1A;
+    letter-spacing: -0.5px;
+}
+
+/* BARRA DE PESQUISA */
+.search-bar {
+    position: relative;
+    width: 35%;
+    max-width: 400px;
+}
+
+.search-bar input {
+    width: 100%;
+    padding: 10px 16px 10px 40px;
+    border-radius: 20px;
+    border: 1px solid #E2E8F0;
+    background-color: #E2ECF9; /* Tom azulado suave de pesquisa */
+    font-size: 14px;
+    outline: none;
+    transition: all 0.2s ease;
+}
+
+.search-bar input:focus {
+    border-color: #4338CA;
+    background-color: #FFFFFF;
+    box-shadow: 0 0 0 3px rgba(67, 56, 202, 0.15);
+}
+
+.search-bar input::placeholder {
+    color: #718096;
+}
+
+.search-bar .search-icon {
+    position: absolute;
+    left: 14px;
+    top: 50%;
+    transform: translateY(-50%);
+    font-size: 14px;
+    color: #718096;
+}
+
+/* BOTÕES DE AÇÃO */
+.nav-actions {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+.btn-logout {
+    background-color: #D1D5DB; /* Cinzento do botão logout da imagem */
+    color: #1F2937;
+    border: none;
+    padding: 8px 16px;
+    border-radius: 8px;
+    font-size: 14px;
+    font-weight: 600;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    transition: background 0.2s ease;
+}
+
+.btn-logout:hover {
+    background-color: #9CA3AF;
+}
+
+/* CONTEÚDO PRINCIPAL */
+.main-container {
+    max-width: 834px; /* Otimizado para a largura de tablet da imagem */
+    width: 100%;
+    margin: 40px auto;
+    padding: 0 24px;
+    text-align: center;
+    flex-grow: 1;
+}
+
+.main-title {
+    font-size: 42px;
+    font-weight: 700;
+    color: #000000;
+    margin-bottom: 4px;
+}
+
+.main-subtitle {
+    font-size: 16px;
+    color: #4A5568;
+    margin-bottom: 48px;
+}
+
+/* PAINEL DE ESTADO VAZIO */
+.empty-state-container {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    margin-top: 20px;
+}
+
+.empty-state-card {
+    background-color: #FFFFFF;
+    border: 2px dashed #BDB2FF; /* Limite tracejado suave */
+    border-radius: 24px;
+    padding: 48px 32px;
+    max-width: 500px;
+    width: 100%;
+    box-shadow: 0 10px 25px rgba(157, 134, 240, 0.06);
+}
+
+.empty-icon {
+    font-size: 48px;
+    margin-bottom: 20px;
+    display: inline-block;
+}
+
+.empty-state-card h2 {
+    font-size: 20px;
+    color: #2D3748;
+    margin-bottom: 12px;
+    font-weight: 600;
+}
+
+.empty-state-card p {
+    font-size: 14px;
+    color: #718096;
+    line-height: 1.6;
+    margin-bottom: 28px;
+}
+
+/* BOTÃO DE CRIAÇÃO */
+.btn-create-first {
+    background-color: #64B5F6; /* Azul suave do botão "View More" */
+    color: #FFFFFF;
+    border: none;
+    padding: 12px 28px;
+    border-radius: 20px;
+    font-size: 15px;
+    font-weight: 600;
+    cursor: pointer;
+    box-shadow: 0 4px 10px rgba(100, 181, 246, 0.3);
+    transition: all 0.2s ease;
+}
+
+.btn-create-first:hover {
+    background-color: #42A5F5;
+    transform: translateY(-1px);
+    box-shadow: 0 6px 14px rgba(100, 181, 246, 0.4);
+}
+
+.btn-create-first:active {
+    transform: translateY(0);
+}
