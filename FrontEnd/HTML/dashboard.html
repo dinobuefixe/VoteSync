@@ -46,7 +46,7 @@
     <main class="dashboard">
 
         <!-- Amigos -->
-        <section class="card">
+        <section class="card friends-card">
             <div class="card-header">
                 <h2><i class="fa-regular fa-user"></i> Amigos</h2>
                 <button class="small-btn" type="button">+</button>
@@ -62,29 +62,25 @@
         </section>
 
         <!-- Próximo Destino -->
-        <section class="card">
+        <section class="card decision-card-main">
             <div class="card-header">
                 <h2>Decisões Criadas</h2>
-                <button class="decision-create-btn" type="button">+ (Criar novo)</button>
+                <div class="decision-actions">
+                    <button class="decision-view-all-btn" id="decision-view-all-btn" type="button" hidden>Ver todas</button>
+                    <button class="decision-create-btn" type="button">+ (Criar novo)</button>
+                </div>
             </div>
 
-            <div class="info-box">
-                <span>Estado:</span>
-                <strong>Sem decisões</strong>
+            <div class="decision-summary">
+                <span id="decision-summary-text">Sem decisões</span>
             </div>
 
-            <div class="winner-box">
-                <small>Quando criares uma decisão, vai aparecer aqui.</small>
-                <h3>-</h3>
-            </div>
-
-            <button class="view-btn decision-view-more-btn" type="button">
-                View More <i class="fa-solid fa-angle-right"></i>
-            </button>
+            <p class="decision-list-empty" id="decision-list-empty">Quando criares uma decisão, vai aparecer aqui.</p>
+            <div class="decision-list" id="decision-list"></div>
         </section>
 
         <!-- Grupos -->
-        <section class="card">
+        <section class="card groups-card">
             <div class="card-header">
                 <h2><i class="fa-regular fa-user"></i> Grupos</h2>
                 <button class="small-btn" type="button">+</button>
@@ -95,28 +91,6 @@
             </div>
 
             <button class="view-btn" id="groups-view-more-btn" type="button">
-                View More <i class="fa-solid fa-angle-right"></i>
-            </button>
-        </section>
-
-        <!-- Restaurante -->
-        <section class="card">
-            <div class="card-header">
-                <h2>Decisões Criadas</h2>
-                <button class="decision-create-btn" type="button">+ (Criar novo)</button>
-            </div>
-
-            <div class="info-box">
-                <span>Estado:</span>
-                <strong>Sem decisões</strong>
-            </div>
-
-            <div class="winner-box">
-                <small>Quando criares uma decisão, vai aparecer aqui.</small>
-                <h3>-</h3>
-            </div>
-
-            <button class="view-btn decision-view-more-btn" type="button">
                 View More <i class="fa-solid fa-angle-right"></i>
             </button>
         </section>

@@ -5,7 +5,6 @@ const DECISIONS_KEY = "votesync.decisions";
 const logoutButton = document.querySelector("#dashboard-logout-btn");
 const friendsViewMoreButton = document.querySelector("#friends-view-more-btn");
 const groupsViewMoreButton = document.querySelector("#groups-view-more-btn");
-const decisionViewMoreButtons = document.querySelectorAll(".decision-view-more-btn");
 const decisionCreateButtons = document.querySelectorAll(".decision-create-btn");
 const decisionModalOverlay = document.querySelector("#decision-modal-overlay");
 const decisionModalCloseButton = document.querySelector("#decision-modal-close");
@@ -18,8 +17,13 @@ const decisionFormMessage = document.querySelector("#decision-form-message");
 const decisionOptionsList = document.querySelector("#decision-options-list");
 const decisionAddOptionButton = document.querySelector("#decision-add-option-btn");
 const decisionCreateConfirmButton = document.querySelector("#decision-create-confirm-btn");
+const decisionSummaryText = document.querySelector("#decision-summary-text");
+const decisionListEmpty = document.querySelector("#decision-list-empty");
+const decisionList = document.querySelector("#decision-list");
+const decisionViewAllButton = document.querySelector("#decision-view-all-btn");
 
 const OPTION_ICONS = ["fa-sun", "fa-building-columns", "fa-heart", "fa-mug-hot", "fa-film", "fa-gamepad"];
+const MAX_DASHBOARD_DECISIONS = 3;
 
 function getSession() {
 	const raw = localStorage.getItem(SESSION_KEY);
@@ -90,6 +94,10 @@ function redirectToGroups() {
 
 function redirectToDecisionTemplate() {
 	window.location.href = "./decisionMaking.html";
+}
+
+function redirectToAllDecisions() {
+	window.location.href = "./decisions.html";
 }
 
 function openDecisionModal() {
@@ -229,57 +237,85 @@ function addDecisionOption() {
 	}
 }
 
+function createDecisionListItem(decision) {
+	const optionsCount = Array.isArray(decision.options) ? decision.options.length : 0;
+	const item = document.createElement("article");
+	item.className = "decision-list-item";
+
+	const infoBox = document.createElement("div");
+	infoBox.className = "info-box";
+
+	const infoLabel = document.createElement("span");
+	infoLabel.textContent = "Estado:";
+
+	const infoValue = document.createElement("strong");
+	infoValue.textContent = "Decisão criada";
+
+	infoBox.appendChild(infoLabel);
+	infoBox.appendChild(infoValue);
+
+	const winnerBox = document.createElement("div");
+	winnerBox.className = "winner-box";
+
+	const winnerDescription = document.createElement("small");
+	winnerDescription.textContent = `${optionsCount} opções prontas para votação.`;
+
+	const winnerValue = document.createElement("h3");
+	winnerValue.textContent = decision.title || "Decisão sem título";
+
+	winnerBox.appendChild(winnerDescription);
+	winnerBox.appendChild(winnerValue);
+
+	const viewMoreButton = document.createElement("button");
+	viewMoreButton.className = "view-btn decision-view-more-btn";
+	viewMoreButton.type = "button";
+	viewMoreButton.innerHTML = 'View More <i class="fa-solid fa-angle-right"></i>';
+	viewMoreButton.addEventListener("click", redirectToDecisionTemplate);
+
+	item.appendChild(infoBox);
+	item.appendChild(winnerBox);
+	item.appendChild(viewMoreButton);
+
+	return item;
+}
+
 function updateDecisionCards() {
 	const decisions = getDecisions();
+	const decisionsToDisplay = decisions.slice(-MAX_DASHBOARD_DECISIONS).reverse();
 
-	const cards = Array.from(document.querySelectorAll(".card")).filter((card) => {
-		const heading = card.querySelector("h2");
-		return heading && heading.textContent.includes("Decisões Criadas");
-	});
-
-	cards.forEach((card, index) => {
-		const decision = decisions[index] || null;
-		const statusValue = card.querySelector(".info-box strong");
-		const winnerDescription = card.querySelector(".winner-box small");
-		const winnerValue = card.querySelector(".winner-box h3");
-
-		if (!decision) {
-			if (index === 0) {
-				card.style.display = "";
-
-				if (statusValue) {
-					statusValue.textContent = "Sem decisões";
-				}
-
-				if (winnerDescription) {
-					winnerDescription.textContent = "Quando criares uma decisão, vai aparecer aqui.";
-				}
-
-				if (winnerValue) {
-					winnerValue.textContent = "-";
-				}
-			} else {
-				card.style.display = "none";
-			}
-
-			return;
+	if (decisionSummaryText) {
+		if (decisions.length === 0) {
+			decisionSummaryText.textContent = "Sem decisões";
+		} else if (decisions.length === 1) {
+			decisionSummaryText.textContent = "1 decisão criada";
+		} else {
+			decisionSummaryText.textContent = `${decisions.length} decisões criadas`;
 		}
+	}
 
-		card.style.display = "";
+	if (decisionViewAllButton) {
+		decisionViewAllButton.hidden = decisions.length <= MAX_DASHBOARD_DECISIONS;
+	}
 
-		const optionsCount = Array.isArray(decision.options) ? decision.options.length : 0;
+	if (!decisionList) {
+		return;
+	}
 
-		if (statusValue) {
-			statusValue.textContent = "Decisão criada";
+	decisionList.innerHTML = "";
+
+	if (decisions.length === 0) {
+		if (decisionListEmpty) {
+			decisionListEmpty.hidden = false;
 		}
+		return;
+	}
 
-		if (winnerDescription) {
-			winnerDescription.textContent = `${optionsCount} opções prontas para votação.`;
-		}
+	if (decisionListEmpty) {
+		decisionListEmpty.hidden = true;
+	}
 
-		if (winnerValue) {
-			winnerValue.textContent = decision.title || "Decisão sem título";
-		}
+	decisionsToDisplay.forEach((decision) => {
+		decisionList.appendChild(createDecisionListItem(decision));
 	});
 }
 
@@ -372,16 +408,14 @@ if (groupsViewMoreButton) {
 	groupsViewMoreButton.addEventListener("click", redirectToGroups);
 }
 
-if (decisionViewMoreButtons.length > 0) {
-	decisionViewMoreButtons.forEach((button) => {
-		button.addEventListener("click", redirectToDecisionTemplate);
-	});
-}
-
 if (decisionCreateButtons.length > 0) {
 	decisionCreateButtons.forEach((button) => {
 		button.addEventListener("click", openDecisionModal);
 	});
+}
+
+if (decisionViewAllButton) {
+	decisionViewAllButton.addEventListener("click", redirectToAllDecisions);
 }
 
 if (decisionModalCloseButton) {

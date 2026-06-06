@@ -21,13 +21,13 @@ body {
     color: var(--text-main);
     background: #d3d3d6;
     min-height: 100vh;
-    padding: 1rem;
+    padding: 0;
 }
 
 .page-shell {
-    width: min(100%, 1360px);
-    margin: 0 auto;
-    border: 1px solid var(--line);
+    width: 100%;
+    min-height: 100vh;
+    border: none;
     background: var(--surface);
 }
 
@@ -110,6 +110,7 @@ body {
 
 .content {
     padding: 1.25rem;
+    min-height: calc(100vh - 72px);
 }
 
 .back-link {
@@ -266,6 +267,16 @@ body {
     color: #3d4058;
 }
 
+@media (max-width: 1200px) {
+    .brand {
+        font-size: 1.55rem;
+    }
+
+    .search-box {
+        width: min(360px, 38vw);
+    }
+}
+
 @media (max-width: 980px) {
     .main-header {
         flex-wrap: wrap;
@@ -293,5 +304,35 @@ body {
     .decision-footer {
         flex-direction: column;
         align-items: flex-start;
+    }
+}
+
+@media (max-width: 640px) {
+    body {
+        padding: 0;
+    }
+
+    .page-shell {
+        border-left: none;
+        border-right: none;
+        width: 100%;
+    }
+
+    .content {
+        padding: 0.9rem;
+    }
+
+    .decision-card {
+        border-radius: 18px;
+        padding: 1rem;
+    }
+
+    .option-card {
+        min-height: 68px;
+    }
+
+    .stats {
+        width: 100%;
+        justify-content: space-between;
     }
 }

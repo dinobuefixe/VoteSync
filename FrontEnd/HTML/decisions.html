@@ -1,0 +1,58 @@
+<!DOCTYPE html>
+<html lang="pt">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>VoteSync - Todas as Decisões</title>
+    <link rel="stylesheet" href="../Styles/decisions.css">
+
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link
+        href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700;800&family=Sora:wght@400;600;700&display=swap"
+        rel="stylesheet">
+
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+</head>
+
+<body>
+    <header class="navbar">
+        <div class="brand">
+            <span class="brand-icon" aria-hidden="true">
+                <a href="../HTML/index.html"><img src="../IMG/votesync_logo.png" alt="VoteSync logo"></a>
+            </span>
+            <span>VoteSync</span>
+        </div>
+
+        <div class="search-box">
+            <i class="fa-solid fa-magnifying-glass"></i>
+            <input type="text" placeholder="Search for friends">
+        </div>
+
+        <button class="logout-btn" id="decisions-logout-btn" type="button">
+            <img class="logout-icon" src="../IMG/Logout.png" alt="Logout icon">
+            Logout
+        </button>
+    </header>
+
+    <main class="decisions-page">
+        <section class="decisions-card">
+            <div class="card-header">
+                <h1>Todas as Decisões</h1>
+                <a class="back-link" href="../HTML/dashboard.html">Voltar ao dashboard</a>
+            </div>
+
+            <div class="decision-summary">
+                <span id="decisions-summary-text">Sem decisões</span>
+            </div>
+
+            <p class="decision-list-empty" id="decisions-list-empty">Ainda não existem decisões criadas.</p>
+            <div class="decision-list" id="decisions-list"></div>
+        </section>
+    </main>
+
+    <script src="../JS/decisions.js"></script>
+</body>
+
+</html>
