@@ -10,6 +10,8 @@ const decisionOptionsContainer = document.querySelector("#decision-options-conta
 const decisionTotalVotes = document.querySelector("#decision-total-votes");
 const decisionTotalOptions = document.querySelector("#decision-total-options");
 const decisionCreatedBy = document.querySelector("#decision-created-by");
+const decisionTargetGroup = document.querySelector("#decision-target-group");
+const decisionTargetFriends = document.querySelector("#decision-target-friends");
 const logoutButton = document.querySelector("#decision-logout-btn");
 
 function getSession() {
@@ -139,6 +141,52 @@ function renderOptionCard(option, index) {
     return card;
 }
 
+function normalizeEntityName(entity, fallbackLabel) {
+    if (typeof entity === "string") {
+        return entity;
+    }
+
+    if (!entity || typeof entity !== "object") {
+        return fallbackLabel;
+    }
+
+    return entity.name || entity.title || entity.label || fallbackLabel;
+}
+
+function renderDecisionTargets(decision) {
+    if (decisionTargetGroup) {
+        const groupName = decision && decision.targetGroup
+            ? normalizeEntityName(decision.targetGroup, "")
+            : "";
+        decisionTargetGroup.textContent = groupName || "Sem grupo associado";
+    }
+
+    if (!decisionTargetFriends) {
+        return;
+    }
+
+    decisionTargetFriends.innerHTML = "";
+
+    const targetFriends = decision && Array.isArray(decision.targetFriends)
+        ? decision.targetFriends.map((friend) => normalizeEntityName(friend, "")).filter((name) => name.length > 0)
+        : [];
+
+    if (targetFriends.length === 0) {
+        const empty = document.createElement("span");
+        empty.className = "friend-empty";
+        empty.textContent = "Sem amigos associados";
+        decisionTargetFriends.appendChild(empty);
+        return;
+    }
+
+    targetFriends.forEach((friendName) => {
+        const chip = document.createElement("span");
+        chip.className = "friend-chip";
+        chip.textContent = friendName;
+        decisionTargetFriends.appendChild(chip);
+    });
+}
+
 function renderDecisionTemplate() {
     const decision = getLatestDecision();
 
@@ -174,6 +222,8 @@ function renderDecisionTemplate() {
         if (decisionCreatedBy) {
             decisionCreatedBy.textContent = "-";
         }
+
+        renderDecisionTargets(null);
 
         return;
     }
@@ -231,6 +281,8 @@ function renderDecisionTemplate() {
     if (decisionCreatedBy) {
         decisionCreatedBy.textContent = decision.createdBy || "Utilizador";
     }
+
+    renderDecisionTargets(decision);
 }
 
 function handleLogout() {

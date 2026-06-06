@@ -6,6 +6,9 @@
 |Github Copilot
 |Github Copilot
 |Github Copilot
+|Github Copilot
+|Github Copilot
+|Github Copilot
 
 
 |Context/Area
@@ -14,20 +17,20 @@
 | Creating new modal for "Create new" on Created Decisions and View more Structure and Styling
 |Fix decision cards rendering and creation sync
 
-
-|Implement dashboard decision cap and all-decisions page
+|Implement dashboard decision card and all-decisions page
 |Enhance decisions UX with alerts, animations, and modal editing
+|Refine dashboard decision status presentation
 |
-|
+
+
 |Problem
 | Couldnt create a polished main page and later needed help implementing a frontend-only Login/Register authentication flow.
 | Couldnt create a polished dashboard , groups , friends page
 | Couldnt create a polished DecisionMaking Page and modal
 | Try to make the decisions making automatic (Each decision created create another card with 
 the information) but i couldnt alone
-
-
-|
+|Couldnt implement dashboard decision card and all decisions page
+|Couldnt implement sweetAlert on (Create,Edit,Delete) Decisions and futher animations for both and Apresentation
 |
 |
 |
@@ -40,7 +43,7 @@ the information) but i couldnt alone
 ||Needed help creating the structure and layout of the webpage (dashboard.html) , (groups.html) , (friends.html), styling (dashboard.css) , (groups.css) , (friends.css)
 | Need Help creating the modal and the DecisionMaking web page
 | I tried implementing using AI and see some documention but i couldnt  
-|
+|Needed Help with github Copilot for implementing and making connections with the decisions cards and animations for the creating editing and deleting icones,
 
 
 
@@ -50,7 +53,8 @@ the information) but i couldnt alone
 | Generated the HTML structure and CSS styling that was reviewed and adapted for the project.
 | Generated The web page and the modal with JS Configuration
 |Generated the solution for my problem!
-
+|Generated the conections needed between the decision making modal with the dashboard card and animated buttons
+|
 
 
 Notes

@@ -176,6 +176,57 @@ body {
     max-width: 900px;
 }
 
+.participants-section {
+    display: grid;
+    grid-template-columns: 1fr 1.6fr;
+    gap: 0.8rem;
+    margin-bottom: 1rem;
+}
+
+.participant-block {
+    background: rgba(255, 255, 255, 0.48);
+    border: 1px solid rgba(255, 255, 255, 0.58);
+    border-radius: 14px;
+    padding: 0.65rem 0.75rem;
+}
+
+.participant-label {
+    font-family: var(--font-ui);
+    font-size: 0.78rem;
+    color: #5a6280;
+    margin-bottom: 0.45rem;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.35rem;
+}
+
+.participant-group {
+    font-family: var(--font-ui);
+    font-size: 0.9rem;
+    color: #1f2942;
+}
+
+.participant-friends {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.35rem;
+}
+
+.friend-chip {
+    border-radius: 999px;
+    padding: 0.2rem 0.55rem;
+    background: #e3e7ff;
+    color: #334170;
+    font-family: var(--font-ui);
+    font-size: 0.74rem;
+}
+
+.friend-empty {
+    font-family: var(--font-ui);
+    color: #6a7288;
+    font-size: 0.84rem;
+}
+
 .divider {
     border: none;
     border-top: 1px solid rgba(255, 255, 255, 0.42);
@@ -295,6 +346,10 @@ body {
 
     .decision-topbar {
         flex-direction: column;
+    }
+
+    .participants-section {
+        grid-template-columns: 1fr;
     }
 
     .options-grid {

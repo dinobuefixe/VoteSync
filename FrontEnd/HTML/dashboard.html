@@ -85,12 +85,11 @@
         <section class="card groups-card">
             <div class="card-header">
                 <h2><i class="fa-regular fa-user"></i> Grupos</h2>
-                <button class="small-btn" type="button">+</button>
+                <button class="small-btn" id="groups-create-btn" type="button">+</button>
             </div>
 
-            <div class="list-item">
-                <span>Sem grupos</span>
-            </div>
+            <p class="groups-empty" id="groups-card-empty">Sem grupos</p>
+            <div class="groups-preview-list" id="groups-preview-list"></div>
 
             <button class="view-btn" id="groups-view-more-btn" type="button">
                 View More <i class="fa-solid fa-angle-right"></i>
@@ -116,6 +115,22 @@
             <div class="decision-end-date-row">
                 <label class="decision-end-date-label" for="decision-end-date-input">Data de término</label>
                 <input class="decision-end-date-input" id="decision-end-date-input" type="date">
+            </div>
+
+            <div class="decision-targets-row">
+                <div class="decision-target-field">
+                    <label class="decision-end-date-label" for="decision-group-select">Selecionar grupo</label>
+                    <select class="decision-select" id="decision-group-select">
+                        <option value="">Sem grupo selecionado</option>
+                    </select>
+                </div>
+
+                <div class="decision-target-field">
+                    <label class="decision-end-date-label" for="decision-friends-select">Selecionar amigos</label>
+                    <select class="decision-select decision-select-multiple" id="decision-friends-select"
+                        multiple></select>
+                    <small class="decision-target-hint">Podes selecionar vários amigos (Ctrl/Cmd + clique).</small>
+                </div>
             </div>
 
             <textarea class="decision-textarea-description" id="decision-description-input"

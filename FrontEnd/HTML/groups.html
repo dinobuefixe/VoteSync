@@ -38,20 +38,69 @@
 
     <!-- CONTEÚDO PRINCIPAL -->
     <main class="main-container">
-        <h1 class="main-title">Groups</h1>
-        <p class="main-subtitle">0 groups you're part of</p>
+        <div class="title-row">
+            <h1 class="main-title">Groups</h1>
+            <button class="btn-create-group" id="open-create-group-modal" type="button">
+                <i class="fa-solid fa-plus"></i>
+                Criar grupo
+            </button>
+        </div>
+        <p class="main-subtitle" id="groups-subtitle">0 groups you're part of</p>
 
         <!-- SEÇÃO ESTADO VAZIO -->
-        <section class="empty-state-container">
+        <section class="empty-state-container" id="groups-empty-state">
             <div class="empty-state-card">
                 <div class="empty-icon">👥</div>
                 <h2>Ainda não geres nenhum grupo</h2>
                 <p>Cria o teu primeiro grupo para começares a organizar votações e a tomar decisões em conjunto de forma
                     simples e digital.</p>
-                <button class="btn-create-first">Criar o meu primeiro grupo</button>
+                <button class="btn-create-first" id="open-create-group-empty" type="button">Criar o meu primeiro
+                    grupo</button>
             </div>
         </section>
+
+        <section class="groups-list" id="groups-list" hidden></section>
     </main>
+
+    <div class="group-modal-overlay" id="group-modal-overlay" hidden>
+        <div class="group-modal" role="dialog" aria-modal="true" aria-labelledby="group-modal-title">
+            <div class="group-modal-header">
+                <h2 id="group-modal-title">Criar novo grupo</h2>
+                <button class="group-modal-close" id="close-group-modal" type="button" aria-label="Fechar modal">
+                    <i class="fa-solid fa-xmark"></i>
+                </button>
+            </div>
+
+            <form id="group-form" class="group-form">
+                <label class="group-field">
+                    <span>Nome do grupo</span>
+                    <input type="text" id="group-name-input" placeholder="Ex.: Equipa de Viagem" maxlength="60"
+                        required>
+                </label>
+
+                <label class="group-field">
+                    <span>Descrição</span>
+                    <textarea id="group-description-input" rows="3" maxlength="240"
+                        placeholder="Objetivo do grupo (opcional)"></textarea>
+                </label>
+
+                <label class="group-field">
+                    <span>Selecionar amigos</span>
+                    <select id="group-friends-select" class="group-friends-select" multiple></select>
+                    <small class="group-field-hint">Usa Ctrl (ou Cmd no Mac) para selecionar vários amigos.</small>
+                </label>
+
+                <p id="group-form-message" class="group-form-message" aria-live="polite"></p>
+
+                <div class="group-form-actions">
+                    <button class="btn-secondary" id="cancel-group-modal" type="button">Cancelar</button>
+                    <button class="btn-primary" id="group-modal-submit" type="submit">Criar grupo</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <script src="../JS/groups.js"></script>
 
 </body>
 

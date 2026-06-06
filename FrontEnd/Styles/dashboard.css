@@ -267,6 +267,60 @@ body {
     color: var(--text-soft);
 }
 
+.groups-empty {
+    font-family: var(--font-ui);
+    font-size: var(--text-sm);
+    color: var(--text-soft);
+}
+
+.groups-preview-list {
+    display: flex;
+    flex-direction: column;
+    gap: 0.55rem;
+}
+
+.group-preview-item {
+    background: var(--soft-box);
+    border-radius: 10px;
+    padding: 0.65rem 0.8rem;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 0.75rem;
+}
+
+.group-preview-main {
+    display: flex;
+    flex-direction: column;
+    gap: 0.1rem;
+    min-width: 0;
+}
+
+.group-preview-name {
+    font-family: var(--font-ui);
+    font-size: 0.85rem;
+    color: #1d2740;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.group-preview-meta {
+    font-family: var(--font-ui);
+    font-size: 0.74rem;
+    color: #65708a;
+}
+
+.group-preview-badge {
+    font-family: var(--font-ui);
+    font-size: 0.72rem;
+    color: #31446f;
+    background: #dde8ff;
+    border-radius: 999px;
+    padding: 0.15rem 0.48rem;
+    white-space: nowrap;
+}
+
 .decision-list {
     display: flex;
     flex-direction: column;
@@ -526,6 +580,44 @@ body {
     margin-bottom: 0.9rem;
 }
 
+.decision-targets-row {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 0.8rem;
+    margin-bottom: 0.9rem;
+}
+
+.decision-target-field {
+    display: flex;
+    flex-direction: column;
+    gap: 0.35rem;
+}
+
+.decision-select {
+    border: 1px solid #dde2ee;
+    border-radius: 10px;
+    padding: 0.5rem 0.6rem;
+    font-family: var(--font-ui);
+    font-size: 0.9rem;
+    color: #333333;
+    background: #fbfcff;
+}
+
+.decision-select:focus {
+    outline: 2px solid rgba(47, 128, 237, 0.22);
+    border-color: #7f8ce8;
+}
+
+.decision-select-multiple {
+    min-height: 90px;
+}
+
+.decision-target-hint {
+    font-family: var(--font-ui);
+    font-size: 0.72rem;
+    color: #6e7488;
+}
+
 .decision-end-date-label {
     font-family: var(--font-ui);
     font-size: 0.9rem;
@@ -757,6 +849,10 @@ body {
     .decision-end-date-row {
         flex-direction: column;
         align-items: flex-start;
+    }
+
+    .decision-targets-row {
+        grid-template-columns: 1fr;
     }
 
     .decision-end-date-input {
