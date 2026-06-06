@@ -224,6 +224,20 @@ body {
     font-size: 0.8rem;
     font-weight: 600;
     padding: 0.4rem 0.7rem;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.38rem;
+    transition: transform 0.14s ease, box-shadow 0.2s ease, filter 0.2s ease;
+}
+
+.decision-create-btn:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 9px 16px -10px rgba(52, 70, 210, 0.85);
+    filter: brightness(1.06);
+}
+
+.decision-create-btn:active {
+    transform: translateY(0) scale(0.98);
 }
 
 .decision-view-all-btn {
@@ -323,6 +337,13 @@ body {
     font-weight: 700;
 }
 
+.decision-created-date {
+    margin-top: 0.4rem;
+    font-family: var(--font-ui);
+    font-size: var(--text-xs);
+    color: #4b5772;
+}
+
 .view-btn {
     margin-top: auto;
     border: none;
@@ -339,6 +360,34 @@ body {
     justify-content: center;
     gap: var(--space-2);
     box-shadow: 0 8px 15px rgba(84, 178, 238, 0.25);
+}
+
+.decision-item-actions {
+    display: flex;
+    gap: 0.5rem;
+}
+
+.decision-action-btn {
+    flex: 1;
+    border-radius: 10px;
+    border: 1px solid transparent;
+    cursor: pointer;
+    font-family: var(--font-ui);
+    font-size: 0.82rem;
+    font-weight: 600;
+    padding: 0.55rem 0.65rem;
+}
+
+.decision-edit-btn {
+    background: #e6eef9;
+    color: #203452;
+    border-color: #9cb4d7;
+}
+
+.decision-remove-btn {
+    background: #fce8ea;
+    color: #9f2635;
+    border-color: #f0aeb7;
 }
 
 .decision-modal-overlay {

@@ -52,6 +52,38 @@
         </section>
     </main>
 
+    <div class="decision-edit-overlay" id="decision-edit-overlay" hidden>
+        <div class="decision-edit-modal" role="dialog" aria-modal="true" aria-labelledby="decision-edit-title">
+            <div class="decision-edit-header">
+                <h2 id="decision-edit-title">Alterar decisão</h2>
+                <button class="decision-edit-close" id="decision-edit-close" type="button"
+                    aria-label="Fechar">x</button>
+            </div>
+
+            <div class="decision-edit-body">
+                <label for="decision-edit-title-input">Titulo</label>
+                <input id="decision-edit-title-input" type="text" placeholder="Titulo da decisao">
+
+                <label for="decision-edit-description-input">Descricao</label>
+                <textarea id="decision-edit-description-input" placeholder="Descricao da decisao"></textarea>
+
+                <label for="decision-edit-end-date-input">Data de termino</label>
+                <input id="decision-edit-end-date-input" type="date">
+
+                <label for="decision-edit-options-input">Opcoes (separadas por virgula)</label>
+                <textarea id="decision-edit-options-input" placeholder="Opcao 1, Opcao 2, Opcao 3"></textarea>
+
+                <p class="decision-edit-message" id="decision-edit-message" aria-live="polite"></p>
+            </div>
+
+            <div class="decision-edit-actions">
+                <button class="decision-edit-cancel" id="decision-edit-cancel" type="button">Cancelar</button>
+                <button class="decision-edit-save" id="decision-edit-save" type="button">Guardar alteracoes</button>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
     <script src="../JS/decisions.js"></script>
 </body>
 

@@ -25,6 +25,10 @@ const decisionViewAllButton = document.querySelector("#decision-view-all-btn");
 const OPTION_ICONS = ["fa-sun", "fa-building-columns", "fa-heart", "fa-mug-hot", "fa-film", "fa-gamepad"];
 const MAX_DASHBOARD_DECISIONS = 3;
 
+function hasSwal() {
+	return typeof window !== "undefined" && typeof window.Swal !== "undefined";
+}
+
 function getSession() {
 	const raw = localStorage.getItem(SESSION_KEY);
 	if (!raw) {
@@ -100,9 +104,24 @@ function redirectToAllDecisions() {
 	window.location.href = "./decisions.html";
 }
 
-function openDecisionModal() {
+async function openDecisionModal() {
 	if (!decisionModalOverlay) {
 		return;
+	}
+
+	if (hasSwal()) {
+		const result = await window.Swal.fire({
+			title: "Criar nova decisão?",
+			text: "Vamos abrir o formulário de criação.",
+			icon: "question",
+			showCancelButton: true,
+			confirmButtonText: "Continuar",
+			cancelButtonText: "Cancelar"
+		});
+
+		if (!result.isConfirmed) {
+			return;
+		}
 	}
 
 	setDecisionDate();
@@ -270,7 +289,10 @@ function createDecisionListItem(decision) {
 	viewMoreButton.className = "view-btn decision-view-more-btn";
 	viewMoreButton.type = "button";
 	viewMoreButton.innerHTML = 'View More <i class="fa-solid fa-angle-right"></i>';
-	viewMoreButton.addEventListener("click", redirectToDecisionTemplate);
+	viewMoreButton.addEventListener("click", () => {
+		saveLatestDecision(decision);
+		redirectToDecisionTemplate();
+	});
 
 	item.appendChild(infoBox);
 	item.appendChild(winnerBox);
@@ -281,7 +303,10 @@ function createDecisionListItem(decision) {
 
 function updateDecisionCards() {
 	const decisions = getDecisions();
-	const decisionsToDisplay = decisions.slice(-MAX_DASHBOARD_DECISIONS).reverse();
+	const decisionsToDisplay = decisions
+		.map((decision, index) => ({ decision, index }))
+		.slice(-MAX_DASHBOARD_DECISIONS)
+		.reverse();
 
 	if (decisionSummaryText) {
 		if (decisions.length === 0) {
@@ -291,10 +316,6 @@ function updateDecisionCards() {
 		} else {
 			decisionSummaryText.textContent = `${decisions.length} decisões criadas`;
 		}
-	}
-
-	if (decisionViewAllButton) {
-		decisionViewAllButton.hidden = decisions.length <= MAX_DASHBOARD_DECISIONS;
 	}
 
 	if (!decisionList) {
@@ -314,8 +335,8 @@ function updateDecisionCards() {
 		decisionListEmpty.hidden = true;
 	}
 
-	decisionsToDisplay.forEach((decision) => {
-		decisionList.appendChild(createDecisionListItem(decision));
+	decisionsToDisplay.forEach((entry) => {
+		decisionList.appendChild(createDecisionListItem(entry.decision));
 	});
 }
 
@@ -331,6 +352,9 @@ function handleCreateDecision() {
 
 	if (!title) {
 		setDecisionMessage("Preenche o título da decisão.", "error");
+		if (hasSwal()) {
+			window.Swal.fire({ icon: "warning", title: "Título obrigatório", text: "Preenche o título da decisão." });
+		}
 		if (decisionTitleInput) {
 			decisionTitleInput.focus();
 		}
@@ -339,11 +363,17 @@ function handleCreateDecision() {
 
 	if (options.length < 2) {
 		setDecisionMessage("Adiciona pelo menos 2 opções para criar a decisão.", "error");
+		if (hasSwal()) {
+			window.Swal.fire({ icon: "warning", title: "Opções insuficientes", text: "Adiciona pelo menos 2 opções para criar a decisão." });
+		}
 		return;
 	}
 
 	if (!endDate) {
 		setDecisionMessage("Define uma data de término para a decisão.", "error");
+		if (hasSwal()) {
+			window.Swal.fire({ icon: "warning", title: "Data obrigatória", text: "Define uma data de término para a decisão." });
+		}
 		if (decisionEndDateInput) {
 			decisionEndDateInput.focus();
 		}
@@ -352,6 +382,9 @@ function handleCreateDecision() {
 
 	if (endDate < getTodayIsoDate()) {
 		setDecisionMessage("A data de término não pode ser no passado.", "error");
+		if (hasSwal()) {
+			window.Swal.fire({ icon: "warning", title: "Data inválida", text: "A data de término não pode ser no passado." });
+		}
 		if (decisionEndDateInput) {
 			decisionEndDateInput.focus();
 		}
@@ -375,6 +408,15 @@ function handleCreateDecision() {
 
 	updateDecisionCards();
 	setDecisionMessage("Decisão criada com sucesso.", "success");
+	if (hasSwal()) {
+		window.Swal.fire({
+			icon: "success",
+			title: "Decisão criada",
+			text: "A nova decisão foi criada com sucesso.",
+			timer: 1700,
+			showConfirmButton: false
+		});
+	}
 	closeDecisionModal();
 	resetDecisionForm();
 }
