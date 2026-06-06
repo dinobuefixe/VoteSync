@@ -1,5 +1,6 @@
 const SESSION_KEY = "votesync.session";
 const DECISION_TEMPLATE_KEY = "votesync.decision.latest";
+const DECISIONS_KEY = "votesync.decisions";
 
 const decisionTitle = document.querySelector("#decision-title");
 const decisionDescription = document.querySelector("#decision-description");
@@ -39,39 +40,36 @@ function ensureAuthenticated() {
     }
 }
 
-function getLatestDecision() {
-    const raw = localStorage.getItem(DECISION_TEMPLATE_KEY);
+function getDecisions() {
+    const raw = localStorage.getItem(DECISIONS_KEY);
     if (!raw) {
-        return {
-            title: "Decisão sem título",
-            description: "Ainda não criaste nenhuma decisão.",
-            date: getTodayDate(),
-            options: [{ name: "Sem opções", votes: 0 }],
-            createdBy: "Utilizador"
-        };
+        return [];
     }
 
     try {
         const parsed = JSON.parse(raw);
-        if (!parsed || !Array.isArray(parsed.options) || parsed.options.length === 0) {
-            return {
-                title: parsed && parsed.title ? parsed.title : "Decisão sem título",
-                description: parsed && parsed.description ? parsed.description : "Sem descrição disponível.",
-                date: parsed && parsed.date ? parsed.date : getTodayDate(),
-                options: [{ name: "Sem opções", votes: 0 }],
-                createdBy: parsed && parsed.createdBy ? parsed.createdBy : "Utilizador"
-            };
-        }
-
-        return parsed;
+        return Array.isArray(parsed) ? parsed : [];
     } catch {
-        return {
-            title: "Decisão sem título",
-            description: "Sem descrição disponível.",
-            date: getTodayDate(),
-            options: [{ name: "Sem opções", votes: 0 }],
-            createdBy: "Utilizador"
-        };
+        return [];
+    }
+}
+
+function getLatestDecision() {
+    const decisions = getDecisions();
+    if (decisions.length > 0) {
+        return decisions[decisions.length - 1];
+    }
+
+    const raw = localStorage.getItem(DECISION_TEMPLATE_KEY);
+    if (!raw) {
+        return null;
+    }
+
+    try {
+        const parsed = JSON.parse(raw);
+        return parsed || null;
+    } catch {
+        return null;
     }
 }
 
@@ -144,6 +142,44 @@ function renderOptionCard(option, index) {
 function renderDecisionTemplate() {
     const decision = getLatestDecision();
 
+    if (!decision) {
+        if (decisionTitle) {
+            decisionTitle.textContent = "Sem decisões criadas";
+        }
+
+        if (decisionDescription) {
+            decisionDescription.textContent = "Cria uma decisão no dashboard para ela aparecer aqui.";
+        }
+
+        if (decisionDate) {
+            decisionDate.textContent = "--/--/----";
+        }
+
+        if (decisionTimeLeft) {
+            decisionTimeLeft.textContent = "Sem prazo";
+        }
+
+        if (decisionOptionsContainer) {
+            decisionOptionsContainer.innerHTML = "";
+        }
+
+        if (decisionTotalVotes) {
+            decisionTotalVotes.textContent = "0";
+        }
+
+        if (decisionTotalOptions) {
+            decisionTotalOptions.textContent = "0";
+        }
+
+        if (decisionCreatedBy) {
+            decisionCreatedBy.textContent = "-";
+        }
+
+        return;
+    }
+
+    const options = Array.isArray(decision.options) ? decision.options : [];
+
     if (decisionTitle) {
         decisionTitle.textContent = decision.title || "Decisão sem título";
     }
@@ -174,12 +210,12 @@ function renderDecisionTemplate() {
 
     if (decisionOptionsContainer) {
         decisionOptionsContainer.innerHTML = "";
-        decision.options.forEach((option, index) => {
+        options.forEach((option, index) => {
             decisionOptionsContainer.appendChild(renderOptionCard(option, index));
         });
     }
 
-    const totalVotes = decision.options.reduce((sum, option) => {
+    const totalVotes = options.reduce((sum, option) => {
         const value = Number.isFinite(option.votes) ? option.votes : 0;
         return sum + Math.max(0, value);
     }, 0);
@@ -189,7 +225,7 @@ function renderDecisionTemplate() {
     }
 
     if (decisionTotalOptions) {
-        decisionTotalOptions.textContent = String(decision.options.length);
+        decisionTotalOptions.textContent = String(options.length);
     }
 
     if (decisionCreatedBy) {

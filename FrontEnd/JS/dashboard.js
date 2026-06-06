@@ -1,5 +1,6 @@
 const SESSION_KEY = "votesync.session";
 const DECISION_TEMPLATE_KEY = "votesync.decision.latest";
+const DECISIONS_KEY = "votesync.decisions";
 
 const logoutButton = document.querySelector("#dashboard-logout-btn");
 const friendsViewMoreButton = document.querySelector("#friends-view-more-btn");
@@ -39,6 +40,28 @@ function clearSession() {
 
 function saveLatestDecision(decision) {
 	localStorage.setItem(DECISION_TEMPLATE_KEY, JSON.stringify(decision));
+}
+
+function getDecisions() {
+	const raw = localStorage.getItem(DECISIONS_KEY);
+	if (!raw) {
+		return [];
+	}
+
+	try {
+		const parsed = JSON.parse(raw);
+		if (!Array.isArray(parsed)) {
+			return [];
+		}
+
+		return parsed;
+	} catch {
+		return [];
+	}
+}
+
+function saveDecisions(decisions) {
+	localStorage.setItem(DECISIONS_KEY, JSON.stringify(decisions));
 }
 
 function redirectToLogin() {
@@ -206,19 +229,48 @@ function addDecisionOption() {
 	}
 }
 
-function updateDecisionCards(title, optionsCount) {
+function updateDecisionCards() {
+	const decisions = getDecisions();
+
 	const cards = Array.from(document.querySelectorAll(".card")).filter((card) => {
 		const heading = card.querySelector("h2");
 		return heading && heading.textContent.includes("Decisões Criadas");
 	});
 
-	cards.forEach((card) => {
+	cards.forEach((card, index) => {
+		const decision = decisions[index] || null;
 		const statusValue = card.querySelector(".info-box strong");
 		const winnerDescription = card.querySelector(".winner-box small");
 		const winnerValue = card.querySelector(".winner-box h3");
 
+		if (!decision) {
+			if (index === 0) {
+				card.style.display = "";
+
+				if (statusValue) {
+					statusValue.textContent = "Sem decisões";
+				}
+
+				if (winnerDescription) {
+					winnerDescription.textContent = "Quando criares uma decisão, vai aparecer aqui.";
+				}
+
+				if (winnerValue) {
+					winnerValue.textContent = "-";
+				}
+			} else {
+				card.style.display = "none";
+			}
+
+			return;
+		}
+
+		card.style.display = "";
+
+		const optionsCount = Array.isArray(decision.options) ? decision.options.length : 0;
+
 		if (statusValue) {
-			statusValue.textContent = "1 decisão criada";
+			statusValue.textContent = "Decisão criada";
 		}
 
 		if (winnerDescription) {
@@ -226,7 +278,7 @@ function updateDecisionCards(title, optionsCount) {
 		}
 
 		if (winnerValue) {
-			winnerValue.textContent = title;
+			winnerValue.textContent = decision.title || "Decisão sem título";
 		}
 	});
 }
@@ -280,9 +332,12 @@ function handleCreateDecision() {
 		createdBy: session && session.user && session.user.name ? session.user.name : "Utilizador"
 	};
 
+	const decisions = getDecisions();
+	decisions.push(decision);
+	saveDecisions(decisions);
 	saveLatestDecision(decision);
 
-	updateDecisionCards(title, options.length);
+	updateDecisionCards();
 	setDecisionMessage("Decisão criada com sucesso.", "success");
 	closeDecisionModal();
 	resetDecisionForm();
@@ -362,3 +417,4 @@ document.addEventListener("keydown", (event) => {
 initializeDecisionModal();
 setDecisionDate();
 initializeEndDateInput();
+updateDecisionCards();
