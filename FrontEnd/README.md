@@ -16,7 +16,7 @@
 
 
 |Implement dashboard decision cap and all-decisions page
-|
+|Enhance decisions UX with alerts, animations, and modal editing
 |
 |
 |Problem

@@ -23,7 +23,6 @@ const decisionList = document.querySelector("#decision-list");
 const decisionViewAllButton = document.querySelector("#decision-view-all-btn");
 
 const OPTION_ICONS = ["fa-sun", "fa-building-columns", "fa-heart", "fa-mug-hot", "fa-film", "fa-gamepad"];
-const MAX_DASHBOARD_DECISIONS = 3;
 
 function hasSwal() {
 	return typeof window !== "undefined" && typeof window.Swal !== "undefined";
@@ -104,24 +103,9 @@ function redirectToAllDecisions() {
 	window.location.href = "./decisions.html";
 }
 
-async function openDecisionModal() {
+function openDecisionModal() {
 	if (!decisionModalOverlay) {
 		return;
-	}
-
-	if (hasSwal()) {
-		const result = await window.Swal.fire({
-			title: "Criar nova decisão?",
-			text: "Vamos abrir o formulário de criação.",
-			icon: "question",
-			showCancelButton: true,
-			confirmButtonText: "Continuar",
-			cancelButtonText: "Cancelar"
-		});
-
-		if (!result.isConfirmed) {
-			return;
-		}
 	}
 
 	setDecisionDate();
@@ -155,6 +139,36 @@ function getTodayIsoDate() {
 	const month = String(now.getMonth() + 1).padStart(2, "0");
 	const year = now.getFullYear();
 	return `${year}-${month}-${day}`;
+}
+
+function calculateDaysUntilEnd(endDateIso) {
+	if (!endDateIso) {
+		return null;
+	}
+
+	const today = new Date();
+	today.setHours(0, 0, 0, 0);
+
+	const endDate = new Date(`${endDateIso}T00:00:00`);
+	if (Number.isNaN(endDate.getTime())) {
+		return null;
+	}
+
+	const diffMs = endDate.getTime() - today.getTime();
+	return Math.ceil(diffMs / (1000 * 60 * 60 * 24));
+}
+
+function formatIsoDateToPt(isoDate) {
+	if (!isoDate || typeof isoDate !== "string" || !isoDate.includes("-")) {
+		return "--/--/----";
+	}
+
+	const [year, month, day] = isoDate.split("-");
+	if (!year || !month || !day) {
+		return "--/--/----";
+	}
+
+	return `${day}/${month}/${year}`;
 }
 
 function initializeEndDateInput() {
@@ -256,7 +270,14 @@ function addDecisionOption() {
 	}
 }
 
-function createDecisionListItem(decision) {
+function createDecisionListItem(
+	decision,
+	statusText = "Decisão criada",
+	descriptionText = "",
+	statusIconClass = "fa-circle-info",
+	statusToneClass = "status-neutral",
+	deadlineNote = ""
+) {
 	const optionsCount = Array.isArray(decision.options) ? decision.options.length : 0;
 	const item = document.createElement("article");
 	item.className = "decision-list-item";
@@ -268,7 +289,8 @@ function createDecisionListItem(decision) {
 	infoLabel.textContent = "Estado:";
 
 	const infoValue = document.createElement("strong");
-	infoValue.textContent = "Decisão criada";
+	infoValue.className = `decision-status-badge ${statusToneClass}`;
+	infoValue.innerHTML = `<i class="fa-solid ${statusIconClass} decision-status-icon" aria-hidden="true"></i><span>${statusText}</span>`;
 
 	infoBox.appendChild(infoLabel);
 	infoBox.appendChild(infoValue);
@@ -277,13 +299,20 @@ function createDecisionListItem(decision) {
 	winnerBox.className = "winner-box";
 
 	const winnerDescription = document.createElement("small");
-	winnerDescription.textContent = `${optionsCount} opções prontas para votação.`;
+	winnerDescription.textContent = descriptionText || `${optionsCount} opções prontas para votação.`;
 
 	const winnerValue = document.createElement("h3");
 	winnerValue.textContent = decision.title || "Decisão sem título";
 
 	winnerBox.appendChild(winnerDescription);
 	winnerBox.appendChild(winnerValue);
+
+	if (deadlineNote) {
+		const deadlineElement = document.createElement("p");
+		deadlineElement.className = "decision-deadline-note";
+		deadlineElement.innerHTML = `<i class="fa-regular fa-clock" aria-hidden="true"></i> ${deadlineNote}`;
+		winnerBox.appendChild(deadlineElement);
+	}
 
 	const viewMoreButton = document.createElement("button");
 	viewMoreButton.className = "view-btn decision-view-more-btn";
@@ -303,10 +332,6 @@ function createDecisionListItem(decision) {
 
 function updateDecisionCards() {
 	const decisions = getDecisions();
-	const decisionsToDisplay = decisions
-		.map((decision, index) => ({ decision, index }))
-		.slice(-MAX_DASHBOARD_DECISIONS)
-		.reverse();
 
 	if (decisionSummaryText) {
 		if (decisions.length === 0) {
@@ -335,9 +360,34 @@ function updateDecisionCards() {
 		decisionListEmpty.hidden = true;
 	}
 
-	decisionsToDisplay.forEach((entry) => {
-		decisionList.appendChild(createDecisionListItem(entry.decision));
-	});
+	const latestDecision = decisions[decisions.length - 1];
+	decisionList.appendChild(createDecisionListItem(latestDecision, "New", "", "fa-sparkles", "status-new"));
+
+	const soonestEnding = decisions
+		.map((decision, index) => ({ decision, index, daysLeft: calculateDaysUntilEnd(decision.endDate) }))
+		.filter((entry) => entry.daysLeft !== null && entry.daysLeft >= 0 && entry.daysLeft <= 3)
+		.sort((a, b) => a.daysLeft - b.daysLeft)[0];
+
+	if (soonestEnding && soonestEnding.index !== decisions.length - 1) {
+		const daysLabel = soonestEnding.daysLeft === 0
+			? "Termina hoje"
+			: soonestEnding.daysLeft === 1
+				? "Termina em 1 dia"
+				: `Termina em ${soonestEnding.daysLeft} dias`;
+		const endDateLabel = formatIsoDateToPt(soonestEnding.decision.endDate);
+		const deadlineNote = `${daysLabel} · Prazo final: ${endDateLabel}`;
+
+		decisionList.appendChild(
+			createDecisionListItem(
+				soonestEnding.decision,
+				"Finishing",
+				"",
+				"fa-hourglass-half",
+				"status-finishing",
+				deadlineNote
+			)
+		);
+	}
 }
 
 function handleCreateDecision() {
@@ -352,9 +402,6 @@ function handleCreateDecision() {
 
 	if (!title) {
 		setDecisionMessage("Preenche o título da decisão.", "error");
-		if (hasSwal()) {
-			window.Swal.fire({ icon: "warning", title: "Título obrigatório", text: "Preenche o título da decisão." });
-		}
 		if (decisionTitleInput) {
 			decisionTitleInput.focus();
 		}
@@ -363,17 +410,11 @@ function handleCreateDecision() {
 
 	if (options.length < 2) {
 		setDecisionMessage("Adiciona pelo menos 2 opções para criar a decisão.", "error");
-		if (hasSwal()) {
-			window.Swal.fire({ icon: "warning", title: "Opções insuficientes", text: "Adiciona pelo menos 2 opções para criar a decisão." });
-		}
 		return;
 	}
 
 	if (!endDate) {
 		setDecisionMessage("Define uma data de término para a decisão.", "error");
-		if (hasSwal()) {
-			window.Swal.fire({ icon: "warning", title: "Data obrigatória", text: "Define uma data de término para a decisão." });
-		}
 		if (decisionEndDateInput) {
 			decisionEndDateInput.focus();
 		}
@@ -382,9 +423,6 @@ function handleCreateDecision() {
 
 	if (endDate < getTodayIsoDate()) {
 		setDecisionMessage("A data de término não pode ser no passado.", "error");
-		if (hasSwal()) {
-			window.Swal.fire({ icon: "warning", title: "Data inválida", text: "A data de término não pode ser no passado." });
-		}
 		if (decisionEndDateInput) {
 			decisionEndDateInput.focus();
 		}
