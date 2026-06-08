@@ -1,7 +1,15 @@
 from fastapi import FastAPI
+from fastapi.staticfiles import StaticFiles
+from fastapi.responses import FileResponse
 from backend.routers import users, friendships, group_members, user_groups, decisions, votes, options
 
 app = FastAPI()
+
+app.mount("/static", StaticFiles(directory="FrontEnd"), name="static")
+
+@app.get("/")
+def serve_frontend():
+    return FileResponse("FrontEnd/HTML/index.html")
 
 app.include_router(users.router)
 app.include_router(friendships.router)

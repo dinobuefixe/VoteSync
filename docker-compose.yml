@@ -6,6 +6,9 @@ services:
     container_name: votesync_api
     ports:
       - "8000:8000"
+    volumes:
+      - ./backend:/app/backend
+      - ./FrontEnd:/app/FrontEnd
     environment:
       DATABASE_URL: "postgresql+psycopg://postgres:postgres@db:5432/votesync"
     depends_on:

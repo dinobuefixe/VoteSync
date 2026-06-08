@@ -5,7 +5,8 @@ WORKDIR /app
 COPY pyproject.toml .
 RUN pip install --upgrade pip && pip install .
 
-COPY . .
+COPY backend backend
+COPY FrontEnd FrontEnd
 
 EXPOSE 8000
 
