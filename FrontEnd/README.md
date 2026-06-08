@@ -9,19 +9,18 @@
 |Github Copilot
 |Github Copilot
 |Github Copilot
-
+|Github Copilot
 
 |Context/Area
 |HTML Development, CSS Development and JavaScript Authentication Flow
 | Creating Dashboard , Groups , friends Page
 | Creating new modal for "Create new" on Created Decisions and View more Structure and Styling
 |Fix decision cards rendering and creation sync
-
 |Implement dashboard decision card and all-decisions page
 |Enhance decisions UX with alerts, animations, and modal editing
 |Refine dashboard decision status presentation
 |improve groups flow and decision participants
-
+|Implement Sweet Alert On Edit,Remove,Create new group
 
 
 |Problem
@@ -33,7 +32,7 @@ the information) but i couldnt alone
 |Couldnt implement dashboard decision card and all decisions page
 |Couldnt implement sweetAlert on (Create,Edit,Delete) Decisions and futher animations for both and Apresentation
 |Couldnt create the groups and friends and futher connections
-|
+|The Edit,Remove,Create on the groups Page had the standard pattern of the allerts and i wanted to implement the sweet Alert 
 |
 |
 |
@@ -46,7 +45,7 @@ the information) but i couldnt alone
 | I tried implementing using AI and see some documention but i couldnt  
 |Needed Help with github Copilot for implementing and making connections with the decisions cards and animations for the creating editing and deleting icones,
 |Need help from Copilot for implementing connections between the groups,friends and the decision Making
-
+|Needed Help With AI To Implement Sweet Alert
 
 |Outcome
 
@@ -56,7 +55,7 @@ the information) but i couldnt alone
 |Generated the solution for my problem!
 |Generated the conections needed between the decision making modal with the dashboard card and animated buttons
 |Generated the connections between friends,groups,decision Making.
-
+|Generated the sweet Alert on Edit,Remove and Create on the groups Page.
 
 Notes
 

@@ -81,14 +81,14 @@ body {
 	display: flex;
 	align-items: center;
 	gap: var(--space-3);
-	font-size: 1.95rem;
+	font-size: 2rem;
 	font-weight: 700;
 	letter-spacing: -0.01em;
 }
 
 .brand-icon {
-	width: 40px;
-	height: 40px;
+	width: 60px;
+	height: 60px;
 	flex: 0 0 auto;
 }
 
@@ -590,8 +590,8 @@ body {
 	}
 
 	.brand-icon {
-		width: 34px;
-		height: 34px;
+		width: 40px;
+		height: 40px;
 	}
 
 	.auth-card {
