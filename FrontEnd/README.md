@@ -20,7 +20,8 @@
 |Implement dashboard decision card and all-decisions page
 |Enhance decisions UX with alerts, animations, and modal editing
 |Refine dashboard decision status presentation
-|
+|improve groups flow and decision participants
+
 
 
 |Problem
@@ -31,7 +32,7 @@
 the information) but i couldnt alone
 |Couldnt implement dashboard decision card and all decisions page
 |Couldnt implement sweetAlert on (Create,Edit,Delete) Decisions and futher animations for both and Apresentation
-|
+|Couldnt create the groups and friends and futher connections
 |
 |
 |
@@ -44,7 +45,7 @@ the information) but i couldnt alone
 | Need Help creating the modal and the DecisionMaking web page
 | I tried implementing using AI and see some documention but i couldnt  
 |Needed Help with github Copilot for implementing and making connections with the decisions cards and animations for the creating editing and deleting icones,
-
+|Need help from Copilot for implementing connections between the groups,friends and the decision Making
 
 
 |Outcome
@@ -54,7 +55,7 @@ the information) but i couldnt alone
 | Generated The web page and the modal with JS Configuration
 |Generated the solution for my problem!
 |Generated the conections needed between the decision making modal with the dashboard card and animated buttons
-|
+|Generated the connections between friends,groups,decision Making.
 
 
 Notes

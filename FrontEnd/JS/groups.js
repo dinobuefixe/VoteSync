@@ -21,6 +21,10 @@ const groupModalSubmit = document.querySelector("#group-modal-submit");
 
 let editingGroupId = null;
 
+function hasSwal() {
+    return typeof window !== "undefined" && typeof window.Swal !== "undefined";
+}
+
 function normalizeName(entity, fallbackLabel) {
     if (typeof entity === "string") {
         return entity;
@@ -68,6 +72,19 @@ function setMessage(message) {
     }
 
     groupFormMessage.textContent = message;
+}
+
+function showValidationMessage(message) {
+    setMessage(message);
+
+    if (hasSwal()) {
+        window.Swal.fire({
+            icon: "warning",
+            title: "Atenção",
+            text: message,
+            confirmButtonText: "OK"
+        });
+    }
 }
 
 function setModalMode(mode) {
@@ -264,29 +281,54 @@ function closeModal() {
     setMessage("");
 }
 
-function removeGroup(groupId) {
+async function removeGroup(groupId) {
     if (!groupId) {
         return;
     }
 
-    const accepted = window.confirm("Queres remover este grupo?");
-    if (!accepted) {
-        return;
+    if (hasSwal()) {
+        const result = await window.Swal.fire({
+            title: "Remover grupo?",
+            text: "Esta ação não pode ser desfeita.",
+            icon: "warning",
+            showCancelButton: true,
+            confirmButtonText: "Remover",
+            cancelButtonText: "Cancelar",
+            confirmButtonColor: "#c0392b"
+        });
+
+        if (!result.isConfirmed) {
+            return;
+        }
+    } else {
+        const accepted = window.confirm("Queres remover este grupo?");
+        if (!accepted) {
+            return;
+        }
     }
 
     const nextGroups = getGroups().filter((group) => String(group.id) !== String(groupId));
     saveGroups(nextGroups);
     renderGroups();
+
+    if (hasSwal()) {
+        window.Swal.fire({
+            icon: "success",
+            title: "Grupo removido",
+            timer: 1600,
+            showConfirmButton: false
+        });
+    }
 }
 
-function handleSubmit(event) {
+async function handleSubmit(event) {
     event.preventDefault();
 
     const name = groupNameInput ? groupNameInput.value.trim() : "";
     const description = groupDescriptionInput ? groupDescriptionInput.value.trim() : "";
 
     if (!name) {
-        setMessage("Indica um nome para o grupo.");
+        showValidationMessage("Indica um nome para o grupo.");
         return;
     }
 
@@ -298,7 +340,7 @@ function handleSubmit(event) {
     });
 
     if (duplicate) {
-        setMessage("Já existe um grupo com esse nome.");
+        showValidationMessage("Já existe um grupo com esse nome.");
         return;
     }
 
@@ -313,7 +355,24 @@ function handleSubmit(event) {
         .filter((friend) => selectedIds.includes(friend.id))
         .map((friend) => friend.name);
 
-    if (editingGroupId) {
+    const isEditing = Boolean(editingGroupId);
+
+    if (isEditing && hasSwal()) {
+        const result = await window.Swal.fire({
+            title: "Guardar alterações?",
+            text: "O grupo será atualizado com os novos dados.",
+            icon: "question",
+            showCancelButton: true,
+            confirmButtonText: "Guardar",
+            cancelButtonText: "Cancelar"
+        });
+
+        if (!result.isConfirmed) {
+            return;
+        }
+    }
+
+    if (isEditing) {
         const updatedGroups = existingGroups.map((group) => {
             if (String(group.id) !== String(editingGroupId)) {
                 return group;
@@ -345,6 +404,18 @@ function handleSubmit(event) {
     closeModal();
     resetForm();
     renderGroups();
+
+    if (hasSwal()) {
+        window.Swal.fire({
+            icon: "success",
+            title: isEditing ? "Grupo alterado" : "Grupo criado",
+            text: isEditing
+                ? "As alterações foram guardadas com sucesso."
+                : "O novo grupo foi criado com sucesso.",
+            timer: 1800,
+            showConfirmButton: false
+        });
+    }
 }
 
 if (openModalButton) {
