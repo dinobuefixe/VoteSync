@@ -110,10 +110,37 @@
                             <input id="remember-me" type="checkbox">
                             <span>Remember me</span>
                         </label>
-                        <a class="link-quiet" href="#">Forgot password?</a>
+                        <a class="link-quiet" id="forgot-password-link" href="#">Forgot password?</a>
                     </div>
 
                     <button class="primary-btn" type="submit">Sign In</button>
+                </form>
+
+                <form id="forgot-form" class="auth-form" novalidate hidden>
+                    <h1>Reset Password</h1>
+                    <p class="form-subtitle">Update your password to access your account again</p>
+
+                    <label for="forgot-email">Email</label>
+                    <input id="forgot-email" type="email" placeholder="Enter your account email" required>
+                    <p class="field-error" data-error-for="forgot-email"></p>
+
+                    <label for="forgot-password">New Password</label>
+                    <div class="input-with-icon">
+                        <input id="forgot-password" type="password" placeholder="Create a new password" required>
+                        <button class="input-icon-btn" type="button" data-toggle-password="forgot-password"
+                            aria-label="Show or hide password">◉</button>
+                    </div>
+                    <p class="field-error" data-error-for="forgot-password"></p>
+
+                    <label for="forgot-confirm-password">Confirm New Password</label>
+                    <div class="input-with-icon">
+                        <input id="forgot-confirm-password" type="password" placeholder="Confirm new password" required>
+                        <button class="input-icon-btn" type="button" data-toggle-password="forgot-confirm-password"
+                            aria-label="Show or hide password">◉</button>
+                    </div>
+                    <p class="field-error" data-error-for="forgot-confirm-password"></p>
+
+                    <button class="primary-btn" type="submit">Reset Password</button>
                 </form>
 
                 <form id="register-form" class="auth-form" novalidate hidden>
@@ -158,6 +185,8 @@
                     <p id="switch-login">Don't have an account? <button class="text-btn" type="button"
                             data-switch-to="register">Sign up</button></p>
                     <p id="switch-register" hidden>Already have an account? <button class="text-btn" type="button"
+                            data-switch-to="login">Sign in</button></p>
+                    <p id="switch-forgot" hidden>Remembered your password? <button class="text-btn" type="button"
                             data-switch-to="login">Sign in</button></p>
                 </div>
 

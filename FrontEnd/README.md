@@ -10,6 +10,7 @@
 |Github Copilot
 |Github Copilot
 |Github Copilot
+|Github Copilot
 
 |Context/Area
 |HTML Development, CSS Development and JavaScript Authentication Flow
@@ -21,7 +22,7 @@
 |Refine dashboard decision status presentation
 |improve groups flow and decision participants
 |Implement Sweet Alert On Edit,Remove,Create new group
-
+|Improve frontend navbar and mobile dashboard layout
 
 |Problem
 | Couldnt create a polished main page and later needed help implementing a frontend-only Login/Register authentication flow.
@@ -33,12 +34,10 @@ the information) but i couldnt alone
 |Couldnt implement sweetAlert on (Create,Edit,Delete) Decisions and futher animations for both and Apresentation
 |Couldnt create the groups and friends and futher connections
 |The Edit,Remove,Create on the groups Page had the standard pattern of the allerts and i wanted to implement the sweet Alert 
-|
-|
-|
-|
-|What I've tried to get help with
+|Nav Bar not consistent with the others Pages and Website not responsive with the mobile version
 
+
+|What I've tried to get help with
 |Needed help creating the structure and layout of the webpage (index.html), styling (index.css), and implementing the Login/Register experience in JavaScript.
 ||Needed help creating the structure and layout of the webpage (dashboard.html) , (groups.html) , (friends.html), styling (dashboard.css) , (groups.css) , (friends.css)
 | Need Help creating the modal and the DecisionMaking web page
@@ -46,9 +45,9 @@ the information) but i couldnt alone
 |Needed Help with github Copilot for implementing and making connections with the decisions cards and animations for the creating editing and deleting icones,
 |Need help from Copilot for implementing connections between the groups,friends and the decision Making
 |Needed Help With AI To Implement Sweet Alert
+|I tried to put all responsive with mobile version and tried to pollish some inconsistencies about the nav bar with AI
 
 |Outcome
-
 |Generated an initial HTML structure and CSS styling that was reviewed and adapted for the project. AI was also used to help implement the Login/Register authentication interface, localStorage-based session handling, navbar Login navigation, and the HeroForm redirect that opens Register with the typed name already prefilled.
 | Generated the HTML structure and CSS styling that was reviewed and adapted for the project.
 | Generated The web page and the modal with JS Configuration
@@ -56,6 +55,7 @@ the information) but i couldnt alone
 |Generated the conections needed between the decision making modal with the dashboard card and animated buttons
 |Generated the connections between friends,groups,decision Making.
 |Generated the sweet Alert on Edit,Remove and Create on the groups Page.
+|Generated a better and consist layout of the navbar and mobile version
 
 Notes
 

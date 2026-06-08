@@ -9,12 +9,15 @@ const heroNameInput = document.querySelector("#hero-name");
 const heroLoginCta = document.querySelector("#hero-login-cta");
 const backHomeBtn = document.querySelector("#back-home-btn");
 const loginForm = document.querySelector("#login-form");
+const forgotForm = document.querySelector("#forgot-form");
 const registerForm = document.querySelector("#register-form");
 const authStatus = document.querySelector("#auth-status");
 const switchLogin = document.querySelector("#switch-login");
 const switchRegister = document.querySelector("#switch-register");
+const switchForgot = document.querySelector("#switch-forgot");
 const switchButtons = document.querySelectorAll("[data-switch-to]");
 const passwordToggleButtons = document.querySelectorAll("[data-toggle-password]");
+const forgotPasswordLink = document.querySelector("#forgot-password-link");
 const sessionRow = document.querySelector("#session-row");
 const sessionText = document.querySelector("#session-text");
 const logoutBtn = document.querySelector("#logout-btn");
@@ -127,13 +130,18 @@ function showAuthPage(mode = "login") {
 
 function switchMode(mode) {
 	const loginMode = mode === "login";
+	const forgotMode = mode === "forgot";
+	const registerMode = mode === "register";
 
 	loginForm.hidden = !loginMode;
-	registerForm.hidden = loginMode;
+	forgotForm.hidden = !forgotMode;
+	registerForm.hidden = !registerMode;
 	switchLogin.hidden = !loginMode;
-	switchRegister.hidden = loginMode;
+	switchRegister.hidden = !registerMode;
+	switchForgot.hidden = !forgotMode;
 
 	clearFieldErrors(loginForm);
+	clearFieldErrors(forgotForm);
 	clearFieldErrors(registerForm);
 	setStatus("");
 }
@@ -195,6 +203,33 @@ function validateRegister() {
 	}
 
 	return { valid, name, email, password };
+}
+
+function validateForgotReset() {
+	clearFieldErrors(forgotForm);
+
+	const email = document.querySelector("#forgot-email").value.trim();
+	const password = document.querySelector("#forgot-password").value;
+	const confirmPassword = document.querySelector("#forgot-confirm-password").value;
+	const emailPattern = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+	let valid = true;
+
+	if (!emailPattern.test(email)) {
+		setFieldError("forgot-email", "Enter a valid email.");
+		valid = false;
+	}
+
+	if (password.length < 8) {
+		setFieldError("forgot-password", "Password must have at least 8 characters.");
+		valid = false;
+	}
+
+	if (confirmPassword !== password) {
+		setFieldError("forgot-confirm-password", "Passwords do not match.");
+		valid = false;
+	}
+
+	return { valid, email, password };
 }
 
 function showSession(user) {
@@ -362,6 +397,61 @@ function handlePasswordToggle(button) {
 	button.textContent = show ? "◎" : "◉";
 }
 
+function handleForgotPassword(event) {
+	event.preventDefault();
+	switchMode("forgot");
+	const forgotEmailInput = document.querySelector("#forgot-email");
+	const loginEmailInput = document.querySelector("#login-email");
+	if (forgotEmailInput) {
+		forgotEmailInput.value = loginEmailInput ? loginEmailInput.value.trim() : "";
+		forgotEmailInput.focus();
+	}
+}
+
+function handleForgotSubmit(event) {
+	event.preventDefault();
+	setStatus("");
+
+	const result = validateForgotReset();
+	if (!result.valid) {
+		setStatus("Please fix the highlighted fields.", "is-error");
+		return;
+	}
+
+	setSubmitLoading(forgotForm, true);
+	try {
+		const users = getUsers();
+		const userIndex = users.findIndex((entry) => entry.email.toLowerCase() === result.email.toLowerCase());
+		if (userIndex === -1) {
+			setFieldError("forgot-email", "Email not found.");
+			throw new Error("No account found for this email.");
+		}
+
+		users[userIndex].password = result.password;
+		saveUsers(users);
+
+		forgotForm.reset();
+		switchMode("login");
+
+		const loginEmailInput = document.querySelector("#login-email");
+		if (loginEmailInput) {
+			loginEmailInput.value = users[userIndex].email;
+		}
+
+		const loginPasswordInput = document.querySelector("#login-password");
+		if (loginPasswordInput) {
+			loginPasswordInput.value = "";
+			loginPasswordInput.focus();
+		}
+
+		setStatus("Password updated. You can sign in now.", "is-success");
+	} catch (error) {
+		setStatus(error.message || "Could not reset password.", "is-error");
+	} finally {
+		setSubmitLoading(forgotForm, false);
+	}
+}
+
 switchButtons.forEach((button) => {
 	button.addEventListener("click", () => switchMode(button.dataset.switchTo));
 });
@@ -388,8 +478,12 @@ if (heroForm) {
 }
 
 loginForm.addEventListener("submit", handleLoginSubmit);
+forgotForm.addEventListener("submit", handleForgotSubmit);
 registerForm.addEventListener("submit", handleRegisterSubmit);
 logoutBtn.addEventListener("click", handleLogout);
+if (forgotPasswordLink) {
+	forgotPasswordLink.addEventListener("click", handleForgotPassword);
+}
 
 showLandingPage();
 switchMode("login");
