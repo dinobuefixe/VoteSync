@@ -107,8 +107,8 @@ function setSubmitLoading(form, loading) {
 
 function setHeaderButtonAuthMode(isAuthMode) {
 	headerLoginBtn.innerHTML = isAuthMode
-		? "<span aria-hidden=\"true\"><img class=\"loginIMG\" src=\"../IMG/Login.png\" alt=\"Login icon\"></span> Home"
-		: "<span aria-hidden=\"true\"><img class=\"loginIMG\" src=\"../IMG/Login.png\" alt=\"Login icon\"></span> Login";
+		? "<span aria-hidden=\"true\"><img class=\"loginIMG\" src=\"static/IMG/Login.png\" alt=\"Login icon\"></span> Home"
+		: "<span aria-hidden=\"true\"><img class=\"loginIMG\" src=\"static/IMG/Login.png\" alt=\"Login icon\"></span> Login";
 	headerLoginBtn.setAttribute("aria-label", isAuthMode ? "Back to home" : "Login");
 }
 
