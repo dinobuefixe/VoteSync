@@ -13,14 +13,18 @@ def get_users(db: Session = Depends(get_db)):
     return db.query(models.Users).all()
 
 
-@router.post("/", response_model=schemas.UserBase, status_code=status.HTTP_201_CREATED)
-def create_user(user: schemas.UserBase, db: Session = Depends(get_db)):
+@router.post("/", response_model=schemas.UserResponse)
+def create_user(user: schemas.UserCreate, db: Session = Depends(get_db)):
+    exists = db.query(models.Users).filter(models.Users.email == user.email).first()
+    if exists:
+        raise HTTPException(400, "Email already registered")
+
     new_user = models.Users(**user.dict())
     db.add(new_user)
     db.commit()
     db.refresh(new_user)
-    return new_user
 
+    return new_user
 
 @router.get("/{id}", response_model=schemas.UserBase)
 def get_user(id: int, db: Session = Depends(get_db)):

@@ -207,35 +207,35 @@ function hideSession() {
 	sessionText.textContent = "";
 }
 
-function registerUser(data) {
-	const users = getUsers();
-	const exists = users.some((user) => user.email.toLowerCase() === data.email.toLowerCase());
-	if (exists) {
-		setFieldError("register-email", "This email is already registered.");
-		throw new Error("Email already exists.");
-	}
+async function registerUser() {
 
-	const newUser = {
-		id: createId(),
-		name: data.name,
-		email: data.email,
-		password: data.password
+	const data = {
+		name: document.getElementById("register-name").value,
+		email: document.getElementById("register-email").value,
+		password: document.getElementById("register-password").value
 	};
 
-	users.push(newUser);
-	saveUsers(users);
+    const response = await fetch("/users", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(data)
+    });
 
-	const session = {
-		token: createToken(newUser.id),
-		user: {
-			id: newUser.id,
-			name: newUser.name,
-			email: newUser.email
-		}
-	};
+    if (!response.ok) {
+        const text = await response.text(); // ← evita o erro do JSON
+        console.error("Erro do servidor:", text);
+        throw new Error("Registration failed");
+    }
 
-	saveSession(session);
-	return session;
+    const newUser = await response.json();
+
+    const session = {
+        token: createToken(newUser.id),
+        user: newUser
+    };
+
+    saveSession(session);
+    return session;
 }
 
 function loginUser(email, password) {
