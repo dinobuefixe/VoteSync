@@ -11,10 +11,23 @@ class UserBase(BaseModel):
     class Config:
         form_attributes = True
 
-
 class CreateUser(UserBase):
     class Config:
         form_attributes = True
+
+class UserCreate(BaseModel):
+    name: str
+    email: str
+    password: str
+
+class UserResponse(BaseModel):
+    id: int
+    name: str
+    email: str
+    profile_picture: str | None = None
+
+    class Config:
+        from_attributes = True
 
 
 # friendships
