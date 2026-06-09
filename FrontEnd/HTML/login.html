@@ -1,0 +1,195 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>VoteSync — Sign In</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700;800&family=Sora:wght@400;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="static/Styles/index.css">
+</head>
+
+<body>
+    <main class="page-shell">
+        <header class="topbar">
+            <div class="brand">
+                <span class="brand-icon" aria-hidden="true">
+                    <a href="index.html"><img src="static/IMG/votesync_logo.png" alt="VoteSync logo" /></a>
+                </span>
+                <span>VoteSync</span>
+            </div>
+        </header>
+
+        <section class="auth-stage">
+            <div class="auth-card">
+                <a href="index.html" class="text-btn back-home-btn" style="display:inline-block;font-size:0.8rem;margin-bottom:0.65rem;color:#6e7490;text-decoration:none;">← Back to Home</a>
+
+                <p id="auth-status" class="auth-status" aria-live="polite"></p>
+
+                <!-- LOGIN FORM -->
+                <form id="login-form" class="auth-form" novalidate>
+                    <h1>Welcome Back</h1>
+                    <p class="form-subtitle">Sign in to your account to continue</p>
+
+                    <label for="login-email">Email</label>
+                    <input id="login-email" type="email" placeholder="Enter your email" required>
+                    <p class="field-error" data-error-for="login-email"></p>
+
+                    <label for="login-password">Password</label>
+                    <div class="input-with-icon">
+                        <input id="login-password" type="password" placeholder="Enter your password" required>
+                        <button class="input-icon-btn" type="button" data-toggle-password="login-password" aria-label="Show or hide password">◉</button>
+                    </div>
+                    <p class="field-error" data-error-for="login-password"></p>
+
+                    <div class="meta-row">
+                        <label class="checkbox-row" for="remember-me">
+                            <input id="remember-me" type="checkbox">
+                            <span>Remember me</span>
+                        </label>
+                        <a class="link-quiet" id="forgot-password-link" href="#">Forgot password?</a>
+                    </div>
+
+                    <button class="primary-btn" type="submit">Sign In</button>
+                </form>
+
+                <!-- FORGOT / RESET PASSWORD FORM -->
+                <form id="forgot-form" class="auth-form" novalidate hidden>
+                    <h1>Reset Password</h1>
+                    <p class="form-subtitle">Update your password to access your account again</p>
+
+                    <label for="forgot-email">Email</label>
+                    <input id="forgot-email" type="email" placeholder="Enter your account email" required>
+                    <p class="field-error" data-error-for="forgot-email"></p>
+
+                    <label for="forgot-password">New Password</label>
+                    <div class="input-with-icon">
+                        <input id="forgot-password" type="password" placeholder="Create a new password" required>
+                        <button class="input-icon-btn" type="button" data-toggle-password="forgot-password" aria-label="Show or hide password">◉</button>
+                    </div>
+                    <p class="field-error" data-error-for="forgot-password"></p>
+
+                    <label for="forgot-confirm-password">Confirm New Password</label>
+                    <div class="input-with-icon">
+                        <input id="forgot-confirm-password" type="password" placeholder="Confirm new password" required>
+                        <button class="input-icon-btn" type="button" data-toggle-password="forgot-confirm-password" aria-label="Show or hide password">◉</button>
+                    </div>
+                    <p class="field-error" data-error-for="forgot-confirm-password"></p>
+
+                    <button class="primary-btn" type="submit">Reset Password</button>
+                </form>
+
+                <div class="switch-row">
+                    <p id="switch-login">Don't have an account? <a class="text-btn" href="register.html">Sign up</a></p>
+                    <p id="switch-forgot" hidden>Remembered your password? <button class="text-btn" type="button" id="back-to-login-btn">Sign in</button></p>
+                </div>
+
+                <div id="session-row" class="session-row" hidden>
+                    <p id="session-text"></p>
+                    <button id="logout-btn" class="secondary-btn" type="button">
+                        <img class="logout-icon" src="static/IMG/Logout.png" alt="Logout icon">
+                        Logout
+                    </button>
+                </div>
+
+                <p class="secure-note">Secure login powered by VoteSync</p>
+            </div>
+        </section>
+    </main>
+
+    <script>
+        const $ = id => document.getElementById(id);
+        const loginForm    = $('login-form');
+        const forgotForm   = $('forgot-form');
+        const authStatus   = $('auth-status');
+        const switchLogin  = $('switch-login');
+        const switchForgot = $('switch-forgot');
+        const sessionRow   = $('session-row');
+        const sessionText  = $('session-text');
+
+        function setStatus(msg, type) {
+            authStatus.textContent = msg;
+            authStatus.className = 'auth-status' + (type ? ' is-' + type : '');
+        }
+
+        function clearErrors() {
+            document.querySelectorAll('.field-error').forEach(el => el.textContent = '');
+        }
+
+        function fieldError(id, msg) {
+            const el = document.querySelector(`[data-error-for="${id}"]`);
+            if (el) el.textContent = msg;
+        }
+
+        function showForm(which) {
+            loginForm.hidden   = which !== 'login';
+            forgotForm.hidden  = which !== 'forgot';
+            switchLogin.hidden  = which !== 'login';
+            switchForgot.hidden = which !== 'forgot';
+            clearErrors();
+            setStatus('', '');
+        }
+
+        document.querySelectorAll('[data-toggle-password]').forEach(btn => {
+            btn.addEventListener('click', () => {
+                const input = document.getElementById(btn.dataset.togglePassword);
+                input.type = input.type === 'password' ? 'text' : 'password';
+            });
+        });
+
+        $('forgot-password-link').addEventListener('click', e => {
+            e.preventDefault();
+            showForm('forgot');
+        });
+
+        $('back-to-login-btn').addEventListener('click', () => showForm('login'));
+
+        loginForm.addEventListener('submit', e => {
+            e.preventDefault();
+            clearErrors();
+            let valid = true;
+            const email    = $('login-email').value.trim();
+            const password = $('login-password').value;
+
+            if (!email) { fieldError('login-email', 'Email is required.'); valid = false; }
+            else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) { fieldError('login-email', 'Enter a valid email.'); valid = false; }
+            if (!password) { fieldError('login-password', 'Password is required.'); valid = false; }
+            if (!valid) return;
+
+            sessionRow.hidden = false;
+            sessionText.textContent = `Signed in as ${email}`;
+            setStatus('Signed in successfully!', 'success');
+            loginForm.reset();
+        });
+
+        forgotForm.addEventListener('submit', e => {
+            e.preventDefault();
+            clearErrors();
+            let valid = true;
+            const email   = $('forgot-email').value.trim();
+            const pass    = $('forgot-password').value;
+            const confirm = $('forgot-confirm-password').value;
+
+            if (!email) { fieldError('forgot-email', 'Email is required.'); valid = false; }
+            else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) { fieldError('forgot-email', 'Enter a valid email.'); valid = false; }
+            if (!pass) { fieldError('forgot-password', 'New password is required.'); valid = false; }
+            else if (pass.length < 8) { fieldError('forgot-password', 'Password must be at least 8 characters.'); valid = false; }
+            if (!confirm) { fieldError('forgot-confirm-password', 'Please confirm your password.'); valid = false; }
+            else if (pass !== confirm) { fieldError('forgot-confirm-password', 'Passwords do not match.'); valid = false; }
+            if (!valid) return;
+
+            setStatus('Password reset successfully! You can now sign in.', 'success');
+            forgotForm.reset();
+            setTimeout(() => showForm('login'), 2000);
+        });
+
+        $('logout-btn').addEventListener('click', () => {
+            sessionRow.hidden = true;
+            sessionText.textContent = '';
+            setStatus('You have been logged out.', '');
+        });
+    </script>
+</body>
+</html>

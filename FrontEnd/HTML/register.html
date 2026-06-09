@@ -1,0 +1,128 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>VoteSync — Create Account</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700;800&family=Sora:wght@400;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="static/Styles/index.css">
+</head>
+
+<body>
+    <main class="page-shell">
+        <header class="topbar">
+            <div class="brand">
+                <span class="brand-icon" aria-hidden="true">
+                    <a href="index.html"><img src="static/IMG/votesync_logo.png" alt="VoteSync logo" /></a>
+                </span>
+                <span>VoteSync</span>
+            </div>
+        </header>
+
+        <section class="auth-stage">
+            <div class="auth-card">
+                <a href="index.html" class="text-btn back-home-btn" style="display:inline-block;font-size:0.8rem;margin-bottom:0.65rem;color:#6e7490;text-decoration:none;">← Back to Home</a>
+
+                <p id="auth-status" class="auth-status" aria-live="polite"></p>
+
+                <form id="register-form" class="auth-form" novalidate>
+                    <h1>Create Account</h1>
+                    <p class="form-subtitle">Sign up to get started</p>
+
+                    <label for="register-name">Name</label>
+                    <input id="register-name" type="text" placeholder="Enter your name" required>
+                    <p class="field-error" data-error-for="register-name"></p>
+
+                    <label for="register-email">Email</label>
+                    <input id="register-email" type="email" placeholder="Enter your email" required>
+                    <p class="field-error" data-error-for="register-email"></p>
+
+                    <label for="register-password">Password</label>
+                    <div class="input-with-icon">
+                        <input id="register-password" type="password" placeholder="Create a password" required>
+                        <button class="input-icon-btn" type="button" data-toggle-password="register-password" aria-label="Show or hide password">◉</button>
+                    </div>
+                    <p class="field-error" data-error-for="register-password"></p>
+
+                    <label for="register-confirm-password">Confirm Password</label>
+                    <div class="input-with-icon">
+                        <input id="register-confirm-password" type="password" placeholder="Confirm your password" required>
+                        <button class="input-icon-btn" type="button" data-toggle-password="register-confirm-password" aria-label="Show or hide password">◉</button>
+                    </div>
+                    <p class="field-error" data-error-for="register-confirm-password"></p>
+
+                    <label class="checkbox-row" for="terms">
+                        <input id="terms" type="checkbox" required>
+                        <span>I agree to the <a class="link-quiet" href="#">Terms and Conditions</a></span>
+                    </label>
+                    <p class="field-error" data-error-for="terms"></p>
+
+                    <button class="primary-btn" type="submit">Create Account</button>
+                </form>
+
+                <div class="switch-row">
+                    <p>Already have an account? <a class="text-btn" href="login.html">Sign in</a></p>
+                </div>
+
+                <p class="secure-note">Secure login powered by VoteSync</p>
+            </div>
+        </section>
+    </main>
+
+    <script>
+        const $ = id => document.getElementById(id);
+        const registerForm = $('register-form');
+        const authStatus   = $('auth-status');
+
+        function setStatus(msg, type) {
+            authStatus.textContent = msg;
+            authStatus.className = 'auth-status' + (type ? ' is-' + type : '');
+        }
+
+        function clearErrors() {
+            document.querySelectorAll('.field-error').forEach(el => el.textContent = '');
+        }
+
+        function fieldError(id, msg) {
+            const el = document.querySelector(`[data-error-for="${id}"]`);
+            if (el) el.textContent = msg;
+        }
+
+        document.querySelectorAll('[data-toggle-password]').forEach(btn => {
+            btn.addEventListener('click', () => {
+                const input = document.getElementById(btn.dataset.togglePassword);
+                input.type = input.type === 'password' ? 'text' : 'password';
+            });
+        });
+
+        registerForm.addEventListener('submit', e => {
+            e.preventDefault();
+            clearErrors();
+            let valid = true;
+
+            const name     = $('register-name').value.trim();
+            const email    = $('register-email').value.trim();
+            const pass     = $('register-password').value;
+            const confirm  = $('register-confirm-password').value;
+            const terms    = $('terms').checked;
+
+            if (!name) { fieldError('register-name', 'Name is required.'); valid = false; }
+            if (!email) { fieldError('register-email', 'Email is required.'); valid = false; }
+            else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) { fieldError('register-email', 'Enter a valid email.'); valid = false; }
+            if (!pass) { fieldError('register-password', 'Password is required.'); valid = false; }
+            else if (pass.length < 8) { fieldError('register-password', 'Password must be at least 8 characters.'); valid = false; }
+            if (!confirm) { fieldError('register-confirm-password', 'Please confirm your password.'); valid = false; }
+            else if (pass !== confirm) { fieldError('register-confirm-password', 'Passwords do not match.'); valid = false; }
+            if (!terms) { fieldError('terms', 'You must accept the Terms and Conditions.'); valid = false; }
+            if (!valid) return;
+
+            setStatus(`Account created for ${name}! Redirecting to sign in…`, 'success');
+            registerForm.reset();
+            setTimeout(() => { window.location.href = 'login.html'; }, 2000);
+        });
+    </script>
+</body>
+</html>

@@ -18,18 +18,18 @@
         <header class="topbar">
             <div class="brand">
                 <span class="brand-icon" aria-hidden="true">
-                    <a href="static/HTML/index.html"><img src="static/IMG/votesync_logo.png" alt="VoteSync logo" /></a>
+                    <a href="index.html"><img src="static/IMG/votesync_logo.png" alt="VoteSync logo" /></a>
                 </span>
                 <span>VoteSync</span>
             </div>
 
-            <button id="header-login-btn" class="login-btn" type="button" aria-label="Login">
+            <a href="login.html" class="login-btn" aria-label="Login">
                 <span aria-hidden="true"><img class="loginIMG" src="static/IMG/Login.png" alt="Login icon"></span>
                 Login
-            </button>
+            </a>
         </header>
 
-        <section id="home-stage" class="hero-stage">
+        <section class="hero-stage">
             <div class="hero-grid">
                 <article class="hero-copy">
                     <p class="eyebrow">✧ Your Ultimate Friend Hub</p>
@@ -41,9 +41,9 @@
                         Plan hangouts, share memories, and stay connected with the people who matter most.
                     </p>
 
-                    <form id="hero-form" class="hero-form" onsubmit="return false;">
+                    <form class="hero-form" onsubmit="return false;">
                         <input id="hero-name" type="text" placeholder="What's your name?">
-                        <button type="button" id="hero-login-cta">Let's Go! →</button>
+                        <button type="button" onclick="window.location.href='register.html'">Let's Go! →</button>
                     </form>
 
                     <p class="social-proof">♥ Join 10,000+ friend groups already connected</p>
@@ -83,127 +83,7 @@
                 </aside>
             </div>
         </section>
-
-        <section id="auth-stage" class="auth-stage" hidden>
-            <div class="auth-card">
-                <button id="back-home-btn" class="text-btn back-home-btn" type="button">← Back to Home</button>
-                <p id="auth-status" class="auth-status" aria-live="polite"></p>
-
-                <form id="login-form" class="auth-form" novalidate>
-                    <h1>Welcome Back</h1>
-                    <p class="form-subtitle">Sign in to your account to continue</p>
-
-                    <label for="login-email">Email</label>
-                    <input id="login-email" type="email" placeholder="Enter your email" required>
-                    <p class="field-error" data-error-for="login-email"></p>
-
-                    <label for="login-password">Password</label>
-                    <div class="input-with-icon">
-                        <input id="login-password" type="password" placeholder="Enter your password" required>
-                        <button class="input-icon-btn" type="button" data-toggle-password="login-password"
-                            aria-label="Show or hide password">◉</button>
-                    </div>
-                    <p class="field-error" data-error-for="login-password"></p>
-
-                    <div class="meta-row">
-                        <label class="checkbox-row" for="remember-me">
-                            <input id="remember-me" type="checkbox">
-                            <span>Remember me</span>
-                        </label>
-                        <a class="link-quiet" id="forgot-password-link" href="#">Forgot password?</a>
-                    </div>
-
-                    <button class="primary-btn" type="submit">Sign In</button>
-                </form>
-
-                <form id="forgot-form" class="auth-form" novalidate hidden>
-                    <h1>Reset Password</h1>
-                    <p class="form-subtitle">Update your password to access your account again</p>
-
-                    <label for="forgot-email">Email</label>
-                    <input id="forgot-email" type="email" placeholder="Enter your account email" required>
-                    <p class="field-error" data-error-for="forgot-email"></p>
-
-                    <label for="forgot-password">New Password</label>
-                    <div class="input-with-icon">
-                        <input id="forgot-password" type="password" placeholder="Create a new password" required>
-                        <button class="input-icon-btn" type="button" data-toggle-password="forgot-password"
-                            aria-label="Show or hide password">◉</button>
-                    </div>
-                    <p class="field-error" data-error-for="forgot-password"></p>
-
-                    <label for="forgot-confirm-password">Confirm New Password</label>
-                    <div class="input-with-icon">
-                        <input id="forgot-confirm-password" type="password" placeholder="Confirm new password" required>
-                        <button class="input-icon-btn" type="button" data-toggle-password="forgot-confirm-password"
-                            aria-label="Show or hide password">◉</button>
-                    </div>
-                    <p class="field-error" data-error-for="forgot-confirm-password"></p>
-
-                    <button class="primary-btn" type="submit">Reset Password</button>
-                </form>
-
-                <form id="register-form" class="auth-form" novalidate hidden>
-                    <h1>Create Account</h1>
-                    <p class="form-subtitle">Sign up to get started</p>
-
-                    <label for="register-name">Name</label>
-                    <input id="register-name" type="text" placeholder="Enter your name" required>
-                    <p class="field-error" data-error-for="register-name"></p>
-
-                    <label for="register-email">Email</label>
-                    <input id="register-email" type="email" placeholder="Enter your email" required>
-                    <p class="field-error" data-error-for="register-email"></p>
-
-                    <label for="register-password">Password</label>
-                    <div class="input-with-icon">
-                        <input id="register-password" type="password" placeholder="Create a password" required>
-                        <button class="input-icon-btn" type="button" data-toggle-password="register-password"
-                            aria-label="Show or hide password">◉</button>
-                    </div>
-                    <p class="field-error" data-error-for="register-password"></p>
-
-                    <label for="register-confirm-password">Confirm Password</label>
-                    <div class="input-with-icon">
-                        <input id="register-confirm-password" type="password" placeholder="Confirm your password"
-                            required>
-                        <button class="input-icon-btn" type="button" data-toggle-password="register-confirm-password"
-                            aria-label="Show or hide password">◉</button>
-                    </div>
-                    <p class="field-error" data-error-for="register-confirm-password"></p>
-
-                    <label class="checkbox-row" for="terms">
-                        <input id="terms" type="checkbox" required>
-                        <span>I agree to the <a class="link-quiet" href="#">Terms and Conditions</a></span>
-                    </label>
-                    <p class="field-error" data-error-for="terms"></p>
-
-                    <button class="primary-btn" type="submit">Create Account</button>
-                </form>
-
-                <div class="switch-row">
-                    <p id="switch-login">Don't have an account? <button class="text-btn" type="button"
-                            data-switch-to="register">Sign up</button></p>
-                    <p id="switch-register" hidden>Already have an account? <button class="text-btn" type="button"
-                            data-switch-to="login">Sign in</button></p>
-                    <p id="switch-forgot" hidden>Remembered your password? <button class="text-btn" type="button"
-                            data-switch-to="login">Sign in</button></p>
-                </div>
-
-                <div id="session-row" class="session-row" hidden>
-                    <p id="session-text"></p>
-                    <button id="logout-btn" class="secondary-btn" type="button">
-                        <img class="logout-icon" src="static/IMG/Logout.png" alt="Logout icon">
-                        Logout
-                    </button>
-                </div>
-
-                <p class="secure-note">Secure login powered by VoteSync</p>
-            </div>
-        </section>
     </main>
-
-    <script src="static/JS/index.js"></script>
 </body>
 
 </html>
