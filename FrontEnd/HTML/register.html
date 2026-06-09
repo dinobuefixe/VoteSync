@@ -71,58 +71,6 @@
             </div>
         </section>
     </main>
-
-    <script>
-        const $ = id => document.getElementById(id);
-        const registerForm = $('register-form');
-        const authStatus   = $('auth-status');
-
-        function setStatus(msg, type) {
-            authStatus.textContent = msg;
-            authStatus.className = 'auth-status' + (type ? ' is-' + type : '');
-        }
-
-        function clearErrors() {
-            document.querySelectorAll('.field-error').forEach(el => el.textContent = '');
-        }
-
-        function fieldError(id, msg) {
-            const el = document.querySelector(`[data-error-for="${id}"]`);
-            if (el) el.textContent = msg;
-        }
-
-        document.querySelectorAll('[data-toggle-password]').forEach(btn => {
-            btn.addEventListener('click', () => {
-                const input = document.getElementById(btn.dataset.togglePassword);
-                input.type = input.type === 'password' ? 'text' : 'password';
-            });
-        });
-
-        registerForm.addEventListener('submit', e => {
-            e.preventDefault();
-            clearErrors();
-            let valid = true;
-
-            const name     = $('register-name').value.trim();
-            const email    = $('register-email').value.trim();
-            const pass     = $('register-password').value;
-            const confirm  = $('register-confirm-password').value;
-            const terms    = $('terms').checked;
-
-            if (!name) { fieldError('register-name', 'Name is required.'); valid = false; }
-            if (!email) { fieldError('register-email', 'Email is required.'); valid = false; }
-            else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) { fieldError('register-email', 'Enter a valid email.'); valid = false; }
-            if (!pass) { fieldError('register-password', 'Password is required.'); valid = false; }
-            else if (pass.length < 8) { fieldError('register-password', 'Password must be at least 8 characters.'); valid = false; }
-            if (!confirm) { fieldError('register-confirm-password', 'Please confirm your password.'); valid = false; }
-            else if (pass !== confirm) { fieldError('register-confirm-password', 'Passwords do not match.'); valid = false; }
-            if (!terms) { fieldError('terms', 'You must accept the Terms and Conditions.'); valid = false; }
-            if (!valid) return;
-
-            setStatus(`Account created for ${name}! Redirecting to sign in…`, 'success');
-            registerForm.reset();
-            setTimeout(() => { window.location.href = 'login.html'; }, 2000);
-        });
-    </script>
+    <script src="static/JS/register.js"></script>
 </body>
 </html>
