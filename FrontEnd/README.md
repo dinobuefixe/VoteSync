@@ -40,7 +40,12 @@
 * **Support Requested:** Refactoring global header components to follow strict design system lines and designing structured CSS media queries for high-performance mobile scaling.
 * **Project Outcome:** Delivered a completely responsive, fully normalized global navbar and adaptive card containers optimized for various standard mobile viewport sizes.
 
-
+### 7. Login/Register HTML and JS Separated
+* **Tool Utilized:** Claude AI
+* **Context / Functional Area:** HTML Development, JavaScript Refactoring, and Authentication Flow Separation
+* **Problem Statement:** The authentication flow (Login, Register, and Forgot Password) was entirely embedded within a single `index.html` and `index.js` file, creating a monolithic and hard-to-maintain structure with tightly coupled UI and logic.
+* **Support Requested:** Extracting and migrating the authentication views into dedicated `login.html` and `register.html` pages, splitting the corresponding JavaScript into isolated `login.js`, `register.js`, and a clean `index.js`, while preserving the full `localStorage` session pipeline, field validation, and password reset flow.
+* **Project Outcome:** Successfully decomposed the monolithic authentication block into three independent, self-contained page modules. Each page now owns its own scoped logic — `login.js` handles sign-in, forgot password, and session restore; `register.js` handles account creation with name pre-fill via query string from the hero form; and `index.js` manages session-aware redirects and the landing page interaction. Cross-page navigation links and data passing (e.g. hero name forwarded to register) were preserved seamlessly.
 
 ***
 *End of Report. Compiled dynamically for project review documentation.*
