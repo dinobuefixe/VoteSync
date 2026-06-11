@@ -3,7 +3,7 @@ from fastapi.staticfiles import StaticFiles
 from fastapi.responses import FileResponse
 from backend.routers import users, friendships, group_members, user_groups, decisions, votes, options
 from backend.database import Base, engine
-from backend import models  # importa os modelos
+from backend import models 
 
 app = FastAPI()
 
