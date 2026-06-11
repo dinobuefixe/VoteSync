@@ -1,16 +1,16 @@
 const USERS_KEY   = "votesync.users";
 const SESSION_KEY = "votesync.session";
 
-const loginForm        = document.querySelector("#login-form");
-const forgotForm       = document.querySelector("#forgot-form");
-const authStatus       = document.querySelector("#auth-status");
-const switchLogin      = document.querySelector("#switch-login");
-const switchForgot     = document.querySelector("#switch-forgot");
+const loginForm          = document.querySelector("#login-form");
+const forgotForm         = document.querySelector("#forgot-form");
+const authStatus         = document.querySelector("#auth-status");
+const switchLogin        = document.querySelector("#switch-login");
+const switchForgot       = document.querySelector("#switch-forgot");
 const forgotPasswordLink = document.querySelector("#forgot-password-link");
-const backToLoginBtn   = document.querySelector("#back-to-login-btn");
-const sessionRow       = document.querySelector("#session-row");
-const sessionText      = document.querySelector("#session-text");
-const logoutBtn        = document.querySelector("#logout-btn");
+const backToLoginBtn     = document.querySelector("#back-to-login-btn");
+const sessionRow         = document.querySelector("#session-row");
+const sessionText        = document.querySelector("#session-text");
+const logoutBtn          = document.querySelector("#logout-btn");
 
 // ── Storage helpers ───────────────────────────────────────────────────────────
 function getUsers() {
@@ -71,6 +71,15 @@ function hideSession() {
     sessionText.textContent = "";
 }
 
+// ── Redirecionar consoante o papel ────────────────────────────────────────────
+function redirectAfterLogin(user) {
+    if (user.is_admin === true) {
+        window.location.href = "./admin.html";
+    } else {
+        window.location.href = "./dashboard.html";
+    }
+}
+
 // ── Form switching ────────────────────────────────────────────────────────────
 function showForm(which) {
     loginForm.hidden  = which !== "login";
@@ -100,7 +109,7 @@ function validateLogin() {
     const password = document.querySelector("#login-password").value;
     let valid = true;
 
-    if (!email) { setFieldError("login-email", "Email is required."); valid = false; }
+    if (!email)    { setFieldError("login-email",    "Email is required.");    valid = false; }
     if (!password) { setFieldError("login-password", "Password is required."); valid = false; }
     return { valid, email, password };
 }
@@ -110,7 +119,15 @@ function loginUser(email, password) {
     const user  = users.find((u) => u.email.toLowerCase() === email.toLowerCase());
     if (!user || user.password !== password) throw new Error("Invalid credentials.");
 
-    const session = { token: createToken(user.id), user: { id: user.id, name: user.name, email: user.email } };
+    const session = {
+        token: createToken(user.id),
+        user: {
+            id:       user.id,
+            name:     user.name,
+            email:    user.email,
+            is_admin: user.is_admin === true   // ← inclui o campo admin na sessão
+        }
+    };
     saveSession(session);
     return session;
 }
@@ -127,7 +144,7 @@ loginForm.addEventListener("submit", (e) => {
         loginForm.reset();
         showSession(session.user);
         setStatus("Login successful.", "is-success");
-        window.location.href = "./dashboard.html";
+        redirectAfterLogin(session.user);   // ← redireciona para admin.html ou dashboard.html
     } catch {
         setStatus("Email or password is incorrect.", "is-error");
     } finally {
@@ -144,15 +161,15 @@ function validateForgot() {
     const re      = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
     let valid = true;
 
-    if (!re.test(email)) { setFieldError("forgot-email", "Enter a valid email."); valid = false; }
-    if (pass.length < 8) { setFieldError("forgot-password", "Password must have at least 8 characters."); valid = false; }
-    if (confirm !== pass) { setFieldError("forgot-confirm-password", "Passwords do not match."); valid = false; }
+    if (!re.test(email)) { setFieldError("forgot-email",            "Enter a valid email.");              valid = false; }
+    if (pass.length < 8) { setFieldError("forgot-password",         "Password must have at least 8 characters."); valid = false; }
+    if (confirm !== pass) { setFieldError("forgot-confirm-password", "Passwords do not match.");           valid = false; }
     return { valid, email, password: pass };
 }
 
 forgotPasswordLink.addEventListener("click", (e) => {
     e.preventDefault();
-    const loginEmail = document.querySelector("#login-email");
+    const loginEmail  = document.querySelector("#login-email");
     const forgotEmail = document.querySelector("#forgot-email");
     if (forgotEmail && loginEmail) forgotEmail.value = loginEmail.value.trim();
     showForm("forgot");
@@ -195,14 +212,14 @@ logoutBtn.addEventListener("click", () => {
     setStatus("You have logged out.", "is-success");
 });
 
-// ── Restore session ───────────────────────────────────────────────────────────
+// ── Restaurar sessão (redireciona automaticamente se já estiver logado) ────────
 (function restoreSession() {
     const session = getSession();
     if (!session || !session.user) return hideSession();
     const exists = getUsers().find((u) => u.id === session.user.id);
     if (!exists) { clearSession(); return hideSession(); }
     showSession(session.user);
-    window.location.href = "./dashboard.html";
+    redirectAfterLogin(session.user);   // ← usa a mesma lógica de redirecionamento
 })();
 
 showForm("login");

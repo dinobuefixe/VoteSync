@@ -1,0 +1,269 @@
+<!DOCTYPE html>
+<html lang="pt">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>VoteSync — Admin</title>
+  <link rel="stylesheet" href="/static/admin.css" />
+</head>
+<body>
+
+  <!-- NAVBAR -->
+  <header class="navbar">
+    <div class="navbar-brand">
+      <span class="brand-icon">🐾</span>
+      <span class="brand-name">VoteSync</span>
+      <span class="admin-badge">Admin</span>
+    </div>
+    <div class="navbar-search">
+      <span class="search-icon">🔍</span>
+      <input type="text" placeholder="Pesquisar usuários, decisões…" id="globalSearch" />
+    </div>
+    <div class="navbar-actions">
+      <button class="btn-icon" title="Notificações" id="notifBtn">
+        🔔<span class="notif-dot" id="notifDot"></span>
+      </button>
+      <button class="btn-logout" id="logoutBtn">⎋ Sair</button>
+    </div>
+  </header>
+
+  <div class="layout">
+
+    <!-- SIDEBAR -->
+    <aside class="sidebar">
+      <nav class="sidebar-nav">
+        <a href="#" class="nav-item active" data-section="dashboard"><span class="nav-icon">📊</span> Dashboard</a>
+        <a href="#" class="nav-item" data-section="users"><span class="nav-icon">👥</span> Usuários</a>
+        <a href="#" class="nav-item" data-section="decisions"><span class="nav-icon">🗳️</span> Decisões</a>
+        <a href="#" class="nav-item" data-section="groups"><span class="nav-icon">🏘️</span> Grupos</a>
+        <a href="#" class="nav-item" data-section="reports"><span class="nav-icon">📈</span> Relatórios</a>
+        <a href="#" class="nav-item" data-section="settings"><span class="nav-icon">⚙️</span> Configurações</a>
+      </nav>
+    </aside>
+
+    <!-- MAIN -->
+    <main class="main" id="mainContent">
+
+      <!-- DASHBOARD -->
+      <section class="section" id="section-dashboard">
+        <div class="section-header">
+          <div>
+            <h1 class="section-title">Dashboard</h1>
+            <span class="section-subtitle">Visão geral da plataforma</span>
+          </div>
+        </div>
+
+        <div class="kpi-grid">
+          <div class="kpi-card kpi-users">
+            <div class="kpi-icon">👥</div>
+            <div class="kpi-info">
+              <span class="kpi-value">248</span>
+              <span class="kpi-label">Usuários</span>
+            </div>
+            <span class="kpi-delta positive">+12 essa semana</span>
+          </div>
+          <div class="kpi-card kpi-decisions">
+            <div class="kpi-icon">🗳️</div>
+            <div class="kpi-info">
+              <span class="kpi-value">87</span>
+              <span class="kpi-label">Decisões ativas</span>
+            </div>
+            <span class="kpi-delta positive">+5 hoje</span>
+          </div>
+          <div class="kpi-card kpi-groups">
+            <div class="kpi-icon">🏘️</div>
+            <div class="kpi-info">
+              <span class="kpi-value">34</span>
+              <span class="kpi-label">Grupos</span>
+            </div>
+            <span class="kpi-delta neutral">sem alteração</span>
+          </div>
+          <div class="kpi-card kpi-votes">
+            <div class="kpi-icon">✅</div>
+            <div class="kpi-info">
+              <span class="kpi-value">1 204</span>
+              <span class="kpi-label">Votos totais</span>
+            </div>
+            <span class="kpi-delta positive">+89 essa semana</span>
+          </div>
+        </div>
+
+        <div class="two-col">
+          <div class="card">
+            <div class="card-header">
+              <h2 class="card-title">Atividade recente</h2>
+              <button class="btn-text">Ver todas →</button>
+            </div>
+            <ul class="activity-list">
+              <li class="activity-item">
+                <span class="activity-avatar">AM</span>
+                <div class="activity-info">
+                  <span class="activity-user">Ana Martins</span>
+                  <span class="activity-action">criou a decisão <strong>"Destino de férias"</strong></span>
+                </div>
+                <span class="activity-time">2 min atrás</span>
+              </li>
+              <li class="activity-item">
+                <span class="activity-avatar">RS</span>
+                <div class="activity-info">
+                  <span class="activity-user">Rui Silva</span>
+                  <span class="activity-action">adicionou 3 amigos</span>
+                </div>
+                <span class="activity-time">15 min atrás</span>
+              </li>
+              <li class="activity-item">
+                <span class="activity-avatar">CF</span>
+                <div class="activity-info">
+                  <span class="activity-user">Carla Fonseca</span>
+                  <span class="activity-action">votou em <strong>"Jantar de equipa"</strong></span>
+                </div>
+                <span class="activity-time">1 h atrás</span>
+              </li>
+              <li class="activity-item">
+                <span class="activity-avatar">JP</span>
+                <div class="activity-info">
+                  <span class="activity-user">João Pereira</span>
+                  <span class="activity-action">criou o grupo <strong>"Família"</strong></span>
+                </div>
+                <span class="activity-time">3 h atrás</span>
+              </li>
+            </ul>
+          </div>
+
+          <div class="card">
+            <div class="card-header">
+              <h2 class="card-title">Ações rápidas</h2>
+            </div>
+            <div class="quick-actions">
+              <button class="quick-btn" id="qaNewUser"><span class="qa-icon">➕</span><span>Novo utilizador</span></button>
+              <button class="quick-btn" id="qaNewDecision"><span class="qa-icon">🗳️</span><span>Nova decisão</span></button>
+              <button class="quick-btn" id="qaNewGroup"><span class="qa-icon">🏘️</span><span>Novo grupo</span></button>
+              <button class="quick-btn" id="qaExport"><span class="qa-icon">⬇️</span><span>Exportar dados</span></button>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- USERS -->
+      <section class="section hidden" id="section-users">
+        <div class="section-header">
+          <div>
+            <h1 class="section-title">Usuários</h1>
+            <span class="section-subtitle">Gerir contas da plataforma</span>
+          </div>
+          <button class="btn-primary" id="addUserBtn">➕ Adicionar</button>
+        </div>
+        <div class="card">
+          <div class="card-header">
+            <input type="text" class="table-search" placeholder="Filtrar usuários…" id="userSearch" />
+            <div class="filter-group">
+              <select class="select-filter" id="userRoleFilter">
+                <option value="">Todos os papéis</option>
+                <option value="admin">Admin</option>
+                <option value="user">Utilizador</option>
+              </select>
+              <select class="select-filter" id="userStatusFilter">
+                <option value="">Todos os estados</option>
+                <option value="active">Ativo</option>
+                <option value="inactive">Inativo</option>
+              </select>
+            </div>
+          </div>
+          <div class="table-wrapper">
+            <table class="data-table">
+              <thead>
+                <tr>
+                  <th>Utilizador</th><th>Email</th><th>Papel</th><th>Estado</th><th>Registado em</th><th>Ações</th>
+                </tr>
+              </thead>
+              <tbody id="usersBody"></tbody>
+            </table>
+          </div>
+          <div class="pagination" id="usersPagination"></div>
+        </div>
+      </section>
+
+      <!-- DECISIONS -->
+      <section class="section hidden" id="section-decisions">
+        <div class="section-header">
+          <div>
+            <h1 class="section-title">Decisões</h1>
+            <span class="section-subtitle">Gerir todas as decisões</span>
+          </div>
+          <button class="btn-primary">➕ Criar</button>
+        </div>
+        <div class="decision-count-bar">
+          <span id="decisionCount">0 decisões encontradas</span>
+          <select class="select-filter" id="decisionStatusFilter">
+            <option value="">Todos os estados</option>
+            <option value="New">New</option>
+            <option value="Finishing">Finishing</option>
+            <option value="Closed">Closed</option>
+          </select>
+        </div>
+        <div class="decisions-grid" id="decisionsGrid"></div>
+      </section>
+
+      <!-- GROUPS -->
+      <section class="section hidden" id="section-groups">
+        <div class="section-header">
+          <div><h1 class="section-title">Grupos</h1></div>
+          <button class="btn-primary">➕ Novo grupo</button>
+        </div>
+        <div class="card"><p class="empty-state">Nenhum grupo registado ainda.</p></div>
+      </section>
+
+      <!-- REPORTS -->
+      <section class="section hidden" id="section-reports">
+        <div class="section-header"><div><h1 class="section-title">Relatórios</h1></div></div>
+        <div class="card"><p class="empty-state">Em construção — em breve disponível.</p></div>
+      </section>
+
+      <!-- SETTINGS -->
+      <section class="section hidden" id="section-settings">
+        <div class="section-header"><div><h1 class="section-title">Configurações</h1></div></div>
+        <div class="card settings-form">
+          <div class="form-group">
+            <label class="form-label">Nome da plataforma</label>
+            <input type="text" class="form-input" value="VoteSync" />
+          </div>
+          <div class="form-group">
+            <label class="form-label">Email de suporte</label>
+            <input type="email" class="form-input" value="suporte@votesync.io" />
+          </div>
+          <div class="form-group">
+            <label class="form-label">Máximo de opções por decisão</label>
+            <input type="number" class="form-input" value="10" min="2" max="50" />
+          </div>
+          <div class="form-group toggle-group">
+            <label class="form-label">Permitir registo público</label>
+            <label class="toggle"><input type="checkbox" checked /><span class="toggle-slider"></span></label>
+          </div>
+          <div class="form-group toggle-group">
+            <label class="form-label">Modo manutenção</label>
+            <label class="toggle"><input type="checkbox" /><span class="toggle-slider"></span></label>
+          </div>
+          <button class="btn-primary" id="saveSettings">Guardar alterações</button>
+        </div>
+      </section>
+
+    </main>
+  </div>
+
+  <!-- MODAL -->
+  <div class="modal-overlay hidden" id="modalOverlay">
+    <div class="modal" id="modal">
+      <div class="modal-header">
+        <h2 class="modal-title" id="modalTitle">Modal</h2>
+        <button class="modal-close" id="modalClose">✕</button>
+      </div>
+      <div class="modal-body" id="modalBody"></div>
+    </div>
+  </div>
+
+  <!-- TOAST -->
+  <div class="toast-container" id="toastContainer"></div>
+
+  <script src="/static/admin.js"></script>
+</body>
+</html>

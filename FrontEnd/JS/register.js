@@ -65,8 +65,8 @@ document.querySelectorAll("[data-toggle-password]").forEach((btn) => {
 
 // ── Pre-fill name from index.html hero form ───────────────────────────────────
 (function prefillName() {
-    const params = new URLSearchParams(window.location.search);
-    const name   = params.get("name");
+    const params    = new URLSearchParams(window.location.search);
+    const name      = params.get("name");
     const nameInput = document.querySelector("#register-name");
     if (name && nameInput) nameInput.value = name;
 })();
@@ -74,19 +74,19 @@ document.querySelectorAll("[data-toggle-password]").forEach((btn) => {
 // ── Validation ────────────────────────────────────────────────────────────────
 function validateRegister() {
     clearFieldErrors();
-    const name     = document.querySelector("#register-name").value.trim();
-    const email    = document.querySelector("#register-email").value.trim();
-    const pass     = document.querySelector("#register-password").value;
-    const confirm  = document.querySelector("#register-confirm-password").value;
-    const terms    = document.querySelector("#terms").checked;
-    const re       = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    const name    = document.querySelector("#register-name").value.trim();
+    const email   = document.querySelector("#register-email").value.trim();
+    const pass    = document.querySelector("#register-password").value;
+    const confirm = document.querySelector("#register-confirm-password").value;
+    const terms   = document.querySelector("#terms").checked;
+    const re      = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
     let valid = true;
 
-    if (!name)          { setFieldError("register-name",             "Full name is required."); valid = false; }
-    if (!re.test(email)) { setFieldError("register-email",           "Enter a valid email.");   valid = false; }
-    if (pass.length < 8) { setFieldError("register-password",        "Password must have at least 8 characters."); valid = false; }
-    if (confirm !== pass) { setFieldError("register-confirm-password","Passwords do not match."); valid = false; }
-    if (!terms)          { setFieldError("terms",                    "You need to accept the terms."); valid = false; }
+    if (!name)           { setFieldError("register-name",             "Full name is required.");                    valid = false; }
+    if (!re.test(email)) { setFieldError("register-email",            "Enter a valid email.");                      valid = false; }
+    if (pass.length < 8) { setFieldError("register-password",         "Password must have at least 8 characters."); valid = false; }
+    if (confirm !== pass) { setFieldError("register-confirm-password", "Passwords do not match.");                  valid = false; }
+    if (!terms)          { setFieldError("terms",                     "You need to accept the terms.");             valid = false; }
 
     return { valid, name, email, password: pass };
 }
@@ -97,11 +97,28 @@ function registerUser(data) {
     const exists = users.some((u) => u.email.toLowerCase() === data.email.toLowerCase());
     if (exists) { setFieldError("register-email", "This email is already registered."); throw new Error("Email already exists."); }
 
-    const newUser = { id: createId(), name: data.name, email: data.email, password: data.password };
+    // Primeiro utilizador registado torna-se admin automaticamente
+    const isFirstUser = users.length === 0;
+
+    const newUser = {
+        id:       createId(),
+        name:     data.name,
+        email:    data.email,
+        password: data.password,
+        is_admin: isFirstUser   // ← true só para o primeiro utilizador; os restantes são false
+    };
     users.push(newUser);
     saveUsers(users);
 
-    const session = { token: createToken(newUser.id), user: { id: newUser.id, name: newUser.name, email: newUser.email } };
+    const session = {
+        token: createToken(newUser.id),
+        user: {
+            id:       newUser.id,
+            name:     newUser.name,
+            email:    newUser.email,
+            is_admin: newUser.is_admin   // ← inclui o campo na sessão
+        }
+    };
     saveSession(session);
     return session;
 }
@@ -114,10 +131,17 @@ registerForm.addEventListener("submit", (e) => {
 
     setSubmitLoading(true);
     try {
-        registerUser(result);
+        const session = registerUser(result);
         registerForm.reset();
         setStatus("Account created successfully! Redirecting…", "is-success");
-        setTimeout(() => { window.location.href = "./dashboard.html"; }, 1500);
+        setTimeout(() => {
+            // Redireciona para admin.html se for admin, senão para dashboard.html
+            if (session.user.is_admin === true) {
+                window.location.href = "./admin.html";
+            } else {
+                window.location.href = "./dashboard.html";
+            }
+        }, 1500);
     } catch (err) {
         setStatus(err.message || "Could not create account.", "is-error");
     } finally {
