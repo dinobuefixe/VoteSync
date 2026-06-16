@@ -1,14 +1,15 @@
 from typing import List
-from fastapi import HTTPException, Depends, FastAPI, APIRouter, status
+from fastapi import HTTPException, Depends, APIRouter, status
 from sqlalchemy.orm import Session
 from starlette import status
-from backend import models, schemas, database
+from backend import models, schemas
 from backend.database import get_db
 from backend.utils import hash_password
 
 router = APIRouter(prefix="/users", tags=["Users"])
 
-@router.get("/", response_model=List[schemas.UserBase])
+
+@router.get("/", response_model=List[schemas.UserResponse])
 def get_users(db: Session = Depends(get_db)):
     return db.query(models.Users).all()
 
@@ -31,7 +32,8 @@ def create_user(user: schemas.UserCreate, db: Session = Depends(get_db)):
 
     return new_user
 
-@router.get("/{id}", response_model=schemas.UserBase)
+
+@router.get("/{id}", response_model=schemas.UserResponse)
 def get_user(id: int, db: Session = Depends(get_db)):
     user = db.query(models.Users).filter(models.Users.id == id).first()
     if not user:
@@ -39,8 +41,8 @@ def get_user(id: int, db: Session = Depends(get_db)):
     return user
 
 
-@router.put("/{id}", response_model=schemas.UserBase)
-def update_user(id: int, updated: schemas.UserBase, db: Session = Depends(get_db)):
+@router.put("/{id}", response_model=schemas.UserResponse)
+def update_user(id: int, updated: schemas.UserCreate, db: Session = Depends(get_db)):
     user = db.query(models.Users).filter(models.Users.id == id)
     if not user.first():
         raise HTTPException(404, "User not found")

@@ -1,24 +1,18 @@
 const USERS_KEY   = "votesync.users";
 const SESSION_KEY = "votesync.session";
 
-const loginForm        = document.querySelector("#login-form");
-const forgotForm       = document.querySelector("#forgot-form");
-const authStatus       = document.querySelector("#auth-status");
-const switchLogin      = document.querySelector("#switch-login");
-const switchForgot     = document.querySelector("#switch-forgot");
+const loginForm          = document.querySelector("#login-form");
+const forgotForm         = document.querySelector("#forgot-form");
+const authStatus         = document.querySelector("#auth-status");
+const switchLogin        = document.querySelector("#switch-login");
+const switchForgot       = document.querySelector("#switch-forgot");
 const forgotPasswordLink = document.querySelector("#forgot-password-link");
-const backToLoginBtn   = document.querySelector("#back-to-login-btn");
-const sessionRow       = document.querySelector("#session-row");
-const sessionText      = document.querySelector("#session-text");
-const logoutBtn        = document.querySelector("#logout-btn");
+const backToLoginBtn     = document.querySelector("#back-to-login-btn");
+const sessionRow         = document.querySelector("#session-row");
+const sessionText        = document.querySelector("#session-text");
+const logoutBtn          = document.querySelector("#logout-btn");
 
 // ── Storage helpers ───────────────────────────────────────────────────────────
-function getUsers() {
-    const raw = localStorage.getItem(USERS_KEY);
-    if (!raw) return [];
-    try { return JSON.parse(raw); } catch { return []; }
-}
-
 function saveSession(session) {
     localStorage.setItem(SESSION_KEY, JSON.stringify(session));
 }
@@ -31,10 +25,6 @@ function getSession() {
 
 function clearSession() {
     localStorage.removeItem(SESSION_KEY);
-}
-
-function createToken(userId) {
-    return `local-${userId}-${Date.now()}`;
 }
 
 // ── UI helpers ────────────────────────────────────────────────────────────────
@@ -62,13 +52,21 @@ function setSubmitLoading(form, loading) {
 }
 
 function showSession(user) {
-    sessionRow.hidden = false;
-    sessionText.textContent = `Logged in as ${user.name || user.email}`;
+    if (sessionRow) sessionRow.hidden = false;
+    if (sessionText) sessionText.textContent = `Logged in as ${user.name || user.email}`;
 }
 
 function hideSession() {
-    sessionRow.hidden = true;
-    sessionText.textContent = "";
+    if (sessionRow) sessionRow.hidden = true;
+    if (sessionText) sessionText.textContent = "";
+}
+
+function redirectAfterLogin(user) {
+    if (user.is_admin === true) {
+        window.location.href = "./admin.html";
+    } else {
+        window.location.href = "./dashboard.html";
+    }
 }
 
 // ── Form switching ────────────────────────────────────────────────────────────
@@ -100,41 +98,38 @@ function validateLogin() {
     const password = document.querySelector("#login-password").value;
     let valid = true;
 
-    if (!email) { setFieldError("login-email", "Email is required."); valid = false; }
+    if (!email)    { setFieldError("login-email",    "Email is required.");    valid = false; }
     if (!password) { setFieldError("login-password", "Password is required."); valid = false; }
     return { valid, email, password };
 }
 
-function loginUser(email, password) {
-    const users = getUsers();
-    const user  = users.find((u) => u.email.toLowerCase() === email.toLowerCase());
-    if (!user || user.password !== password) throw new Error("Invalid credentials.");
+loginForm.addEventListener("submit", async (e) => {
+    e.preventDefault();
+    setStatus("");
+    const result = validateLogin();
+    if (!result.valid) { setStatus("Please fix the highlighted fields.", "is-error"); return; }
 
-    const session = { token: createToken(user.id), user: { id: user.id, name: user.name, email: user.email } };
-    saveSession(session);
-    return session;
-}
+    setSubmitLoading(loginForm, true);
+    try {
+        const res = await fetch("http://localhost:8000/auth/login", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ email: result.email, password: result.password }),
+        });
+        const data = await res.json();
+        if (!res.ok) throw new Error(data.detail || "Credenciais inválidas.");
 
-function loginUser(email, password) {
-	const users = getUsers();
-	const user = users.find((entry) => entry.email.toLowerCase() === email.toLowerCase());
-
-	if (!user || user.password !== password) {
-		throw new Error("Invalid credentials.");
-	}
-
-	const session = {
-		token: createToken(user.id),
-		user: {
-			id: user.id,
-			name: user.name,
-			email: user.email
-		}
-	};
-
-	saveSession(session);
-	return session;
-}
+        saveSession(data);
+        loginForm.reset();
+        showSession(data.user);
+        setStatus("Login successful.", "is-success");
+        redirectAfterLogin(data.user);
+    } catch (err) {
+        setStatus(err.message || "Email or password is incorrect.", "is-error");
+    } finally {
+        setSubmitLoading(loginForm, false);
+    }
+});
 
 // ── Forgot / Reset ────────────────────────────────────────────────────────────
 function validateForgot() {
@@ -145,15 +140,15 @@ function validateForgot() {
     const re      = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
     let valid = true;
 
-    if (!re.test(email)) { setFieldError("forgot-email", "Enter a valid email."); valid = false; }
-    if (pass.length < 8) { setFieldError("forgot-password", "Password must have at least 8 characters."); valid = false; }
-    if (confirm !== pass) { setFieldError("forgot-confirm-password", "Passwords do not match."); valid = false; }
+    if (!re.test(email))  { setFieldError("forgot-email",            "Enter a valid email.");                      valid = false; }
+    if (pass.length < 8)  { setFieldError("forgot-password",         "Password must have at least 8 characters."); valid = false; }
+    if (confirm !== pass) { setFieldError("forgot-confirm-password", "Passwords do not match.");                   valid = false; }
     return { valid, email, password: pass };
 }
 
 forgotPasswordLink.addEventListener("click", (e) => {
     e.preventDefault();
-    const loginEmail = document.querySelector("#login-email");
+    const loginEmail  = document.querySelector("#login-email");
     const forgotEmail = document.querySelector("#forgot-email");
     if (forgotEmail && loginEmail) forgotEmail.value = loginEmail.value.trim();
     showForm("forgot");
@@ -169,7 +164,7 @@ forgotForm.addEventListener("submit", (e) => {
 
     setSubmitLoading(forgotForm, true);
     try {
-        const users = getUsers();
+        const users = JSON.parse(localStorage.getItem(USERS_KEY) || "[]");
         const idx   = users.findIndex((u) => u.email.toLowerCase() === result.email.toLowerCase());
         if (idx === -1) { setFieldError("forgot-email", "Email not found."); throw new Error("No account for this email."); }
 
@@ -196,14 +191,12 @@ logoutBtn.addEventListener("click", () => {
     setStatus("You have logged out.", "is-success");
 });
 
-// ── Restore session ───────────────────────────────────────────────────────────
+// ── Restaurar sessão ──────────────────────────────────────────────────────────
 (function restoreSession() {
     const session = getSession();
     if (!session || !session.user) return hideSession();
-    const exists = getUsers().find((u) => u.id === session.user.id);
-    if (!exists) { clearSession(); return hideSession(); }
     showSession(session.user);
-    window.location.href = "./dashboard.html";
+    redirectAfterLogin(session.user);
 })();
 
 showForm("login");

@@ -267,6 +267,15 @@ async function removeDecisionAtIndex(index) {
         });
     }
 }
+function handleLogoClick(e) {
+    e.preventDefault();
+    const session = getSession();
+    if (session && session.user) {
+        window.location.href = session.user.is_admin ? "./admin.html" : "./dashboard.html";
+    } else {
+        window.location.href = "./index.html";
+    }
+}
 
 function createDecisionListItem(decision, decisionIndex) {
     const optionsCount = Array.isArray(decision.options) ? decision.options.length : 0;
@@ -311,6 +320,7 @@ function createDecisionListItem(decision, decisionIndex) {
         saveLatestDecision(decision);
         redirectToDecisionTemplate();
     });
+ 
 
     const actionsWrap = document.createElement("div");
     actionsWrap.className = "decision-item-actions";

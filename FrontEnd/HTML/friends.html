@@ -11,15 +11,14 @@
         href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700;800&family=Sora:wght@400;600;700&display=swap"
         rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
-    <link rel="stylesheet" href="../Styles/friends.css">
+    <link rel="stylesheet" href="/static/Styles/friends.css">
 </head>
 
 <body>
 
-    <!-- CABEÇALHO DA PÁGINA (Com o título VoteSync e sem o botão + ao lado do Logout) -->
     <header class="navbar">
-        <a href="../HTML/index.html" class="logo-area">
-            <img class="logo-icon" src="../IMG/votesync_logo.png" alt="VoteSync logo" />
+        <a class="logo-area" href="#" onclick="handleLogoClick(event)">
+            <img class="logo-icon" src="/static/IMG/votesync_logo.png" alt="VoteSync logo" />
             <span class="logo-text">VoteSync</span>
         </a>
 
@@ -30,20 +29,18 @@
 
         <div class="nav-actions">
             <button class="btn-logout">
-                <img class="logout-icon" src="../IMG/Logout.png" alt="Logout icon" />
+                <img class="logout-icon" src="/static/IMG/Logout.png" alt="Logout icon" />
                 Logout
             </button>
         </div>
     </header>
 
-    <!-- CONTEÚDO PRINCIPAL -->
     <main class="main-container">
-        <a class="back-link" href="../HTML/dashboard.html">&larr; Voltar ao dashboard</a>
+        <a class="back-link" href="/static/HTML/dashboard.html">&larr; Voltar ao dashboard</a>
         <h1 class="main-title">Friends</h1>
         <p class="main-subtitle">0 friends in your network</p>
 
-        <!-- SEÇÃO ESTADO VAZIO (Sem amigos ainda) -->
-        <section class="empty-state-container">
+        <section class="empty-state-container" style="display:none;">
             <div class="empty-state-card">
                 <div class="empty-icon">
                     <svg width="64" height="64" viewBox="0 0 24 24" fill="none" stroke="#BDB2FF" stroke-width="1.5"
@@ -63,6 +60,8 @@
         </section>
     </main>
 
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <script src="/static/JS/friends.js"></script>
 </body>
 
 </html>

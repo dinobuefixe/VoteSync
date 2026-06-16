@@ -5,7 +5,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>VoteSync - Todas as Decisões</title>
-    <link rel="stylesheet" href="../Styles/decisions.css">
+    <link rel="stylesheet" href="/static/Styles/decisions.css">
 
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -19,9 +19,9 @@
 <body>
     <header class="navbar">
         <div class="brand">
-            <span class="brand-icon" aria-hidden="true">
-                <a href="../HTML/index.html"><img src="../IMG/votesync_logo.png" alt="VoteSync logo"></a>
-            </span>
+            <a href="#" onclick="handleLogoClick(event)">
+                <img src="/static/IMG/votesync_logo.png" alt="VoteSync logo" />
+            </a>
             <span>VoteSync</span>
         </div>
 
@@ -31,7 +31,7 @@
         </div>
 
         <button class="logout-btn" id="decisions-logout-btn" type="button">
-            <img class="logout-icon" src="../IMG/Logout.png" alt="Logout icon">
+            <img class="logout-icon" src="/static/IMG/Logout.png" alt="Logout icon">
             Logout
         </button>
     </header>
@@ -40,7 +40,7 @@
         <section class="decisions-card">
             <div class="card-header">
                 <h1>Todas as Decisões</h1>
-                <a class="back-link" href="../HTML/dashboard.html">Voltar ao dashboard</a>
+                <a class="back-link" href="/static/HTML/dashboard.html">Voltar ao dashboard</a>
             </div>
 
             <div class="decision-summary">
@@ -84,7 +84,7 @@
     </div>
 
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
-    <script src="../JS/decisions.js"></script>
+    <script src="/static/JS/decisions.js"></script>
 </body>
 
 </html>

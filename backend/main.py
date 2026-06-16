@@ -1,7 +1,7 @@
 from fastapi import FastAPI
 from fastapi.staticfiles import StaticFiles
 from fastapi.responses import FileResponse
-from backend.routers import users, friendships, group_members, user_groups, decisions, votes, options
+from backend.routers import users, friendships, group_members, user_groups, decisions, votes, options, auth
 from backend.database import Base, engine
 from backend import models 
 
@@ -20,6 +20,7 @@ app.include_router(user_groups.router)
 app.include_router(decisions.router)
 app.include_router(votes.router)
 app.include_router(options.router)
+app.include_router(auth.router)
 
 
 Base.metadata.create_all(bind=engine)

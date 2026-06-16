@@ -9,11 +9,11 @@ class UserBase(BaseModel):
     profile_picture: str | None = None
 
     class Config:
-        form_attributes = True
+        from_attributes = True
 
 class CreateUser(UserBase):
     class Config:
-        form_attributes = True
+        from_attributes = True
 
 class UserCreate(BaseModel):
     name: str
@@ -33,17 +33,22 @@ class UserResponse(BaseModel):
 # friendships
 
 class FriendshipsBase(BaseModel):
+    id: int | None = None
     user_id: int
     friend_id: int
-    status: str
+    status: str = "accepted"
 
     class Config:
-        form_attributes = True
+        from_attributes = True
 
 
-class CreateFriendships(FriendshipsBase):
+class CreateFriendships(BaseModel):
+    user_id: int
+    friend_id: int
+    status: str = "accepted"
+
     class Config:
-        form_attributes = True
+        from_attributes = True
 
 
 # members
@@ -53,12 +58,12 @@ class GroupMembersBase(BaseModel):
     user_id: int
 
     class Config:
-        form_attributes = True
+        from_attributes = True
 
 
 class CreateGroupMembers(GroupMembersBase):
     class Config:
-        form_attributes = True
+        from_attributes = True
 
 
 # groups
@@ -67,12 +72,12 @@ class UserGroupsBase(BaseModel):
     name: str
 
     class Config:
-        form_attributes = True
+        from_attributes = True
 
 
 class CreateUserGroups(UserGroupsBase):
     class Config:
-        form_attributes = True
+        from_attributes = True
 
 
 # decisions
@@ -83,12 +88,12 @@ class DecisionsBase(BaseModel):
     decision_text: str
 
     class Config:
-        form_attributes = True
+        from_attributes = True
 
 
 class CreateDecisions(DecisionsBase):
     class Config:
-        form_attributes = True
+        from_attributes = True
 
 
 # votes
@@ -99,12 +104,12 @@ class VotesBase(BaseModel):
     option_id: int
 
     class Config:
-        form_attributes = True
+        from_attributes = True
 
 
 class CreateVotes(VotesBase):
     class Config:
-        form_attributes = True
+        from_attributes = True
 
 
 # options
@@ -114,9 +119,9 @@ class OptionsBase(BaseModel):
     option_text: str
 
     class Config:
-        form_attributes = True
+        from_attributes = True
 
 
 class CreateOptions(OptionsBase):
     class Config:
-        form_attributes = True
+        from_attributes = True

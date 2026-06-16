@@ -5,6 +5,25 @@ function getSession() {
     if (!raw) return null;
     try { return JSON.parse(raw); } catch { return null; }
 }
+function handleLoginClick(e) {
+    e.preventDefault();
+    const session = getSession();
+    if (session && session.user) {
+        window.location.href = session.user.is_admin ? "./admin.html" : "./dashboard.html";
+    } else {
+        window.location.href = "./login.html";
+    }
+}
+
+function handleLogoClick(e) {
+    e.preventDefault();
+    const session = getSession();
+    if (session && session.user) {
+        window.location.href = session.user.is_admin ? "./admin.html" : "./dashboard.html";
+    } else {
+        window.location.href = "./index.html";
+    }
+}
 
 // Se já há sessão activa, redireciona para o dashboard
 const session = getSession();
