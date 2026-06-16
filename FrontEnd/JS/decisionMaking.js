@@ -1,6 +1,7 @@
 const SESSION_KEY = "votesync.session";
 const DECISION_TEMPLATE_KEY = "votesync.decision.latest";
 const DECISIONS_KEY = "votesync.decisions";
+const API = "http://localhost:8000";
 
 const decisionTitle = document.querySelector("#decision-title");
 const decisionDescription = document.querySelector("#decision-description");
@@ -14,110 +15,97 @@ const decisionTargetGroup = document.querySelector("#decision-target-group");
 const decisionTargetFriends = document.querySelector("#decision-target-friends");
 const logoutButton = document.querySelector("#decision-logout-btn");
 
+// ── SESSION / API ─────────────────────────────────────────────────────────────
 function getSession() {
     const raw = localStorage.getItem(SESSION_KEY);
-    if (!raw) {
-        return null;
-    }
-
-    try {
-        return JSON.parse(raw);
-    } catch {
-        return null;
-    }
+    if (!raw) return null;
+    try { return JSON.parse(raw); } catch { return null; }
 }
 
-function clearSession() {
-    localStorage.removeItem(SESSION_KEY);
-}
-
-function redirectToLogin() {
-    window.location.href = "./index.html";
-}
+function clearSession() { localStorage.removeItem(SESSION_KEY); }
+function redirectToLogin() { window.location.href = "./index.html"; }
 
 function ensureAuthenticated() {
     const session = getSession();
-    if (!session || !session.user || !session.token) {
-        redirectToLogin();
+    if (!session || !session.user || !session.token) redirectToLogin();
+}
+
+async function apiFetch(path, options = {}) {
+    const res = await fetch(`${API}${path}`, {
+        headers: { "Content-Type": "application/json" },
+        ...options,
+    });
+    if (res.status === 204) return null;
+    const data = await res.json();
+    if (!res.ok) throw new Error(data.detail || "Erro na API");
+    return data;
+}
+
+const myId = getSession()?.user?.id;
+
+// ── LOGO / LOGOUT ─────────────────────────────────────────────────────────────
+function handleLogoClick(e) {
+    e.preventDefault();
+    const session = getSession();
+    if (session && session.user) {
+        window.location.href = session.user.is_admin ? "./admin.html" : "./dashboard.html";
+    } else {
+        window.location.href = "./index.html";
     }
 }
 
+function handleLogout() {
+    clearSession();
+    redirectToLogin();
+}
+
+// ── DECISIONS (localStorage) ──────────────────────────────────────────────────
 function getDecisions() {
     const raw = localStorage.getItem(DECISIONS_KEY);
-    if (!raw) {
-        return [];
-    }
-
+    if (!raw) return [];
     try {
         const parsed = JSON.parse(raw);
         return Array.isArray(parsed) ? parsed : [];
-    } catch {
-        return [];
-    }
+    } catch { return []; }
 }
 
 function getLatestDecision() {
     const decisions = getDecisions();
-    if (decisions.length > 0) {
-        return decisions[decisions.length - 1];
-    }
-
+    if (decisions.length > 0) return decisions[decisions.length - 1];
     const raw = localStorage.getItem(DECISION_TEMPLATE_KEY);
-    if (!raw) {
-        return null;
-    }
-
-    try {
-        const parsed = JSON.parse(raw);
-        return parsed || null;
-    } catch {
-        return null;
-    }
+    if (!raw) return null;
+    try { return JSON.parse(raw) || null; } catch { return null; }
 }
 
 function getTodayDate() {
     const now = new Date();
-    const day = String(now.getDate()).padStart(2, "0");
+    const day   = String(now.getDate()).padStart(2, "0");
     const month = String(now.getMonth() + 1).padStart(2, "0");
-    const year = now.getFullYear();
+    const year  = now.getFullYear();
     return `${day}/${month}/${year}`;
 }
 
 function formatIsoToDisplay(isoDate) {
-    if (!isoDate || typeof isoDate !== "string" || !isoDate.includes("-")) {
-        return "";
-    }
-
+    if (!isoDate || typeof isoDate !== "string" || !isoDate.includes("-")) return "";
     const [year, month, day] = isoDate.split("-");
-    if (!year || !month || !day) {
-        return "";
-    }
-
+    if (!year || !month || !day) return "";
     return `${day}/${month}/${year}`;
 }
 
 function calculateDaysLeft(endDateIso) {
-    if (!endDateIso) {
-        return null;
-    }
-
+    if (!endDateIso) return null;
     const today = new Date();
     today.setHours(0, 0, 0, 0);
-
     const endDate = new Date(`${endDateIso}T00:00:00`);
-    if (Number.isNaN(endDate.getTime())) {
-        return null;
-    }
-
-    const diffMs = endDate.getTime() - today.getTime();
-    return Math.ceil(diffMs / (1000 * 60 * 60 * 24));
+    if (Number.isNaN(endDate.getTime())) return null;
+    return Math.ceil((endDate.getTime() - today.getTime()) / (1000 * 60 * 60 * 24));
 }
 
 function renderOptionCard(option, index) {
     const card = document.createElement("article");
     card.className = "option-card";
     if (index === 0) {
-        card.style.boxShadow = "0 14px 20px -20px rgba(15, 20, 40, 0.85), inset 0 0 0 2px rgba(93, 122, 255, 0.45)";
+        card.style.boxShadow = "0 14px 20px -20px rgba(15,20,40,0.85), inset 0 0 0 2px rgba(93,122,255,0.45)";
     }
 
     const name = document.createElement("p");
@@ -128,7 +116,7 @@ function renderOptionCard(option, index) {
     votesWrap.className = "option-votes";
 
     const votesCount = Math.max(1, Math.min(5, Number.isFinite(option.votes) ? option.votes : 1));
-    for (let i = 0; i < votesCount; i += 1) {
+    for (let i = 0; i < votesCount; i++) {
         const chip = document.createElement("button");
         chip.className = "vote-chip";
         chip.type = "button";
@@ -142,33 +130,22 @@ function renderOptionCard(option, index) {
 }
 
 function normalizeEntityName(entity, fallbackLabel) {
-    if (typeof entity === "string") {
-        return entity;
-    }
-
-    if (!entity || typeof entity !== "object") {
-        return fallbackLabel;
-    }
-
+    if (typeof entity === "string") return entity;
+    if (!entity || typeof entity !== "object") return fallbackLabel;
     return entity.name || entity.title || entity.label || fallbackLabel;
 }
 
 function renderDecisionTargets(decision) {
     if (decisionTargetGroup) {
-        const groupName = decision && decision.targetGroup
-            ? normalizeEntityName(decision.targetGroup, "")
-            : "";
+        const groupName = decision?.targetGroup ? normalizeEntityName(decision.targetGroup, "") : "";
         decisionTargetGroup.textContent = groupName || "Sem grupo associado";
     }
 
-    if (!decisionTargetFriends) {
-        return;
-    }
-
+    if (!decisionTargetFriends) return;
     decisionTargetFriends.innerHTML = "";
 
     const targetFriends = decision && Array.isArray(decision.targetFriends)
-        ? decision.targetFriends.map((friend) => normalizeEntityName(friend, "")).filter((name) => name.length > 0)
+        ? decision.targetFriends.map(f => normalizeEntityName(f, "")).filter(n => n.length > 0)
         : [];
 
     if (targetFriends.length === 0) {
@@ -179,7 +156,7 @@ function renderDecisionTargets(decision) {
         return;
     }
 
-    targetFriends.forEach((friendName) => {
+    targetFriends.forEach(friendName => {
         const chip = document.createElement("span");
         chip.className = "friend-chip";
         chip.textContent = friendName;
@@ -191,52 +168,22 @@ function renderDecisionTemplate() {
     const decision = getLatestDecision();
 
     if (!decision) {
-        if (decisionTitle) {
-            decisionTitle.textContent = "Sem decisões criadas";
-        }
-
-        if (decisionDescription) {
-            decisionDescription.textContent = "Cria uma decisão no dashboard para ela aparecer aqui.";
-        }
-
-        if (decisionDate) {
-            decisionDate.textContent = "--/--/----";
-        }
-
-        if (decisionTimeLeft) {
-            decisionTimeLeft.textContent = "Sem prazo";
-        }
-
-        if (decisionOptionsContainer) {
-            decisionOptionsContainer.innerHTML = "";
-        }
-
-        if (decisionTotalVotes) {
-            decisionTotalVotes.textContent = "0";
-        }
-
-        if (decisionTotalOptions) {
-            decisionTotalOptions.textContent = "0";
-        }
-
-        if (decisionCreatedBy) {
-            decisionCreatedBy.textContent = "-";
-        }
-
+        if (decisionTitle)            decisionTitle.textContent            = "Sem decisões criadas";
+        if (decisionDescription)      decisionDescription.textContent      = "Cria uma decisão no dashboard para ela aparecer aqui.";
+        if (decisionDate)             decisionDate.textContent             = "--/--/----";
+        if (decisionTimeLeft)         decisionTimeLeft.textContent         = "Sem prazo";
+        if (decisionOptionsContainer) decisionOptionsContainer.innerHTML   = "";
+        if (decisionTotalVotes)       decisionTotalVotes.textContent       = "0";
+        if (decisionTotalOptions)     decisionTotalOptions.textContent     = "0";
+        if (decisionCreatedBy)        decisionCreatedBy.textContent        = "-";
         renderDecisionTargets(null);
-
         return;
     }
 
     const options = Array.isArray(decision.options) ? decision.options : [];
 
-    if (decisionTitle) {
-        decisionTitle.textContent = decision.title || "Decisão sem título";
-    }
-
-    if (decisionDescription) {
-        decisionDescription.textContent = decision.description || "Sem descrição disponível.";
-    }
+    if (decisionTitle)       decisionTitle.textContent       = decision.title       || "Decisão sem título";
+    if (decisionDescription) decisionDescription.textContent = decision.description || "Sem descrição disponível.";
 
     if (decisionDate) {
         const endDateLabel = formatIsoToDisplay(decision.endDate);
@@ -245,54 +192,28 @@ function renderDecisionTemplate() {
 
     if (decisionTimeLeft) {
         const daysLeft = calculateDaysLeft(decision.endDate);
-        if (daysLeft === null) {
-            decisionTimeLeft.textContent = "Sem prazo";
-        } else if (daysLeft < 0) {
-            decisionTimeLeft.textContent = "Encerrada";
-        } else if (daysLeft === 0) {
-            decisionTimeLeft.textContent = "Termina hoje";
-        } else if (daysLeft === 1) {
-            decisionTimeLeft.textContent = "1 dia restante";
-        } else {
-            decisionTimeLeft.textContent = `${daysLeft} dias restantes`;
-        }
+        if      (daysLeft === null) decisionTimeLeft.textContent = "Sem prazo";
+        else if (daysLeft < 0)     decisionTimeLeft.textContent = "Encerrada";
+        else if (daysLeft === 0)   decisionTimeLeft.textContent = "Termina hoje";
+        else if (daysLeft === 1)   decisionTimeLeft.textContent = "1 dia restante";
+        else                       decisionTimeLeft.textContent = `${daysLeft} dias restantes`;
     }
 
     if (decisionOptionsContainer) {
         decisionOptionsContainer.innerHTML = "";
-        options.forEach((option, index) => {
-            decisionOptionsContainer.appendChild(renderOptionCard(option, index));
-        });
+        options.forEach((option, index) => decisionOptionsContainer.appendChild(renderOptionCard(option, index)));
     }
 
-    const totalVotes = options.reduce((sum, option) => {
-        const value = Number.isFinite(option.votes) ? option.votes : 0;
-        return sum + Math.max(0, value);
-    }, 0);
-
-    if (decisionTotalVotes) {
-        decisionTotalVotes.textContent = String(totalVotes);
-    }
-
-    if (decisionTotalOptions) {
-        decisionTotalOptions.textContent = String(options.length);
-    }
-
-    if (decisionCreatedBy) {
-        decisionCreatedBy.textContent = decision.createdBy || "Utilizador";
-    }
+    const totalVotes = options.reduce((sum, o) => sum + Math.max(0, Number.isFinite(o.votes) ? o.votes : 0), 0);
+    if (decisionTotalVotes)   decisionTotalVotes.textContent   = String(totalVotes);
+    if (decisionTotalOptions) decisionTotalOptions.textContent = String(options.length);
+    if (decisionCreatedBy)    decisionCreatedBy.textContent    = decision.createdBy || "Utilizador";
 
     renderDecisionTargets(decision);
 }
 
-function handleLogout() {
-    clearSession();
-    redirectToLogin();
-}
-
+// ── INIT ──────────────────────────────────────────────────────────────────────
 ensureAuthenticated();
 renderDecisionTemplate();
 
-if (logoutButton) {
-    logoutButton.addEventListener("click", handleLogout);
-}
+if (logoutButton) logoutButton.addEventListener("click", handleLogout);

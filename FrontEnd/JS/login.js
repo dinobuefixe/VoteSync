@@ -13,12 +13,6 @@ const sessionText        = document.querySelector("#session-text");
 const logoutBtn          = document.querySelector("#logout-btn");
 
 // ── Storage helpers ───────────────────────────────────────────────────────────
-function getUsers() {
-    const raw = localStorage.getItem(USERS_KEY);
-    if (!raw) return [];
-    try { return JSON.parse(raw); } catch { return []; }
-}
-
 function saveSession(session) {
     localStorage.setItem(SESSION_KEY, JSON.stringify(session));
 }
@@ -31,10 +25,6 @@ function getSession() {
 
 function clearSession() {
     localStorage.removeItem(SESSION_KEY);
-}
-
-function createToken(userId) {
-    return `local-${userId}-${Date.now()}`;
 }
 
 // ── UI helpers ────────────────────────────────────────────────────────────────
@@ -62,16 +52,15 @@ function setSubmitLoading(form, loading) {
 }
 
 function showSession(user) {
-    sessionRow.hidden = false;
-    sessionText.textContent = `Logged in as ${user.name || user.email}`;
+    if (sessionRow) sessionRow.hidden = false;
+    if (sessionText) sessionText.textContent = `Logged in as ${user.name || user.email}`;
 }
 
 function hideSession() {
-    sessionRow.hidden = true;
-    sessionText.textContent = "";
+    if (sessionRow) sessionRow.hidden = true;
+    if (sessionText) sessionText.textContent = "";
 }
 
-// ── Redirecionar consoante o papel ────────────────────────────────────────────
 function redirectAfterLogin(user) {
     if (user.is_admin === true) {
         window.location.href = "./admin.html";
@@ -114,25 +103,7 @@ function validateLogin() {
     return { valid, email, password };
 }
 
-function loginUser(email, password) {
-    const users = getUsers();
-    const user  = users.find((u) => u.email.toLowerCase() === email.toLowerCase());
-    if (!user || user.password !== password) throw new Error("Invalid credentials.");
-
-    const session = {
-        token: createToken(user.id),
-        user: {
-            id:       user.id,
-            name:     user.name,
-            email:    user.email,
-            is_admin: user.is_admin === true   // ← inclui o campo admin na sessão
-        }
-    };
-    saveSession(session);
-    return session;
-}
-
-loginForm.addEventListener("submit", (e) => {
+loginForm.addEventListener("submit", async (e) => {
     e.preventDefault();
     setStatus("");
     const result = validateLogin();
@@ -140,13 +111,21 @@ loginForm.addEventListener("submit", (e) => {
 
     setSubmitLoading(loginForm, true);
     try {
-        const session = loginUser(result.email, result.password);
+        const res = await fetch("http://localhost:8000/auth/login", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ email: result.email, password: result.password }),
+        });
+        const data = await res.json();
+        if (!res.ok) throw new Error(data.detail || "Credenciais inválidas.");
+
+        saveSession(data);
         loginForm.reset();
-        showSession(session.user);
+        showSession(data.user);
         setStatus("Login successful.", "is-success");
-        redirectAfterLogin(session.user);   // ← redireciona para admin.html ou dashboard.html
-    } catch {
-        setStatus("Email or password is incorrect.", "is-error");
+        redirectAfterLogin(data.user);
+    } catch (err) {
+        setStatus(err.message || "Email or password is incorrect.", "is-error");
     } finally {
         setSubmitLoading(loginForm, false);
     }
@@ -161,9 +140,9 @@ function validateForgot() {
     const re      = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
     let valid = true;
 
-    if (!re.test(email)) { setFieldError("forgot-email",            "Enter a valid email.");              valid = false; }
-    if (pass.length < 8) { setFieldError("forgot-password",         "Password must have at least 8 characters."); valid = false; }
-    if (confirm !== pass) { setFieldError("forgot-confirm-password", "Passwords do not match.");           valid = false; }
+    if (!re.test(email))  { setFieldError("forgot-email",            "Enter a valid email.");                      valid = false; }
+    if (pass.length < 8)  { setFieldError("forgot-password",         "Password must have at least 8 characters."); valid = false; }
+    if (confirm !== pass) { setFieldError("forgot-confirm-password", "Passwords do not match.");                   valid = false; }
     return { valid, email, password: pass };
 }
 
@@ -185,7 +164,7 @@ forgotForm.addEventListener("submit", (e) => {
 
     setSubmitLoading(forgotForm, true);
     try {
-        const users = getUsers();
+        const users = JSON.parse(localStorage.getItem(USERS_KEY) || "[]");
         const idx   = users.findIndex((u) => u.email.toLowerCase() === result.email.toLowerCase());
         if (idx === -1) { setFieldError("forgot-email", "Email not found."); throw new Error("No account for this email."); }
 
@@ -212,14 +191,12 @@ logoutBtn.addEventListener("click", () => {
     setStatus("You have logged out.", "is-success");
 });
 
-// ── Restaurar sessão (redireciona automaticamente se já estiver logado) ────────
+// ── Restaurar sessão ──────────────────────────────────────────────────────────
 (function restoreSession() {
     const session = getSession();
     if (!session || !session.user) return hideSession();
-    const exists = getUsers().find((u) => u.id === session.user.id);
-    if (!exists) { clearSession(); return hideSession(); }
     showSession(session.user);
-    redirectAfterLogin(session.user);   // ← usa a mesma lógica de redirecionamento
+    redirectAfterLogin(session.user);
 })();
 
 showForm("login");

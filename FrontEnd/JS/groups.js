@@ -320,6 +320,15 @@ async function removeGroup(groupId) {
         });
     }
 }
+function handleLogoClick(e) {
+    e.preventDefault();
+    const session = getSession();
+    if (session && session.user) {
+        window.location.href = session.user.is_admin ? "./admin.html" : "./dashboard.html";
+    } else {
+        window.location.href = "./index.html";
+    }
+}
 
 async function handleSubmit(event) {
     event.preventDefault();

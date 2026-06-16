@@ -47,5 +47,26 @@
 * **Support Requested:** Extracting and migrating the authentication views into dedicated `login.html` and `register.html` pages, splitting the corresponding JavaScript into isolated `login.js`, `register.js`, and a clean `index.js`, while preserving the full `localStorage` session pipeline, field validation, and password reset flow.
 * **Project Outcome:** Successfully decomposed the monolithic authentication block into three independent, self-contained page modules. Each page now owns its own scoped logic — `login.js` handles sign-in, forgot password, and session restore; `register.js` handles account creation with name pre-fill via query string from the hero form; and `index.js` manages session-aware redirects and the landing page interaction. Cross-page navigation links and data passing (e.g. hero name forwarded to register) were preserved seamlessly.
 
+### 8. Login/Register Updated / Admin Page Created
+* **Tool Utilized:** Claude AI
+* **Context / Functional Area:** Authentication & Admin Panel (Frontend)
+* **Problem Statement:** The application lacked role-based redirection after login and had no admin interface. Users with `is_admin = true` needed to be automatically redirected to a dedicated admin panel, while regular users continued to `dashboard.html`. Additionally, the admin page had no access protection.
+* **Support Requested:** Update `Login.JS` and `Register.JS` to store and read the `is_admin` boolean field, implement role-based redirection post-login, and create a fully functional `admin.html` panel with matching VoteSync visual style.
+* **Project Outcome:** `Register.JS` now assigns `is_admin: true` to the first registered user and stores the field in localStorage. `Login.JS` reads the session role and redirects admins to `admin.html` and regular users to `dashboard.html`. The admin panel was built with a sidebar, KPI dashboard, user management table (create/edit/delete), decisions overview, and settings — protected by a guard that blocks unauthenticated or non-admin access and redirects to `login.html`.
+
+### 9. FriendShips Connections with fetch 
+* **Tool Utilized:** Claude AI
+* **Context / Functional Area:** Social features (frontend + backend)
+* **Problem Statement:** The dashboard's search bar was not connected to the backend. Users had no way to search for other users to add as friends — the search input was either static or non-functional, meaning friend discovery could not be performed from within the application.
+* **Support Requested:**Connect the dashboard search bar to the backend using fetch so that users can search for other users by name and add them as friends. The developer was unable to implement this integration independently and required full assistance with both the fetch logic and the backend route wiring.
+* **Project Outcome:** The dashboard search bar was successfully connected to the backend via fetch. Users can now type in the search bar to query the database for matching users and send friend requests directly from the dashboard. Claude AI provided the full implementation, including the frontend fetch call with dynamic query parameters and the backend endpoint to handle user lookups within the FriendShips connections feature.
+
+### 10. Authentication, Session Management & Friends System Migration to Backend API
+
+* **Tool Utilized: Claude AI
+* **Context / Functional Area: Authentication, session management, social features (frontend + backend)
+* **Problem Statement: The friend request flow was failing with a 422 error. The root cause was that the login and register flows were entirely local — users were stored in localStorage with UUID-based IDs instead of being persisted in the database. This meant the session never contained a real integer ID, breaking the backend schema validation for friendships. Additionally, GET /users/ was exposing passwords and not returning the id field, and the Friends page empty state was always visible due to a CSS specificity conflict.
+* **Support Requested: Full diagnosis and resolution across the stack — backend route creation, frontend JS refactoring, schema fixes, and CSS corrections.
+* **Project Outcome: Login and register were migrated to call the real backend API. A /auth/login endpoint was created in FastAPI. The GET /users/ response model was updated to use UserResponse, exposing id without leaking passwords. The Friends page empty state visibility was fixed using inline style to override CSS specificity. Friend requests now succeed with correct integer IDs. Claude AI provided the full implementation and guided the debugging process end to end.
 ***
 *End of Report. Compiled dynamically for project review documentation.*
