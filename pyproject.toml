@@ -10,8 +10,14 @@ dependencies = [
     "uvicorn[standard]",
     "psycopg[binary]",
     "sqlalchemy",
-    "python-dotenv"
+    "python-dotenv",
+    "passlib[bcrypt]",
+    "bcrypt==4.0.1",
+    "email-validator"
 ]
+
+[tool.uv]
+package = false
 
 [build-system]
 requires = ["setuptools", "wheel"]

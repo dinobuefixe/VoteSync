@@ -22,4 +22,5 @@ app.include_router(votes.router)
 app.include_router(options.router)
 app.include_router(auth.router)
 
+
 Base.metadata.create_all(bind=engine)
