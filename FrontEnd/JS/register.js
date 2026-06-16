@@ -91,36 +91,61 @@ function validateRegister() {
     return { valid, name, email, password: pass };
 }
 
-// ── Register ──────────────────────────────────────────────────────────────────
-function registerUser(data) {
-    const users  = getUsers();
-    const exists = users.some((u) => u.email.toLowerCase() === data.email.toLowerCase());
-    if (exists) { setFieldError("register-email", "This email is already registered."); throw new Error("Email already exists."); }
+document.getElementById("register-form").addEventListener("submit", async (e) => {
+    e.preventDefault();
+    clearFieldErrors();
 
-    const newUser = { id: createId(), name: data.name, email: data.email, password: data.password };
-    users.push(newUser);
-    saveUsers(users);
+    if (!validateRegister()) return;
 
-    const session = { token: createToken(newUser.id), user: { id: newUser.id, name: newUser.name, email: newUser.email } };
+    try {
+        const session = await registerUser();
+        console.log("Conta criada:", session);
+        // redirecionar ou atualizar UI
+    } catch (err) {
+        const message = err.detail || "Não foi possível criar a conta. Tente novamente.";
+
+        if (message.toLowerCase().includes("email")) {
+            setFieldError("register-email", "Este email já está registrado.");
+        } else {
+            setFieldError("register-email", message);
+        }
+    }
+});
+
+async function registerUser() {
+    const data = {
+        name: document.getElementById("register-name").value.trim(),
+        email: document.getElementById("register-email").value.trim(),
+        password: document.getElementById("register-password").value
+    };
+
+    const response = await fetch("/users/", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(data)
+    });
+
+    if (!response.ok) {
+        let detail = "Erro ao criar conta. Tente novamente.";
+        try {
+            const errorData = await response.json();
+            if (errorData.detail) detail = errorData.detail;
+        } catch {
+            // resposta não era JSON, mantém mensagem genérica
+        }
+
+        const err = new Error("Registration failed");
+        err.detail = detail;
+        throw err;
+    }
+
+    const newUser = await response.json();
+
+    const session = {
+        token: createToken(newUser.id),
+        user: newUser
+    };
+
     saveSession(session);
     return session;
 }
-
-registerForm.addEventListener("submit", (e) => {
-    e.preventDefault();
-    setStatus("");
-    const result = validateRegister();
-    if (!result.valid) { setStatus("Please fix the highlighted fields.", "is-error"); return; }
-
-    setSubmitLoading(true);
-    try {
-        registerUser(result);
-        registerForm.reset();
-        setStatus("Account created successfully! Redirecting…", "is-success");
-        setTimeout(() => { window.location.href = "./dashboard.html"; }, 1500);
-    } catch (err) {
-        setStatus(err.message || "Could not create account.", "is-error");
-    } finally {
-        setSubmitLoading(false);
-    }
-});

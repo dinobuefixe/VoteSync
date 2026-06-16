@@ -21,4 +21,5 @@ app.include_router(decisions.router)
 app.include_router(votes.router)
 app.include_router(options.router)
 
+
 Base.metadata.create_all(bind=engine)

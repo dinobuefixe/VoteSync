@@ -115,25 +115,26 @@ function loginUser(email, password) {
     return session;
 }
 
-loginForm.addEventListener("submit", (e) => {
-    e.preventDefault();
-    setStatus("");
-    const result = validateLogin();
-    if (!result.valid) { setStatus("Please fix the highlighted fields.", "is-error"); return; }
+function loginUser(email, password) {
+	const users = getUsers();
+	const user = users.find((entry) => entry.email.toLowerCase() === email.toLowerCase());
 
-    setSubmitLoading(loginForm, true);
-    try {
-        const session = loginUser(result.email, result.password);
-        loginForm.reset();
-        showSession(session.user);
-        setStatus("Login successful.", "is-success");
-        window.location.href = "./dashboard.html";
-    } catch {
-        setStatus("Email or password is incorrect.", "is-error");
-    } finally {
-        setSubmitLoading(loginForm, false);
-    }
-});
+	if (!user || user.password !== password) {
+		throw new Error("Invalid credentials.");
+	}
+
+	const session = {
+		token: createToken(user.id),
+		user: {
+			id: user.id,
+			name: user.name,
+			email: user.email
+		}
+	};
+
+	saveSession(session);
+	return session;
+}
 
 // ── Forgot / Reset ────────────────────────────────────────────────────────────
 function validateForgot() {
