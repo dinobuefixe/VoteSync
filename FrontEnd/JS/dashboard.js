@@ -1,7 +1,6 @@
 const SESSION_KEY = "votesync.session";
 const DECISION_TEMPLATE_KEY = "votesync.decision.latest";
 const DECISIONS_KEY = "votesync.decisions";
-const FRIENDS_KEY = "votesync.friends";
 const GROUPS_KEY = "votesync.groups";
 const API = "http://localhost:8000";
 
@@ -23,7 +22,8 @@ async function apiFetch(path, options = {}) {
 	return data;
 }
 
-const myId = getSession()?.user?.id;
+const session = getSession();
+const myId = parseInt(session?.user?.id);
 
 // ── DOM REFS ──────────────────────────────────────────────────────────────────
 const logoutButton = document.querySelector("#dashboard-logout-btn");
@@ -53,6 +53,50 @@ const decisionViewAllButton = document.querySelector("#decision-view-all-btn");
 
 const OPTION_ICONS = ["fa-sun", "fa-building-columns", "fa-heart", "fa-mug-hot", "fa-film", "fa-gamepad"];
 
+// ── FRIENDS CARD ──────────────────────────────────────────────────────────────
+async function updateFriendsCard() {
+	const friendsListEl = document.querySelector("#friends-list-container");
+	try {
+		// 🔧 RECALCULA myId AQUI (não usa a constante global)
+		const session = getSession();
+		const myId = parseInt(session?.user?.id);
+		
+		const [users, friendships] = await Promise.all([
+			apiFetch("/users/"),
+			apiFetch("/friendships/"),
+		]);
+		const myFriendIds = friendships
+			.filter(f => f.status === "accepted" && (f.user_id === myId || f.friend_id === myId))
+			.map(f => f.user_id === myId ? f.friend_id : f.user_id);
+		const friendUsers = users.filter(u => myFriendIds.includes(u.id));
+
+		if (!friendsListEl) return;
+
+		if (friendUsers.length === 0) {
+			friendsListEl.innerHTML = "<span>Sem amigos</span>";
+			return;
+		}
+
+		friendsListEl.innerHTML = friendUsers.slice(0, 5).map((u, index) => `
+			<div style="display:flex;align-items:center;gap:8px;padding:8px 10px;margin-bottom:${index === friendUsers.length - 1 ? '0' : '4px'};margin-left:-8px;margin-right:-8px;border-radius:0px;background:#f8f6fc;border:none;border-bottom:1px solid #e8e4f0;">
+				<div style="width:36px;height:36px;border-radius:50%;background:linear-gradient(135deg,#9b7dd4,#5bc8e8);display:flex;align-items:center;justify-content:center;color:#fff;font-weight:700;font-size:12px;flex-shrink:0;">
+					${u.name.split(" ").slice(0,2).map(w => w[0]).join("").toUpperCase()}
+				</div>
+				<div style="min-width:0;">
+					<div style="font-weight:700;font-size:13px;color:#182033;margin:0;">${u.name}</div>
+					<div style="font-size:10px;color:#7a7f8e;margin:0;">${u.email}</div>
+				</div>
+			</div>
+		`).join("");
+
+		if (friendUsers.length > 5) {
+			friendsListEl.innerHTML += `<small style="color:#5f6678;font-size:12px;margin:4px 10px 0;display:block;">+${friendUsers.length - 5} mais</small>`;
+		}
+	} catch (err) {
+		if (friendsListEl) friendsListEl.innerHTML = "<span>Erro ao carregar amigos</span>";
+	}
+}
+
 // ── HELPERS ───────────────────────────────────────────────────────────────────
 function normalizeEntityName(entity, fallbackLabel) {
 	if (typeof entity === "string") return entity;
@@ -77,13 +121,6 @@ function handleLogoClick(e) {
 	} else {
 		window.location.href = "./index.html";
 	}
-}
-
-function getStoredFriends() {
-	return getStoredArray(FRIENDS_KEY).map((friend, index) => ({
-		id: typeof friend === "object" && friend && friend.id ? String(friend.id) : `friend-${index}`,
-		name: normalizeEntityName(friend, `Amigo ${index + 1}`)
-	}));
 }
 
 function getStoredGroups() {
@@ -116,39 +153,57 @@ function populateGroupOptions(groups) {
 	});
 }
 
-function populateFriendsOptions(groups, friends) {
+async function populateFriendsOptions(groups) {
 	if (!decisionFriendsSelect) return;
 	clearSelectOptions(decisionFriendsSelect);
-	let friendsToShow = friends;
-	const selectedGroupId = decisionGroupSelect ? decisionGroupSelect.value : "";
-	if (selectedGroupId) {
-		const selectedGroup = groups.find((group) => group.id === selectedGroupId);
-		if (selectedGroup && selectedGroup.members.length > 0) {
-			friendsToShow = friends.filter((friend) => selectedGroup.members.includes(friend.name));
+
+	try {
+		const [users, friendships] = await Promise.all([
+			apiFetch("/users/"),
+			apiFetch("/friendships/"),
+		]);
+		const myFriendIds = friendships
+			.filter(f => f.status === "accepted" && (f.user_id === myId || f.friend_id === myId))
+			.map(f => f.user_id === myId ? f.friend_id : f.user_id);
+		let friends = users.filter(u => myFriendIds.includes(u.id));
+
+		const selectedGroupId = decisionGroupSelect ? decisionGroupSelect.value : "";
+		if (selectedGroupId) {
+			const selectedGroup = groups.find((group) => group.id === selectedGroupId);
+			if (selectedGroup && selectedGroup.members.length > 0) {
+				friends = friends.filter((friend) => selectedGroup.members.includes(friend.name));
+			}
 		}
-	}
-	if (friendsToShow.length === 0) {
+
+		if (friends.length === 0) {
+			const option = document.createElement("option");
+			option.value = "";
+			option.textContent = "Sem amigos disponíveis";
+			option.disabled = true;
+			option.selected = true;
+			decisionFriendsSelect.appendChild(option);
+			return;
+		}
+
+		friends.forEach((friend) => {
+			const option = document.createElement("option");
+			option.value = friend.id;
+			option.textContent = friend.name;
+			decisionFriendsSelect.appendChild(option);
+		});
+	} catch {
 		const option = document.createElement("option");
 		option.value = "";
-		option.textContent = "Sem amigos disponíveis";
+		option.textContent = "Erro ao carregar amigos";
 		option.disabled = true;
-		option.selected = true;
 		decisionFriendsSelect.appendChild(option);
-		return;
 	}
-	friendsToShow.forEach((friend) => {
-		const option = document.createElement("option");
-		option.value = friend.id;
-		option.textContent = friend.name;
-		decisionFriendsSelect.appendChild(option);
-	});
 }
 
-function populateDecisionTargets() {
+async function populateDecisionTargets() {
 	const groups = getStoredGroups();
-	const friends = getStoredFriends();
 	populateGroupOptions(groups);
-	populateFriendsOptions(groups, friends);
+	await populateFriendsOptions(groups);
 }
 
 function getGroupSortTimestamp(group, fallbackIndex) {
@@ -198,22 +253,9 @@ function updateGroupsCard() {
 	});
 }
 
-function syncDecisionTargetsPreserveSelection() {
-	if (!decisionGroupSelect || !decisionFriendsSelect) return;
-	const previousGroupId = decisionGroupSelect.value;
-	const previousFriendIds = Array.from(decisionFriendsSelect.selectedOptions).map((o) => o.value).filter((v) => v);
-	const groups = getStoredGroups();
-	const friends = getStoredFriends();
-	populateGroupOptions(groups);
-	const hasGroupOption = Array.from(decisionGroupSelect.options).some((o) => o.value === previousGroupId);
-	if (hasGroupOption) decisionGroupSelect.value = previousGroupId;
-	populateFriendsOptions(groups, friends);
-	Array.from(decisionFriendsSelect.options).forEach((o) => { o.selected = previousFriendIds.includes(o.value); });
-}
-
 function syncTargetsIfModalOpen() {
 	if (!decisionModalOverlay || decisionModalOverlay.hidden) return;
-	syncDecisionTargetsPreserveSelection();
+	populateDecisionTargets();
 }
 
 function hasSwal() {
@@ -247,9 +289,9 @@ function redirectToGroupsCreate() { window.location.href = "./groups.html#create
 function redirectToDecisionTemplate() { window.location.href = "./decisionMaking.html"; }
 function redirectToAllDecisions() { window.location.href = "./decisions.html"; }
 
-function openDecisionModal() {
+async function openDecisionModal() {
 	if (!decisionModalOverlay) return;
-	populateDecisionTargets();
+	await populateDecisionTargets();
 	setDecisionDate();
 	setDecisionMessage("");
 	decisionModalOverlay.hidden = false;
@@ -417,7 +459,7 @@ function updateDecisionCards() {
 	}
 }
 
-function handleCreateDecision() {
+async function handleCreateDecision() {
 	const title = decisionTitleInput ? decisionTitleInput.value.trim() : "";
 	const description = decisionDescriptionInput ? decisionDescriptionInput.value.trim() : "";
 	const endDate = decisionEndDateInput ? decisionEndDateInput.value : "";
@@ -430,17 +472,15 @@ function handleCreateDecision() {
 	if (endDate < getTodayIsoDate()) { setDecisionMessage("A data de término não pode ser no passado.", "error"); if (decisionEndDateInput) decisionEndDateInput.focus(); return; }
 	const session = getSession();
 	const groups = getStoredGroups();
-	const friends = getStoredFriends();
 	const selectedGroup = decisionGroupSelect && decisionGroupSelect.value ? groups.find((g) => g.id === decisionGroupSelect.value) || null : null;
 	const selectedFriendIds = decisionFriendsSelect ? Array.from(decisionFriendsSelect.selectedOptions).map((o) => o.value).filter((v) => v) : [];
-	const selectedFriends = friends.filter((f) => selectedFriendIds.includes(f.id));
 	const decision = {
 		title, description,
 		date: decisionCurrentDate ? decisionCurrentDate.textContent : "",
 		endDate,
 		options: options.map((name) => ({ name, votes: 0 })),
 		targetGroup: selectedGroup ? { id: selectedGroup.id, name: selectedGroup.name } : null,
-		targetFriends: selectedFriends.map((f) => ({ id: f.id, name: f.name })),
+		targetFriendIds: selectedFriendIds,
 		createdBy: session?.user?.name || "Utilizador"
 	};
 	const decisions = getDecisions();
@@ -477,13 +517,9 @@ if (decisionViewAllButton) decisionViewAllButton.addEventListener("click", redir
 if (decisionModalCloseButton) decisionModalCloseButton.addEventListener("click", closeDecisionModal);
 if (decisionModalCancelButton) decisionModalCancelButton.addEventListener("click", handleCancelDecision);
 if (decisionAddOptionButton) decisionAddOptionButton.addEventListener("click", addDecisionOption);
-if (decisionGroupSelect) decisionGroupSelect.addEventListener("change", () => populateFriendsOptions(getStoredGroups(), getStoredFriends()));
+if (decisionGroupSelect) decisionGroupSelect.addEventListener("change", () => populateFriendsOptions(getStoredGroups()));
 if (decisionCreateConfirmButton) decisionCreateConfirmButton.addEventListener("click", handleCreateDecision);
 if (decisionModalOverlay) decisionModalOverlay.addEventListener("click", (e) => { if (e.target === decisionModalOverlay) closeDecisionModal(); });
-
-window.addEventListener("storage", (e) => { if (!e.key || e.key === GROUPS_KEY || e.key === FRIENDS_KEY) { syncTargetsIfModalOpen(); updateGroupsCard(); } });
-window.addEventListener("focus", () => { syncTargetsIfModalOpen(); updateGroupsCard(); });
-document.addEventListener("visibilitychange", () => { if (document.visibilityState === "visible") { syncTargetsIfModalOpen(); updateGroupsCard(); } });
 document.addEventListener("keydown", (e) => { if (e.key === "Escape") closeDecisionModal(); });
 
 initializeDecisionModal();
@@ -491,3 +527,14 @@ setDecisionDate();
 initializeEndDateInput();
 updateDecisionCards();
 updateGroupsCard();
+
+// 🔧 CORRIGIDO: Aguarda completamente a atualização dos amigos
+(async () => {
+	await updateFriendsCard();
+})();
+
+// 🌐 EXPÕE A FUNÇÃO GLOBALMENTE
+// Para que friendSearch.js possa atualizar o card quando um amigo é adicionado
+window.refreshFriendsCard = async function() {
+	await updateFriendsCard();
+};

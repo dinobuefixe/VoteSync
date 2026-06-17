@@ -113,6 +113,12 @@
       btn.textContent = "✓ Adicionado";
       btn.style.background = "#1a7a52";
       btn.style.color = "#fff";
+      
+      // 🔄 ATUALIZA O CARD DE AMIGOS AUTOMATICAMENTE
+      if (typeof window.refreshFriendsCard === "function") {
+        await window.refreshFriendsCard();
+      }
+      
       // Refresca os resultados
       setTimeout(() => fetchAndRender(searchInput.value.trim().toLowerCase()), 600);
     } catch (err) {
@@ -130,6 +136,12 @@
       btn.textContent = "Removido";
       btn.style.background = "#a93226";
       btn.style.color = "#fff";
+      
+      // 🔄 ATUALIZA O CARD DE AMIGOS AUTOMATICAMENTE
+      if (typeof window.refreshFriendsCard === "function") {
+        await window.refreshFriendsCard();
+      }
+      
       setTimeout(() => fetchAndRender(searchInput.value.trim().toLowerCase()), 600);
     } catch (err) {
       btn.textContent = "Erro";
