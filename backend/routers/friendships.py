@@ -3,8 +3,12 @@ from fastapi import APIRouter, Depends, HTTPException
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 from sqlalchemy import and_, or_
 from sqlalchemy.orm import Session, joinedload
+=======
+from sqlalchemy.orm import Session, joinedload  # ✅ Importar joinedload
+>>>>>>> c3f90b4 (feat:Decision-making feature and decisions listing page (frontend + backend + database))
 =======
 from sqlalchemy.orm import Session, joinedload  # ✅ Importar joinedload
 >>>>>>> c3f90b4 (feat:Decision-making feature and decisions listing page (frontend + backend + database))
@@ -31,12 +35,18 @@ def get_friendships(db: Session = Depends(get_db)):
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
     friendships = db.query(models.Friendships).options(
         joinedload(models.Friendships.friend),
         joinedload(models.Friendships.user)
     ).filter(
         models.Friendships.user.has(),
         models.Friendships.friend.has()
+=======
+    # ✅ Usar joinedload para carregar os dados do amigo
+    friendships = db.query(models.Friendships).options(
+        joinedload(models.Friendships.friend)
+>>>>>>> c3f90b4 (feat:Decision-making feature and decisions listing page (frontend + backend + database))
 =======
     # ✅ Usar joinedload para carregar os dados do amigo
     friendships = db.query(models.Friendships).options(
@@ -67,6 +77,7 @@ def get_friendship(id: int, db: Session = Depends(get_db)):
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
     friendship = db.query(models.Friendships).options(
         joinedload(models.Friendships.friend),
         joinedload(models.Friendships.user)
@@ -82,6 +93,8 @@ def get_friendship(id: int, db: Session = Depends(get_db)):
 >>>>>>> c3f90b4 (feat:Decision-making feature and decisions listing page (frontend + backend + database))
 =======
 >>>>>>> c3f90b4 (feat:Decision-making feature and decisions listing page (frontend + backend + database))
+=======
+>>>>>>> c3f90b4 (feat:Decision-making feature and decisions listing page (frontend + backend + database))
     # ✅ Usar joinedload aqui também
     friendship = db.query(models.Friendships).options(
         joinedload(models.Friendships.friend)
@@ -89,6 +102,9 @@ def get_friendship(id: int, db: Session = Depends(get_db)):
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+>>>>>>> c3f90b4 (feat:Decision-making feature and decisions listing page (frontend + backend + database))
+=======
 >>>>>>> c3f90b4 (feat:Decision-making feature and decisions listing page (frontend + backend + database))
 =======
 >>>>>>> c3f90b4 (feat:Decision-making feature and decisions listing page (frontend + backend + database))
@@ -104,6 +120,7 @@ def get_friendship(id: int, db: Session = Depends(get_db)):
 
 @router.post("/", response_model=schemas.FriendshipWithFriendData)
 def create_friendship(friendship: schemas.CreateFriendships, db: Session = Depends(get_db)):
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -162,6 +179,8 @@ def create_friendship(friendship: schemas.CreateFriendships, db: Session = Depen
 >>>>>>> c3f90b4 (feat:Decision-making feature and decisions listing page (frontend + backend + database))
 =======
 >>>>>>> c3f90b4 (feat:Decision-making feature and decisions listing page (frontend + backend + database))
+=======
+>>>>>>> c3f90b4 (feat:Decision-making feature and decisions listing page (frontend + backend + database))
     new_friendship = models.Friendships(**friendship.dict())
 >>>>>>> c3f90b4 (feat:Decision-making feature and decisions listing page (frontend + backend + database))
     db.add(new_friendship)
@@ -174,6 +193,7 @@ def create_friendship(friendship: schemas.CreateFriendships, db: Session = Depen
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 @router.put("/{friendship_id}")
 async def update_friendship(friendship_id: int, data: FriendshipUpdate, db: Session = Depends(get_db)):
     friendship = db.query(models.Friendships).filter(models.Friendships.id == friendship_id).first()
@@ -182,6 +202,8 @@ async def update_friendship(friendship_id: int, data: FriendshipUpdate, db: Sess
     
     friendship.status = data.status
 =======
+=======
+>>>>>>> c3f90b4 (feat:Decision-making feature and decisions listing page (frontend + backend + database))
 =======
 >>>>>>> c3f90b4 (feat:Decision-making feature and decisions listing page (frontend + backend + database))
 =======
