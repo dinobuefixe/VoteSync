@@ -7,12 +7,12 @@ from backend.database import get_db
 router = APIRouter(prefix="/options", tags=["Options"])
 
 
-@router.get("/", response_model=List[schemas.OptionsBase])
+@router.get("/", response_model=List[schemas.OptionsResponse])
 def get_options(db: Session = Depends(get_db)):
     return db.query(models.Options).all()
 
 
-@router.get("/{id}", response_model=schemas.OptionsBase)
+@router.get("/{id}", response_model=schemas.OptionsResponse)
 def get_option(id: int, db: Session = Depends(get_db)):
     option = db.query(models.Options).filter(models.Options.id == id).first()
     if not option:
@@ -20,7 +20,7 @@ def get_option(id: int, db: Session = Depends(get_db)):
     return option
 
 
-@router.post("/", response_model=schemas.OptionsBase)
+@router.post("/", response_model=schemas.OptionsResponse)
 def create_option(option: schemas.OptionsBase, db: Session = Depends(get_db)):
     new_option = models.Options(**option.dict())
     db.add(new_option)
@@ -29,7 +29,7 @@ def create_option(option: schemas.OptionsBase, db: Session = Depends(get_db)):
     return new_option
 
 
-@router.put("/{id}", response_model=schemas.OptionsBase)
+@router.put("/{id}", response_model=schemas.OptionsResponse)
 def update_option(id: int, updated: schemas.OptionsBase, db: Session = Depends(get_db)):
     option = db.query(models.Options).filter(models.Options.id == id)
     if not option.first():

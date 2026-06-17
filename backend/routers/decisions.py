@@ -7,12 +7,12 @@ from backend.database import get_db
 router = APIRouter(prefix="/decisions", tags=["Decisions"])
 
 
-@router.get("/", response_model=List[schemas.DecisionsBase])
+@router.get("/", response_model=List[schemas.DecisionsResponse])
 def get_decisions(db: Session = Depends(get_db)):
     return db.query(models.Decisions).all()
 
 
-@router.get("/{id}", response_model=schemas.DecisionsBase)
+@router.get("/{id}", response_model=schemas.DecisionsResponse)
 def get_decision(id: int, db: Session = Depends(get_db)):
     decision = db.query(models.Decisions).filter(models.Decisions.id == id).first()
     if not decision:
@@ -20,7 +20,7 @@ def get_decision(id: int, db: Session = Depends(get_db)):
     return decision
 
 
-@router.post("/", response_model=schemas.DecisionsBase)
+@router.post("/", response_model=schemas.DecisionsResponse)
 def create_decision(decision: schemas.DecisionsBase, db: Session = Depends(get_db)):
     new_decision = models.Decisions(**decision.dict())
     db.add(new_decision)
@@ -29,7 +29,7 @@ def create_decision(decision: schemas.DecisionsBase, db: Session = Depends(get_d
     return new_decision
 
 
-@router.put("/{id}", response_model=schemas.DecisionsBase)
+@router.put("/{id}", response_model=schemas.DecisionsResponse)
 def update_decision(id: int, updated: schemas.DecisionsBase, db: Session = Depends(get_db)):
     decision = db.query(models.Decisions).filter(models.Decisions.id == id)
     if not decision.first():

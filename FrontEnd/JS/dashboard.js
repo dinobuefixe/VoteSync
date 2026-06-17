@@ -57,7 +57,6 @@ const OPTION_ICONS = ["fa-sun", "fa-building-columns", "fa-heart", "fa-mug-hot",
 async function updateFriendsCard() {
 	const friendsListEl = document.querySelector("#friends-list-container");
 	try {
-		// 🔧 RECALCULA myId AQUI (não usa a constante global)
 		const session = getSession();
 		const myId = parseInt(session?.user?.id);
 		
@@ -265,6 +264,56 @@ function hasSwal() {
 function clearSession() { localStorage.removeItem(SESSION_KEY); }
 function saveLatestDecision(decision) { localStorage.setItem(DECISION_TEMPLATE_KEY, JSON.stringify(decision)); }
 
+// ── DECISIONS (API) ───────────────────────────────────────────────────────────
+// Agora que o schemas.py/decisions.py aceitam e devolvem description, end_date,
+// created_by, target_group_id e created_at, a API é a fonte de verdade.
+// O localStorage deixa de ser necessário como fallback para estes campos —
+// só guardamos targetFriendIds localmente, pois ainda não há tabela para isso.
+async function createDecisionOnAPI(decision) {
+	const payload = {
+		vote_id: `decision_${Date.now()}`,
+		title: decision.title,
+		decision_text: decision.description || decision.title,
+		description: decision.description,
+		end_date: decision.endDate,
+		created_by: decision.createdBy,
+		target_group_id: decision.targetGroup?.id ? parseInt(decision.targetGroup.id) || null : null,
+		created_at: new Date().toISOString()
+	};
+
+	const created = await apiFetch("/decisions/", {
+		method: "POST",
+		body: JSON.stringify(payload)
+	});
+
+	// targetFriendIds ainda não tem tabela própria — guarda-se localmente por agora
+	if (decision.targetFriendIds && decision.targetFriendIds.length > 0) {
+		localStorage.setItem(`decision_friends_${created.id}`, JSON.stringify(decision.targetFriendIds));
+	}
+
+	// Criar as opções associadas a esta decisão
+	for (const option of decision.options) {
+		await apiFetch("/options/", {
+			method: "POST",
+			body: JSON.stringify({
+				vote_id: created.id,
+				option_text: option.name
+			})
+		});
+	}
+
+	return created;
+}
+
+async function getDecisionsFromAPI() {
+	try {
+		return await apiFetch("/decisions/");
+	} catch (err) {
+		console.error("Erro ao buscar decisões:", err);
+		return [];
+	}
+}
+
 function getDecisions() {
 	const raw = localStorage.getItem(DECISIONS_KEY);
 	if (!raw) return [];
@@ -435,8 +484,15 @@ function createDecisionListItem(decision, statusText = "Decisão criada", descri
 	return item;
 }
 
-function updateDecisionCards() {
-	const decisions = getDecisions();
+async function updateDecisionCards() {
+	// A API é agora a fonte de verdade (já guarda end_date, description, etc.)
+	let decisions = await getDecisionsFromAPI();
+
+	// Fallback apenas se a API estiver completamente inacessível
+	if (decisions.length === 0) {
+		decisions = getDecisions();
+	}
+
 	if (decisionSummaryText) {
 		if (decisions.length === 0)      decisionSummaryText.textContent = "Sem decisões";
 		else if (decisions.length === 1) decisionSummaryText.textContent = "1 decisão criada";
@@ -449,12 +505,12 @@ function updateDecisionCards() {
 	const latestDecision = decisions[decisions.length - 1];
 	decisionList.appendChild(createDecisionListItem(latestDecision, "New", "", "fa-sparkles", "status-new"));
 	const soonestEnding = decisions
-		.map((decision, index) => ({ decision, index, daysLeft: calculateDaysUntilEnd(decision.endDate) }))
+		.map((decision, index) => ({ decision, index, daysLeft: calculateDaysUntilEnd(decision.endDate || decision.end_date) }))
 		.filter((entry) => entry.daysLeft !== null && entry.daysLeft >= 0 && entry.daysLeft <= 3)
 		.sort((a, b) => a.daysLeft - b.daysLeft)[0];
 	if (soonestEnding && soonestEnding.index !== decisions.length - 1) {
 		const daysLabel = soonestEnding.daysLeft === 0 ? "Termina hoje" : soonestEnding.daysLeft === 1 ? "Termina em 1 dia" : `Termina em ${soonestEnding.daysLeft} dias`;
-		const endDateLabel = formatIsoDateToPt(soonestEnding.decision.endDate);
+		const endDateLabel = formatIsoDateToPt(soonestEnding.decision.endDate || soonestEnding.decision.end_date);
 		decisionList.appendChild(createDecisionListItem(soonestEnding.decision, "Finishing", "", "fa-hourglass-half", "status-finishing", `${daysLabel} · Prazo final: ${endDateLabel}`));
 	}
 }
@@ -470,10 +526,12 @@ async function handleCreateDecision() {
 	if (options.length < 2) { setDecisionMessage("Adiciona pelo menos 2 opções para criar a decisão.", "error"); return; }
 	if (!endDate) { setDecisionMessage("Define uma data de término para a decisão.", "error"); if (decisionEndDateInput) decisionEndDateInput.focus(); return; }
 	if (endDate < getTodayIsoDate()) { setDecisionMessage("A data de término não pode ser no passado.", "error"); if (decisionEndDateInput) decisionEndDateInput.focus(); return; }
+
 	const session = getSession();
 	const groups = getStoredGroups();
 	const selectedGroup = decisionGroupSelect && decisionGroupSelect.value ? groups.find((g) => g.id === decisionGroupSelect.value) || null : null;
 	const selectedFriendIds = decisionFriendsSelect ? Array.from(decisionFriendsSelect.selectedOptions).map((o) => o.value).filter((v) => v) : [];
+
 	const decision = {
 		title, description,
 		date: decisionCurrentDate ? decisionCurrentDate.textContent : "",
@@ -483,17 +541,34 @@ async function handleCreateDecision() {
 		targetFriendIds: selectedFriendIds,
 		createdBy: session?.user?.name || "Utilizador"
 	};
-	const decisions = getDecisions();
-	decisions.push(decision);
-	saveDecisions(decisions);
-	saveLatestDecision(decision);
-	updateDecisionCards();
-	setDecisionMessage("Decisão criada com sucesso.", "success");
-	if (hasSwal()) {
-		window.Swal.fire({ icon: "success", title: "Decisão criada", text: "A nova decisão foi criada com sucesso.", timer: 1700, showConfirmButton: false });
+
+	try {
+		const created = await createDecisionOnAPI(decision);
+
+		// Mantém uma cópia local apenas como referência rápida (não é mais a fonte de verdade)
+		const decisions = getDecisions();
+		decisions.push(decision);
+		saveDecisions(decisions);
+		saveLatestDecision(decision);
+
+		updateDecisionCards();
+		setDecisionMessage("Decisão criada com sucesso.", "success");
+
+		if (hasSwal()) {
+			window.Swal.fire({ 
+				icon: "success", 
+				title: "Decisão criada", 
+				text: "A nova decisão foi criada com sucesso.", 
+				timer: 1700, 
+				showConfirmButton: false 
+			});
+		}
+		closeDecisionModal();
+		resetDecisionForm();
+	} catch (err) {
+		setDecisionMessage("Erro ao criar decisão: " + (err.message || "tenta novamente"), "error");
+		console.error(err);
 	}
-	closeDecisionModal();
-	resetDecisionForm();
 }
 
 function handleCancelDecision() { closeDecisionModal(); resetDecisionForm(); }
@@ -528,12 +603,12 @@ initializeEndDateInput();
 updateDecisionCards();
 updateGroupsCard();
 
-// 🔧 CORRIGIDO: Aguarda completamente a atualização dos amigos
+// Aguarda completamente a atualização dos amigos
 (async () => {
 	await updateFriendsCard();
 })();
 
-// 🌐 EXPÕE A FUNÇÃO GLOBALMENTE
+// EXPÕE A FUNÇÃO GLOBALMENTE
 // Para que friendSearch.js possa atualizar o card quando um amigo é adicionado
 window.refreshFriendsCard = async function() {
 	await updateFriendsCard();

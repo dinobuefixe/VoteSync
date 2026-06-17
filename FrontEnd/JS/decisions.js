@@ -1,6 +1,6 @@
 const SESSION_KEY = "votesync.session";
-const DECISIONS_KEY = "votesync.decisions";
 const DECISION_TEMPLATE_KEY = "votesync.decision.latest";
+const API = "http://localhost:8000";
 
 const logoutButton = document.querySelector("#decisions-logout-btn");
 const decisionsSummaryText = document.querySelector("#decisions-summary-text");
@@ -16,401 +16,463 @@ const decisionEditEndDateInput = document.querySelector("#decision-edit-end-date
 const decisionEditOptionsInput = document.querySelector("#decision-edit-options-input");
 const decisionEditMessage = document.querySelector("#decision-edit-message");
 
-let editingDecisionIndex = null;
+// Guarda a decisão (objeto completo, vindo da API) que está a ser editada.
+// Substituído o antigo "editingDecisionIndex" porque a API trabalha por id, não por índice de array.
+let editingDecision = null;
+
+// Cache em memória da última lista de decisões carregada da API,
+// para não ter de voltar a pedir tudo sempre que abrimos o modal de edição.
+let cachedDecisions = [];
 
 function hasSwal() {
-    return typeof window !== "undefined" && typeof window.Swal !== "undefined";
+	return typeof window !== "undefined" && typeof window.Swal !== "undefined";
 }
 
 function getSession() {
-    const raw = localStorage.getItem(SESSION_KEY);
-    if (!raw) {
-        return null;
-    }
+	const raw = localStorage.getItem(SESSION_KEY);
+	if (!raw) {
+		return null;
+	}
 
-    try {
-        return JSON.parse(raw);
-    } catch {
-        return null;
-    }
+	try {
+		return JSON.parse(raw);
+	} catch {
+		return null;
+	}
 }
 
-function getDecisions() {
-    const raw = localStorage.getItem(DECISIONS_KEY);
-    if (!raw) {
-        return [];
-    }
-
-    try {
-        const parsed = JSON.parse(raw);
-        return Array.isArray(parsed) ? parsed : [];
-    } catch {
-        return [];
-    }
+async function apiFetch(path, options = {}) {
+	const res = await fetch(`${API}${path}`, {
+		headers: { "Content-Type": "application/json" },
+		...options,
+	});
+	if (res.status === 204) return null;
+	const data = await res.json();
+	if (!res.ok) throw new Error(data.detail || "Erro na API");
+	return data;
 }
 
-function saveDecisions(decisions) {
-    localStorage.setItem(DECISIONS_KEY, JSON.stringify(decisions));
+async function getDecisionsFromAPI() {
+	try {
+		return await apiFetch("/decisions/");
+	} catch (err) {
+		console.error("Erro ao buscar decisões:", err);
+		return [];
+	}
 }
 
 function saveLatestDecision(decision) {
-    localStorage.setItem(DECISION_TEMPLATE_KEY, JSON.stringify(decision));
+	localStorage.setItem(DECISION_TEMPLATE_KEY, JSON.stringify(decision));
 }
 
 function syncLatestDecision(decisions) {
-    if (!Array.isArray(decisions) || decisions.length === 0) {
-        localStorage.removeItem(DECISION_TEMPLATE_KEY);
-        return;
-    }
+	if (!Array.isArray(decisions) || decisions.length === 0) {
+		localStorage.removeItem(DECISION_TEMPLATE_KEY);
+		return;
+	}
 
-    saveLatestDecision(decisions[decisions.length - 1]);
+	saveLatestDecision(decisions[decisions.length - 1]);
 }
 
 function clearSession() {
-    localStorage.removeItem(SESSION_KEY);
+	localStorage.removeItem(SESSION_KEY);
 }
 
 function redirectToLogin() {
-    window.location.href = "./index.html";
+	window.location.href = "./index.html";
 }
 
 function ensureAuthenticated() {
-    const session = getSession();
-    if (!session || !session.user || !session.token) {
-        redirectToLogin();
-    }
+	const session = getSession();
+	if (!session || !session.user || !session.token) {
+		redirectToLogin();
+	}
 }
 
 async function handleLogout() {
-    if (!hasSwal()) {
-        clearSession();
-        redirectToLogin();
-        return;
-    }
+	if (!hasSwal()) {
+		clearSession();
+		redirectToLogin();
+		return;
+	}
 
-    const result = await window.Swal.fire({
-        title: "Terminar sessao?",
-        text: "Vais sair da tua conta.",
-        icon: "question",
-        showCancelButton: true,
-        confirmButtonText: "Sair",
-        cancelButtonText: "Cancelar"
-    });
+	const result = await window.Swal.fire({
+		title: "Terminar sessao?",
+		text: "Vais sair da tua conta.",
+		icon: "question",
+		showCancelButton: true,
+		confirmButtonText: "Sair",
+		cancelButtonText: "Cancelar"
+	});
 
-    if (result.isConfirmed) {
-        clearSession();
-        redirectToLogin();
-    }
+	if (result.isConfirmed) {
+		clearSession();
+		redirectToLogin();
+	}
 }
 
 function setEditMessage(message) {
-    if (!decisionEditMessage) {
-        return;
-    }
+	if (!decisionEditMessage) {
+		return;
+	}
 
-    decisionEditMessage.textContent = message;
+	decisionEditMessage.textContent = message;
 }
 
 function showValidationMessage(message) {
-    setEditMessage(message);
+	setEditMessage(message);
 
-    if (hasSwal()) {
-        window.Swal.fire({
-            icon: "warning",
-            title: "Atenção",
-            text: message,
-            confirmButtonText: "OK"
-        });
-    }
+	if (hasSwal()) {
+		window.Swal.fire({
+			icon: "warning",
+			title: "Atenção",
+			text: message,
+			confirmButtonText: "OK"
+		});
+	}
 }
 
-function openEditModal(index) {
-    const decisions = getDecisions();
-    if (index < 0 || index >= decisions.length || !decisionEditOverlay) {
-        return;
-    }
+function openEditModal(decisionId) {
+	const decision = cachedDecisions.find((d) => d.id === decisionId);
+	if (!decision || !decisionEditOverlay) {
+		return;
+	}
 
-    const decision = decisions[index];
-    editingDecisionIndex = index;
+	editingDecision = decision;
 
-    if (decisionEditTitleInput) {
-        decisionEditTitleInput.value = decision && decision.title ? decision.title : "";
-    }
+	if (decisionEditTitleInput) {
+		decisionEditTitleInput.value = decision.title || "";
+	}
 
-    if (decisionEditDescriptionInput) {
-        decisionEditDescriptionInput.value = decision && decision.description ? decision.description : "";
-    }
+	if (decisionEditDescriptionInput) {
+		decisionEditDescriptionInput.value = decision.description || "";
+	}
 
-    if (decisionEditEndDateInput) {
-        decisionEditEndDateInput.value = decision && decision.endDate ? decision.endDate : "";
-    }
+	if (decisionEditEndDateInput) {
+		decisionEditEndDateInput.value = decision.end_date || "";
+	}
 
-    if (decisionEditOptionsInput) {
-        const optionsText = decision && Array.isArray(decision.options)
-            ? decision.options.map((option) => option.name).join(", ")
-            : "";
-        decisionEditOptionsInput.value = optionsText;
-    }
+	if (decisionEditOptionsInput) {
+		const optionsText = Array.isArray(decision.options)
+			? decision.options.map((option) => option.option_text).join(", ")
+			: "";
+		decisionEditOptionsInput.value = optionsText;
+	}
 
-    setEditMessage("");
-    decisionEditOverlay.hidden = false;
+	setEditMessage("");
+	decisionEditOverlay.hidden = false;
 }
 
 function closeEditModal() {
-    if (!decisionEditOverlay) {
-        return;
-    }
+	if (!decisionEditOverlay) {
+		return;
+	}
 
-    decisionEditOverlay.hidden = true;
-    editingDecisionIndex = null;
-    setEditMessage("");
+	decisionEditOverlay.hidden = true;
+	editingDecision = null;
+	setEditMessage("");
 }
 
-function saveEditedDecision() {
-    const decisions = getDecisions();
-    if (editingDecisionIndex === null || editingDecisionIndex < 0 || editingDecisionIndex >= decisions.length) {
-        closeEditModal();
-        return;
-    }
+// Sincroniza as opções da decisão com a lista nova de nomes, comparando por posição (índice):
+// - se a opção na posição i já existia mas o texto mudou -> PUT /options/{id}
+// - se há mais nomes novos do que opções antigas -> POST /options/ para os excedentes
+// - se há menos nomes novos do que opções antigas -> DELETE /options/{id} para os excedentes antigos
+async function syncDecisionOptions(decision, newOptionNames) {
+	const oldOptions = Array.isArray(decision.options) ? decision.options : [];
+	const tasks = [];
 
-    const title = decisionEditTitleInput ? decisionEditTitleInput.value.trim() : "";
-    const description = decisionEditDescriptionInput ? decisionEditDescriptionInput.value.trim() : "";
-    const endDate = decisionEditEndDateInput ? decisionEditEndDateInput.value.trim() : "";
-    const optionsRaw = decisionEditOptionsInput ? decisionEditOptionsInput.value : "";
+	const maxLength = Math.max(oldOptions.length, newOptionNames.length);
+	for (let i = 0; i < maxLength; i++) {
+		const oldOption = oldOptions[i];
+		const newName = newOptionNames[i];
 
-    if (!title) {
-        showValidationMessage("O titulo nao pode ficar vazio.");
-        return;
-    }
+		if (oldOption && newName !== undefined) {
+			// Posição existia antes e continua a existir: atualiza só se o texto mudou
+			if (oldOption.option_text !== newName) {
+				tasks.push(apiFetch(`/options/${oldOption.id}`, {
+					method: "PUT",
+					body: JSON.stringify({ vote_id: decision.id, option_text: newName })
+				}));
+			}
+		} else if (!oldOption && newName !== undefined) {
+			// Posição nova: criar opção
+			tasks.push(apiFetch("/options/", {
+				method: "POST",
+				body: JSON.stringify({ vote_id: decision.id, option_text: newName })
+			}));
+		} else if (oldOption && newName === undefined) {
+			// Posição removida: apagar opção antiga
+			tasks.push(apiFetch(`/options/${oldOption.id}`, { method: "DELETE" }));
+		}
+	}
 
-    if (!endDate) {
-        showValidationMessage("A data de termino nao pode ficar vazia.");
-        return;
-    }
+	await Promise.all(tasks);
+}
 
-    const optionNames = optionsRaw
-        .split(",")
-        .map((value) => value.trim())
-        .filter((value) => value.length > 0);
+async function saveEditedDecision() {
+	if (!editingDecision) {
+		closeEditModal();
+		return;
+	}
 
-    if (optionNames.length < 2) {
-        showValidationMessage("A decisao precisa de pelo menos 2 opcoes.");
-        return;
-    }
+	const title = decisionEditTitleInput ? decisionEditTitleInput.value.trim() : "";
+	const description = decisionEditDescriptionInput ? decisionEditDescriptionInput.value.trim() : "";
+	const endDate = decisionEditEndDateInput ? decisionEditEndDateInput.value.trim() : "";
+	const optionsRaw = decisionEditOptionsInput ? decisionEditOptionsInput.value : "";
 
-    const current = decisions[editingDecisionIndex];
-    decisions[editingDecisionIndex] = {
-        ...current,
-        title,
-        description,
-        endDate,
-        options: optionNames.map((name) => ({ name, votes: 0 }))
-    };
+	if (!title) {
+		showValidationMessage("O titulo nao pode ficar vazio.");
+		return;
+	}
 
-    saveDecisions(decisions);
-    syncLatestDecision(decisions);
-    closeEditModal();
-    renderAllDecisions();
+	if (!endDate) {
+		showValidationMessage("A data de termino nao pode ficar vazia.");
+		return;
+	}
 
-    if (hasSwal()) {
-        window.Swal.fire({
-            icon: "success",
-            title: "Decisão alterada",
-            text: "As alterações foram guardadas com sucesso.",
-            timer: 1800,
-            showConfirmButton: false
-        });
-    }
+	const optionNames = optionsRaw
+		.split(",")
+		.map((value) => value.trim())
+		.filter((value) => value.length > 0);
+
+	if (optionNames.length < 2) {
+		showValidationMessage("A decisao precisa de pelo menos 2 opcoes.");
+		return;
+	}
+
+	try {
+		await apiFetch(`/decisions/${editingDecision.id}`, {
+			method: "PUT",
+			body: JSON.stringify({
+				vote_id: editingDecision.vote_id,
+				title,
+				decision_text: description || title,
+				description,
+				end_date: endDate,
+				created_by: editingDecision.created_by,
+				target_group_id: editingDecision.target_group_id,
+				created_at: editingDecision.created_at
+			})
+		});
+
+		await syncDecisionOptions(editingDecision, optionNames);
+
+		closeEditModal();
+		await renderAllDecisions();
+
+		if (hasSwal()) {
+			window.Swal.fire({
+				icon: "success",
+				title: "Decisão alterada",
+				text: "As alterações foram guardadas com sucesso.",
+				timer: 1800,
+				showConfirmButton: false
+			});
+		}
+	} catch (err) {
+		console.error("Erro ao guardar decisão:", err);
+		showValidationMessage("Erro ao guardar alterações: " + (err.message || "tenta novamente"));
+	}
 }
 
 function redirectToDecisionTemplate() {
-    window.location.href = "./decisionMaking.html";
+	window.location.href = "./decisionMaking.html";
 }
 
-function editDecisionAtIndex(index) {
-    openEditModal(index);
+function editDecisionById(decisionId) {
+	openEditModal(decisionId);
 }
 
-async function removeDecisionAtIndex(index) {
-    const decisions = getDecisions();
-    if (index < 0 || index >= decisions.length) {
-        return;
-    }
+async function removeDecisionById(decisionId) {
+	if (hasSwal()) {
+		const result = await window.Swal.fire({
+			title: "Remover decisão?",
+			text: "Esta ação não pode ser desfeita.",
+			icon: "warning",
+			showCancelButton: true,
+			confirmButtonText: "Remover",
+			cancelButtonText: "Cancelar",
+			confirmButtonColor: "#c0392b"
+		});
 
-    if (hasSwal()) {
-        const result = await window.Swal.fire({
-            title: "Remover decisão?",
-            text: "Esta ação não pode ser desfeita.",
-            icon: "warning",
-            showCancelButton: true,
-            confirmButtonText: "Remover",
-            cancelButtonText: "Cancelar",
-            confirmButtonColor: "#c0392b"
-        });
+		if (!result.isConfirmed) {
+			return;
+		}
+	}
 
-        if (!result.isConfirmed) {
-            return;
-        }
-    }
+	try {
+		await apiFetch(`/decisions/${decisionId}`, { method: "DELETE" });
+		await renderAllDecisions();
 
-    decisions.splice(index, 1);
-    saveDecisions(decisions);
-    syncLatestDecision(decisions);
-    renderAllDecisions();
-
-    if (hasSwal()) {
-        window.Swal.fire({
-            icon: "success",
-            title: "Decisão removida",
-            timer: 1600,
-            showConfirmButton: false
-        });
-    }
+		if (hasSwal()) {
+			window.Swal.fire({
+				icon: "success",
+				title: "Decisão removida",
+				timer: 1600,
+				showConfirmButton: false
+			});
+		}
+	} catch (err) {
+		console.error("Erro ao remover decisão:", err);
+		if (hasSwal()) {
+			window.Swal.fire({
+				icon: "error",
+				title: "Erro",
+				text: "Não foi possível remover a decisão: " + (err.message || "tenta novamente")
+			});
+		}
+	}
 }
+
 function handleLogoClick(e) {
-    e.preventDefault();
-    const session = getSession();
-    if (session && session.user) {
-        window.location.href = session.user.is_admin ? "./admin.html" : "./dashboard.html";
-    } else {
-        window.location.href = "./index.html";
-    }
+	e.preventDefault();
+	const session = getSession();
+	if (session && session.user) {
+		window.location.href = session.user.is_admin ? "./admin.html" : "./dashboard.html";
+	} else {
+		window.location.href = "./index.html";
+	}
 }
 
-function createDecisionListItem(decision, decisionIndex) {
-    const optionsCount = Array.isArray(decision.options) ? decision.options.length : 0;
+function createDecisionListItem(decision) {
+	const optionsCount = Array.isArray(decision.options) ? decision.options.length : 0;
 
-    const item = document.createElement("article");
-    item.className = "decision-list-item";
+	const item = document.createElement("article");
+	item.className = "decision-list-item";
 
-    const infoBox = document.createElement("div");
-    infoBox.className = "info-box";
+	const infoBox = document.createElement("div");
+	infoBox.className = "info-box";
 
-    const infoLabel = document.createElement("span");
-    infoLabel.textContent = "Estado:";
+	const infoLabel = document.createElement("span");
+	infoLabel.textContent = "Estado:";
 
-    const infoValue = document.createElement("strong");
-    infoValue.textContent = "Decisão criada";
+	const infoValue = document.createElement("strong");
+	infoValue.textContent = "Decisão criada";
 
-    infoBox.appendChild(infoLabel);
-    infoBox.appendChild(infoValue);
+	infoBox.appendChild(infoLabel);
+	infoBox.appendChild(infoValue);
 
-    const winnerBox = document.createElement("div");
-    winnerBox.className = "winner-box";
+	const winnerBox = document.createElement("div");
+	winnerBox.className = "winner-box";
 
-    const winnerDescription = document.createElement("small");
-    winnerDescription.textContent = `${optionsCount} opções prontas para votação.`;
+	const winnerDescription = document.createElement("small");
+	winnerDescription.textContent = `${optionsCount} opções prontas para votação.`;
 
-    const winnerValue = document.createElement("h3");
-    winnerValue.textContent = decision.title || "Decisão sem título";
+	const winnerValue = document.createElement("h3");
+	winnerValue.textContent = decision.title || "Decisão sem título";
 
-    const createdDate = document.createElement("p");
-    createdDate.className = "decision-created-date";
-    createdDate.textContent = `Criada em: ${decision && decision.date ? decision.date : "--/--/----"}`;
+	const createdDate = document.createElement("p");
+	createdDate.className = "decision-created-date";
+	const createdAtLabel = decision.created_at ? decision.created_at.split("T")[0] : "--/--/----";
+	createdDate.textContent = `Criada em: ${createdAtLabel}`;
 
-    winnerBox.appendChild(winnerDescription);
-    winnerBox.appendChild(winnerValue);
-    winnerBox.appendChild(createdDate);
+	winnerBox.appendChild(winnerDescription);
+	winnerBox.appendChild(winnerValue);
+	winnerBox.appendChild(createdDate);
 
-    const viewMoreButton = document.createElement("button");
-    viewMoreButton.className = "view-btn";
-    viewMoreButton.type = "button";
-    viewMoreButton.innerHTML = 'View More <i class="fa-solid fa-angle-right"></i>';
-    viewMoreButton.addEventListener("click", () => {
-        saveLatestDecision(decision);
-        redirectToDecisionTemplate();
-    });
- 
+	const viewMoreButton = document.createElement("button");
+	viewMoreButton.className = "view-btn";
+	viewMoreButton.type = "button";
+	viewMoreButton.innerHTML = 'View More <i class="fa-solid fa-angle-right"></i>';
+	viewMoreButton.addEventListener("click", () => {
+		saveLatestDecision(decision);
+		redirectToDecisionTemplate();
+	});
 
-    const actionsWrap = document.createElement("div");
-    actionsWrap.className = "decision-item-actions";
+	const actionsWrap = document.createElement("div");
+	actionsWrap.className = "decision-item-actions";
 
-    const editButton = document.createElement("button");
-    editButton.className = "decision-action-btn decision-edit-btn";
-    editButton.type = "button";
-    editButton.innerHTML = '<i class="fa-solid fa-pen-to-square" aria-hidden="true"></i>';
-    editButton.setAttribute("aria-label", "Alterar decisão");
-    editButton.title = "Alterar decisão";
-    editButton.addEventListener("click", () => editDecisionAtIndex(decisionIndex));
+	const editButton = document.createElement("button");
+	editButton.className = "decision-action-btn decision-edit-btn";
+	editButton.type = "button";
+	editButton.innerHTML = '<i class="fa-solid fa-pen-to-square" aria-hidden="true"></i>';
+	editButton.setAttribute("aria-label", "Alterar decisão");
+	editButton.title = "Alterar decisão";
+	editButton.addEventListener("click", () => editDecisionById(decision.id));
 
-    const removeButton = document.createElement("button");
-    removeButton.className = "decision-action-btn decision-remove-btn";
-    removeButton.type = "button";
-    removeButton.innerHTML = '<i class="fa-solid fa-trash" aria-hidden="true"></i>';
-    removeButton.setAttribute("aria-label", "Remover decisão");
-    removeButton.title = "Remover decisão";
-    removeButton.addEventListener("click", () => removeDecisionAtIndex(decisionIndex));
+	const removeButton = document.createElement("button");
+	removeButton.className = "decision-action-btn decision-remove-btn";
+	removeButton.type = "button";
+	removeButton.innerHTML = '<i class="fa-solid fa-trash" aria-hidden="true"></i>';
+	removeButton.setAttribute("aria-label", "Remover decisão");
+	removeButton.title = "Remover decisão";
+	removeButton.addEventListener("click", () => removeDecisionById(decision.id));
 
-    actionsWrap.appendChild(editButton);
-    actionsWrap.appendChild(removeButton);
+	actionsWrap.appendChild(editButton);
+	actionsWrap.appendChild(removeButton);
 
-    item.appendChild(infoBox);
-    item.appendChild(winnerBox);
-    item.appendChild(viewMoreButton);
-    item.appendChild(actionsWrap);
+	item.appendChild(infoBox);
+	item.appendChild(winnerBox);
+	item.appendChild(viewMoreButton);
+	item.appendChild(actionsWrap);
 
-    return item;
+	return item;
 }
 
-function renderAllDecisions() {
-    const decisions = getDecisions();
-    const orderedDecisions = decisions.map((decision, index) => ({ decision, index })).reverse();
+async function renderAllDecisions() {
+	const decisions = await getDecisionsFromAPI();
+	cachedDecisions = decisions;
 
-    if (decisionsSummaryText) {
-        if (decisions.length === 0) {
-            decisionsSummaryText.textContent = "Sem decisões";
-        } else if (decisions.length === 1) {
-            decisionsSummaryText.textContent = "1 decisão criada";
-        } else {
-            decisionsSummaryText.textContent = `${decisions.length} decisões criadas`;
-        }
-    }
+	// Mais recentes primeiro
+	const orderedDecisions = [...decisions].sort((a, b) => (b.id || 0) - (a.id || 0));
 
-    if (!decisionsList) {
-        return;
-    }
+	if (decisionsSummaryText) {
+		if (decisions.length === 0) {
+			decisionsSummaryText.textContent = "Sem decisões";
+		} else if (decisions.length === 1) {
+			decisionsSummaryText.textContent = "1 decisão criada";
+		} else {
+			decisionsSummaryText.textContent = `${decisions.length} decisões criadas`;
+		}
+	}
 
-    decisionsList.innerHTML = "";
+	if (!decisionsList) {
+		return;
+	}
 
-    if (orderedDecisions.length === 0) {
-        if (decisionsListEmpty) {
-            decisionsListEmpty.hidden = false;
-        }
-        return;
-    }
+	decisionsList.innerHTML = "";
 
-    if (decisionsListEmpty) {
-        decisionsListEmpty.hidden = true;
-    }
+	if (orderedDecisions.length === 0) {
+		if (decisionsListEmpty) {
+			decisionsListEmpty.hidden = false;
+		}
+		return;
+	}
 
-    orderedDecisions.forEach((entry) => {
-        decisionsList.appendChild(createDecisionListItem(entry.decision, entry.index));
-    });
+	if (decisionsListEmpty) {
+		decisionsListEmpty.hidden = true;
+	}
+
+	orderedDecisions.forEach((decision) => {
+		decisionsList.appendChild(createDecisionListItem(decision));
+	});
+
+	syncLatestDecision(orderedDecisions);
 }
 
 ensureAuthenticated();
 renderAllDecisions();
 
 if (logoutButton) {
-    logoutButton.addEventListener("click", handleLogout);
+	logoutButton.addEventListener("click", handleLogout);
 }
 
 if (decisionEditCloseButton) {
-    decisionEditCloseButton.addEventListener("click", closeEditModal);
+	decisionEditCloseButton.addEventListener("click", closeEditModal);
 }
 
 if (decisionEditCancelButton) {
-    decisionEditCancelButton.addEventListener("click", closeEditModal);
+	decisionEditCancelButton.addEventListener("click", closeEditModal);
 }
 
 if (decisionEditSaveButton) {
-    decisionEditSaveButton.addEventListener("click", saveEditedDecision);
+	decisionEditSaveButton.addEventListener("click", saveEditedDecision);
 }
 
 if (decisionEditOverlay) {
-    decisionEditOverlay.addEventListener("click", (event) => {
-        if (event.target === decisionEditOverlay) {
-            closeEditModal();
-        }
-    });
+	decisionEditOverlay.addEventListener("click", (event) => {
+		if (event.target === decisionEditOverlay) {
+			closeEditModal();
+		}
+	});
 }

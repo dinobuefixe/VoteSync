@@ -7,12 +7,12 @@ from backend.database import get_db
 router = APIRouter(prefix="/votes", tags=["Votes"])
 
 
-@router.get("/", response_model=List[schemas.VotesBase])
+@router.get("/", response_model=List[schemas.VotesResponse])
 def get_votes(db: Session = Depends(get_db)):
     return db.query(models.Votes).all()
 
 
-@router.get("/{id}", response_model=schemas.VotesBase)
+@router.get("/{id}", response_model=schemas.VotesResponse)
 def get_vote(id: int, db: Session = Depends(get_db)):
     vote = db.query(models.Votes).filter(models.Votes.id == id).first()
     if not vote:
@@ -20,7 +20,7 @@ def get_vote(id: int, db: Session = Depends(get_db)):
     return vote
 
 
-@router.post("/", response_model=schemas.VotesBase)
+@router.post("/", response_model=schemas.VotesResponse)
 def create_vote(vote: schemas.VotesBase, db: Session = Depends(get_db)):
     new_vote = models.Votes(**vote.dict())
     db.add(new_vote)
@@ -29,7 +29,7 @@ def create_vote(vote: schemas.VotesBase, db: Session = Depends(get_db)):
     return new_vote
 
 
-@router.put("/{id}", response_model=schemas.VotesBase)
+@router.put("/{id}", response_model=schemas.VotesResponse)
 def update_vote(id: int, updated: schemas.VotesBase, db: Session = Depends(get_db)):
     vote = db.query(models.Votes).filter(models.Votes.id == id)
     if not vote.first():
