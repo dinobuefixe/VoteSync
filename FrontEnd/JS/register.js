@@ -74,11 +74,10 @@ function validateRegister() {
 // ── Register ──────────────────────────────────────────────────────────────────
 registerForm.addEventListener("submit", async (e) => {
     e.preventDefault();
-    setStatus("");
-    const result = validateRegister();
-    if (!result.valid) { setStatus("Please fix the highlighted fields.", "is-error"); return; }
+    clearFieldErrors();
 
-    setSubmitLoading(true);
+    if (!validateRegister()) return;
+
     try {
         // 1. Criar utilizador
         const resRegister = await fetch("http://localhost:8000/users/", {
@@ -108,8 +107,50 @@ registerForm.addEventListener("submit", async (e) => {
             window.location.href = session.user.is_admin === true ? "./admin.html" : "./dashboard.html";
         }, 1500);
     } catch (err) {
-        setStatus(err.message || "Could not create account.", "is-error");
-    } finally {
-        setSubmitLoading(false);
+        const message = err.detail || "Não foi possível criar a conta. Tente novamente.";
+
+        if (message.toLowerCase().includes("email")) {
+            setFieldError("register-email", "Este email já está registrado.");
+        } else {
+            setFieldError("register-email", message);
+        }
     }
 });
+
+async function registerUser() {
+    const data = {
+        name: document.getElementById("register-name").value.trim(),
+        email: document.getElementById("register-email").value.trim(),
+        password: document.getElementById("register-password").value
+    };
+
+    const response = await fetch("/users/", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(data)
+    });
+
+    if (!response.ok) {
+        let detail = "Erro ao criar conta. Tente novamente.";
+        try {
+            const errorData = await response.json();
+            if (errorData.detail) detail = errorData.detail;
+        } catch {
+            // resposta não era JSON, mantém mensagem genérica
+        }
+
+        const err = new Error("Registration failed");
+        err.detail = detail;
+        throw err;
+    }
+
+    const newUser = await response.json();
+
+    const session = {
+        token: createToken(newUser.id),
+        user: newUser
+    };
+
+    saveSession(session);
+    return session;
+}

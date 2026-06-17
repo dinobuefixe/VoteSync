@@ -4,6 +4,7 @@ from sqlalchemy.orm import Session
 from starlette import status
 from backend import models, schemas
 from backend.database import get_db
+from backend.utils import hash_password
 
 router = APIRouter(prefix="/users", tags=["Users"])
 
@@ -17,9 +18,14 @@ def get_users(db: Session = Depends(get_db)):
 def create_user(user: schemas.UserCreate, db: Session = Depends(get_db)):
     exists = db.query(models.Users).filter(models.Users.email == user.email).first()
     if exists:
-        raise HTTPException(400, "Email already registered")
+        raise HTTPException(status_code=400, detail="Email already registered")
 
-    new_user = models.Users(**user.dict())
+    new_user = models.Users(
+        name=user.name,
+        email=user.email,
+        hashed_password=hash_password(user.password)
+    )
+
     db.add(new_user)
     db.commit()
     db.refresh(new_user)
