@@ -77,34 +77,47 @@ registerForm.addEventListener("submit", async (e) => {
     clearFieldErrors();
 
     if (!validateRegister()) return;
+    console.log("Registering user...");
+
+    const dataRegist = {
+        name: document.getElementById("register-name").value.trim(),
+        email: document.getElementById("register-email").value.trim(),
+        password: document.getElementById("register-password").value
+    };
 
     try {
-        // 1. Criar utilizador
-        const resRegister = await fetch("http://localhost:8000/users/", {
+
+        const resRegister = await fetch("/users/", {
             method: "POST",
             headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ name: result.name, email: result.email, password: result.password }),
+            body: JSON.stringify(dataRegist),
         });
+
         const newUser = await resRegister.json();
         if (!resRegister.ok) {
             if (resRegister.status === 400) setFieldError("register-email", "This email is already registered.");
             throw new Error(newUser.detail || "Could not create account.");
         }
 
+        const dataAuth = {
+            email: document.getElementById("register-email").value.trim(),
+            password: document.getElementById("register-password").value
+        };
+
         // 2. Login automático para obter sessão com ID real da BD
-        const resLogin = await fetch("http://localhost:8000/auth/login", {
+        const resLogin = await fetch("/auth/login", {
             method: "POST",
             headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ email: result.email, password: result.password }),
+            body: JSON.stringify(dataAuth),
         });
         const session = await resLogin.json();
         if (!resLogin.ok) throw new Error(session.detail || "Login após registo falhou.");
-
+        console.log("Logged in successfully after registration:", session);
         saveSession(session);
         registerForm.reset();
         setStatus("Account created successfully! Redirecting…", "is-success");
         setTimeout(() => {
-            window.location.href = session.user.is_admin === true ? "./admin.html" : "./dashboard.html";
+            window.location.href = session.user.is_admin === true ? "/static/HTML/admin.html" : "/static/HTML/dashboard.html";
         }, 1500);
     } catch (err) {
         const message = err.detail || "Não foi possível criar a conta. Tente novamente.";
@@ -117,40 +130,3 @@ registerForm.addEventListener("submit", async (e) => {
     }
 });
 
-async function registerUser() {
-    const data = {
-        name: document.getElementById("register-name").value.trim(),
-        email: document.getElementById("register-email").value.trim(),
-        password: document.getElementById("register-password").value
-    };
-
-    const response = await fetch("/users/", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(data)
-    });
-
-    if (!response.ok) {
-        let detail = "Erro ao criar conta. Tente novamente.";
-        try {
-            const errorData = await response.json();
-            if (errorData.detail) detail = errorData.detail;
-        } catch {
-            // resposta não era JSON, mantém mensagem genérica
-        }
-
-        const err = new Error("Registration failed");
-        err.detail = detail;
-        throw err;
-    }
-
-    const newUser = await response.json();
-
-    const session = {
-        token: createToken(newUser.id),
-        user: newUser
-    };
-
-    saveSession(session);
-    return session;
-}

@@ -4,6 +4,7 @@ from sqlalchemy.orm import Session
 from pydantic import BaseModel
 from backend import models
 from backend.database import get_db
+from backend.utils import verify_password
 
 router = APIRouter(prefix="/auth", tags=["Auth"])
 
@@ -17,8 +18,10 @@ class LoginResponse(BaseModel):
 
 @router.post("/login", response_model=LoginResponse)
 def login(credentials: LoginRequest, db: Session = Depends(get_db)):
+
     user = db.query(models.Users).filter(models.Users.email == credentials.email).first()
-    if not user or user.password != credentials.password:
+
+    if not user or not verify_password(credentials.password, user.hashed_password):
         raise HTTPException(401, "Credenciais inválidas")
     
     return {
