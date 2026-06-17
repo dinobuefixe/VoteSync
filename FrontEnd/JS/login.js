@@ -63,9 +63,9 @@ function hideSession() {
 
 function redirectAfterLogin(user) {
     if (user.is_admin === true) {
-        window.location.href = "./admin.html";
+        window.location.href = "/static/HTML/admin.html";
     } else {
-        window.location.href = "./dashboard.html";
+        window.location.href = "/static/HTML/dashboard.html";
     }
 }
 
@@ -111,11 +111,18 @@ loginForm.addEventListener("submit", async (e) => {
 
     setSubmitLoading(loginForm, true);
     try {
-        const res = await fetch("http://localhost:8000/auth/login", {
+
+        const dataAuth = {
+            email: document.getElementById("register-email").value.trim(),
+            password: document.getElementById("register-password").value
+        };
+
+        const res = await fetch("/auth/login", {
             method: "POST",
             headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ email: result.email, password: result.password }),
+            body: JSON.stringify(dataAuth),
         });
+        
         const data = await res.json();
         if (!res.ok) throw new Error(data.detail || "Credenciais inválidas.");
 
