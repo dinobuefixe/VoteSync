@@ -63,9 +63,9 @@ function hideSession() {
 
 function redirectAfterLogin(user) {
     if (user.is_admin === true) {
-        window.location.href = "./admin.html";
+        window.location.href = "/static/HTML/admin.html";
     } else {
-        window.location.href = "./dashboard.html";
+        window.location.href = "/static/HTML/dashboard.html";
     }
 }
 
