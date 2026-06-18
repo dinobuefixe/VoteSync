@@ -113,8 +113,8 @@ loginForm.addEventListener("submit", async (e) => {
     try {
 
         const dataAuth = {
-            email: document.getElementById("register-email").value.trim(),
-            password: document.getElementById("register-password").value
+            email: document.getElementById("login-email").value.trim(),
+            password: document.getElementById("login-password").value
         };
 
         const res = await fetch("/auth/login", {
@@ -122,7 +122,7 @@ loginForm.addEventListener("submit", async (e) => {
             headers: { "Content-Type": "application/json" },
             body: JSON.stringify(dataAuth),
         });
-        
+
         const data = await res.json();
         if (!res.ok) throw new Error(data.detail || "Credenciais inválidas.");
 

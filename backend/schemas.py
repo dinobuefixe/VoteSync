@@ -36,7 +36,7 @@ class FriendshipsBase(BaseModel):
     id: int | None = None
     user_id: int
     friend_id: int
-    status: str = "accepted"
+    status: str 
 
     class Config:
         from_attributes = True
@@ -45,11 +45,14 @@ class FriendshipsBase(BaseModel):
 class CreateFriendships(BaseModel):
     user_id: int
     friend_id: int
-    status: str = "accepted"
+    status: str
 
     class Config:
         from_attributes = True
 
+
+class FriendshipUpdate(BaseModel):
+    status: str
 
 # members
 

@@ -33,7 +33,7 @@ document.querySelector(".btn-logout")?.addEventListener("click", () => {
 
 // ── API ───────────────────────────────────────────────────────────────────────
 async function apiFetch(path, options = {}) {
-    const res = await fetch(`${API}${path}`, {
+    const res = await fetch(`${path}`, {
         headers: { "Content-Type": "application/json" },
         ...options,
     });
@@ -60,7 +60,13 @@ async function loadData() {
         myFriendships = friendships.filter(
             f => f.user_id === myId || f.friend_id === myId
         );
-        renderFriends();
+        
+        const friendsIds = getMyFriendIds();
+        renderFriends(friendsIds, "accepted");
+
+        const pendingFriendsIds = getMyPendingFriendIds();
+        renderFriends(pendingFriendsIds, "pending");
+
     } catch (err) {
         showMessage("Erro ao carregar dados: " + err.message, "error");
     }
@@ -73,16 +79,15 @@ function getMyFriendIds() {
         .map(f => f.user_id === myId ? f.friend_id : f.user_id);
 }
 
-function renderFriends() {
-    const friendIds   = getMyFriendIds();
-    const friendUsers = allUsers.filter(u => friendIds.includes(u.id));
+function getMyPendingFriendIds() {
+    return myFriendships
+        .filter(f => f.status === "pending")
+        .map(f => f.user_id === myId ? f.friend_id : f.user_id);
+}
 
-    const subtitle = document.querySelector(".main-subtitle");
-    if (subtitle) {
-        subtitle.textContent = friendUsers.length === 1
-            ? "1 friend in your network"
-            : `${friendUsers.length} friends in your network`;
-    }
+function renderFriends(friendsIds, whichfriends) {
+
+    const friendUsers = allUsers.filter(u => friendsIds.includes(u.id));
 
     const emptySection = document.querySelector(".empty-state-container");
     let friendsList = document.getElementById("friends-list");
@@ -95,34 +100,57 @@ function renderFriends() {
 
     if (emptySection) emptySection.style.display = "none";
 
-    if (!friendsList) {
-        friendsList = document.createElement("div");
-        friendsList.id = "friends-list";
-        friendsList.style.cssText = "width:min(100%,760px);display:flex;flex-direction:column;gap:12px;margin-top:1rem;";
-        document.querySelector(".main-container").appendChild(friendsList);
-    }
+    friendsList = document.createElement("div");
+    friendsList.id = "friends-list";
+    friendsList.style.cssText = "width:min(100%,760px);display:flex;flex-direction:column;gap:12px;margin-top:1rem;";
+    document.querySelector(".main-container").appendChild(friendsList);
 
-    friendsList.innerHTML = friendUsers.map(u => {
+    const text = `<h2>${whichfriends === "accepted" ? "Amigos" : "Solicitações Pendentes"}</h2>`;
+    friendsList.innerHTML = text + friendUsers.map(u => {
         const friendship = myFriendships.find(
             f => (f.user_id === myId && f.friend_id === u.id) ||
-                 (f.friend_id === myId && f.user_id === u.id)
+                (f.friend_id === myId && f.user_id === u.id)
         );
+
+        const isIncoming = friendship?.friend_id === myId; 
+        const isOutgoing = friendship?.user_id === myId;  
+
         return `
-        <div style="background:#fff;border-radius:16px;padding:14px 18px;display:flex;align-items:center;justify-content:space-between;box-shadow:0 2px 10px rgba(0,0,0,0.06);">
-            <div style="display:flex;align-items:center;gap:12px;">
-                <div style="width:42px;height:42px;border-radius:50%;background:linear-gradient(135deg,#9b7dd4,#5bc8e8);display:flex;align-items:center;justify-content:center;color:#fff;font-weight:700;font-size:15px;">
-                    ${initials(u.name)}
+            <div style="background:#fff;border-radius:16px;padding:14px 18px;display:flex;align-items:center;justify-content:space-between;box-shadow:0 2px 10px rgba(0,0,0,0.06);">
+                <div style="display:flex;align-items:center;gap:12px;">
+                    <div style="width:42px;height:42px;border-radius:50%;background:linear-gradient(135deg,#9b7dd4,#5bc8e8);display:flex;align-items:center;justify-content:center;color:#fff;font-weight:700;font-size:15px;">
+                        ${initials(u.name)}
+                    </div>
+                    <div>
+                        <div style="font-weight:700;color:#182033">${u.name}</div>
+                        <div style="font-size:13px;color:#5f6678">${u.email}</div>
+                    </div>
                 </div>
-                <div>
-                    <div style="font-weight:700;color:#182033">${u.name}</div>
-                    <div style="font-size:13px;color:#5f6678">${u.email}</div>
-                </div>
+
+                ${whichfriends === "accepted" ? `
+                    <button onclick="removeFriend(${friendship?.id})"
+                        style="border:1px solid #e0d5f5;background:#f7f4fd;color:#7c5cbf;padding:7px 16px;border-radius:20px;font-size:13px;font-weight:600;cursor:pointer;">
+                        Remover
+                    </button>
+                ` : whichfriends === "pending" && isIncoming ? `
+                    <div style="display:flex;gap:8px;">
+                        <button onclick="confirmFriendRequest(${friendship?.id})"
+                            style="border:none;background:linear-gradient(90deg,#83b5f0,#69c4ee);color:#132338;padding:7px 16px;border-radius:20px;font-size:13px;font-weight:600;cursor:pointer;">
+                            Aceitar
+                        </button>
+                        <button onclick="removeFriend(${friendship?.id})"
+                            style="border:1px solid #e0d5f5;background:#f7f4fd;color:#7c5cbf;padding:7px 16px;border-radius:20px;font-size:13px;font-weight:600;cursor:pointer;">
+                            Recusar
+                        </button>
+                    </div>
+                ` : whichfriends === "pending" && isOutgoing ? `
+                    <button onclick="removeFriend(${friendship?.id})"
+                        style="border:1px solid #e0d5f5;background:#f7f4fd;color:#7c5cbf;padding:7px 16px;border-radius:20px;font-size:13px;font-weight:600;cursor:pointer;">
+                        Cancelar
+                    </button>
+                ` : ""}
             </div>
-            <button onclick="removeFriend(${friendship?.id})"
-                style="border:1px solid #e0d5f5;background:#f7f4fd;color:#7c5cbf;padding:7px 16px;border-radius:20px;font-size:13px;font-weight:600;cursor:pointer;">
-                Remover
-            </button>
-        </div>`;
+        `;
     }).join("");
 }
 
@@ -175,25 +203,55 @@ window.addFriend = async function(friendId) {
     try {
         const newFriendship = await apiFetch("/friendships/", {
             method: "POST",
-            body: JSON.stringify({ user_id: myId, friend_id: friendId, status: "accepted" }),
+            body: JSON.stringify({ user_id: myId, friend_id: friendId, status: "pending" }),
         });
         myFriendships.push(newFriendship);
         searchInput.value = "";
         searchResults.innerHTML = "";
-        renderFriends();
-        Swal.fire({ icon: "success", title: "Amigo adicionado!", timer: 1500, showConfirmButton: false });
+
+        const friendsIds = getMyFriendIds();
+        renderFriends(friendsIds, "accepted");
+
+        const pendingFriendsIds = getMyPendingFriendIds();
+        renderFriends(pendingFriendsIds, "pending");
+
+        await(Swal.fire({ icon: "success", title: "Pedido de amizade enviado!", timer: 1500, showConfirmButton: false }));
+        window.location.reload();
     } catch (err) {
         showMessage("Erro: " + err.message, "error");
     }
 };
 
-// ── REMOVE FRIEND ─────────────────────────────────────────────────────────────
+window.confirmFriendRequest = async function(id) {
+    try {
+        const updatedFriendship = await apiFetch(`/friendships/${id}`, {
+            method: "PUT",
+            body: JSON.stringify({ status: "accepted" }),
+        });
+
+        // Atualiza a friendship existente em vez de fazer push
+        const index = myFriendships.findIndex(f => f.id === id);
+        if (index !== -1) {
+            myFriendships[index] = updatedFriendship;
+        }
+
+        searchInput.value = "";
+        searchResults.innerHTML = "";
+        const friendsIds = getMyFriendIds();
+        renderFriends(friendsIds, "accepted");
+        await(Swal.fire({ icon: "success", title: "Pedido de amizade aceite!", timer: 1500, showConfirmButton: false }));
+        window.location.reload();
+    } catch (err) {
+        showMessage("Erro: " + err.message, "error");
+    }
+};
+
 window.removeFriend = async function(friendshipId) {
     if (!friendshipId) return;
 
     const result = await Swal.fire({
-        title: "Remover amigo?",
-        text: "Tens a certeza que queres remover este amigo?",
+        title: "Cancelar Amizade?",
+        text: "Tens a certeza que queres cancelar esta Amizade?",
         icon: "warning",
         showCancelButton: true,
         confirmButtonColor: "#7c5cbf",
@@ -207,8 +265,10 @@ window.removeFriend = async function(friendshipId) {
     try {
         await apiFetch(`/friendships/${friendshipId}`, { method: "DELETE" });
         myFriendships = myFriendships.filter(f => f.id !== friendshipId);
-        renderFriends();
-        Swal.fire({ icon: "success", title: "Removido!", text: "Amigo removido com sucesso.", timer: 1500, showConfirmButton: false });
+        const friendsIds = getMyFriendIds();
+        renderFriends(friendsIds, "accepted");
+        await(Swal.fire({ icon: "success", title: "Removido!!!!", text: "Amizade cancelado com sucesso.", timer: 1500, showConfirmButton: false }));
+        window.location.reload();
     } catch (err) {
         showMessage("Erro: " + err.message, "error");
     }

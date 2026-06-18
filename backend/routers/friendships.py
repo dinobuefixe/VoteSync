@@ -2,6 +2,7 @@ from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
 from typing import List
 from backend import models, schemas
+from backend.schemas import FriendshipUpdate
 from backend.database import get_db
 
 router = APIRouter(prefix="/friendships", tags=["Friendships"])
@@ -29,14 +30,16 @@ def create_friendship(friendship: schemas.FriendshipsBase, db: Session = Depends
     return new_friendship
 
 
-@router.put("/{id}", response_model=schemas.FriendshipsBase)
-def update_friendship(id: int, updated: schemas.FriendshipsBase, db: Session = Depends(get_db)):
-    friendship = db.query(models.Friendships).filter(models.Friendships.id == id)
-    if not friendship.first():
-        raise HTTPException(404, "Friendship not found")
-    friendship.update(updated.dict())
+@router.put("/{friendship_id}")
+async def update_friendship(friendship_id: int, data: FriendshipUpdate, db: Session = Depends(get_db)):
+    friendship = db.query(models.Friendships).filter(models.Friendships.id == friendship_id).first()
+    if not friendship:
+        raise HTTPException(status_code=404, detail="Friendship not found")
+    
+    friendship.status = data.status
     db.commit()
-    return friendship.first()
+    db.refresh(friendship)
+    return friendship
 
 
 @router.delete("/{id}", status_code=204)
