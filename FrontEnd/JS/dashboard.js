@@ -44,6 +44,7 @@ async function updateFriendsCard() {
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 =======
 >>>>>>> c3f90b4 (feat:Decision-making feature and decisions listing page (frontend + backend + database))
@@ -57,6 +58,8 @@ async function updateFriendsCard() {
 		const myId = parseInt(session?.user?.id);
 		
 >>>>>>> c3f90b4 (feat:Decision-making feature and decisions listing page (frontend + backend + database))
+=======
+>>>>>>> 9224db4 (Fix auth and friendships backend issues; update frontend deployment docs)
 		const [users, friendships] = await Promise.all([
 			api.getUsers(),
 			api.getFriendships()
@@ -240,77 +243,29 @@ async function populateFriendsOptions(groups) {
 
 async function populateDecisionTargets() {
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 	const groups = getStoredGroups();
 	populateGroupOptions(groups);
 	await populateFriendsOptions(groups);
+=======
+	try {
+		const groups = await api.getUserGroups();
+		await populateGroupOptions(groups);
+		await populateFriendsOptions(groups);
+	} catch (err) {
+		console.error("Erro ao popular targets:", err);
+	}
+>>>>>>> 9224db4 (Fix auth and friendships backend issues; update frontend deployment docs)
 }
 
-function getGroupSortTimestamp(group, fallbackIndex) {
-	if (!group || typeof group !== "object") return fallbackIndex;
-	const rawValue = group.createdAt || group.updatedAt || "";
-	const parsed = Date.parse(rawValue);
-	if (!Number.isNaN(parsed)) return parsed;
-	return fallbackIndex;
-}
-
-function updateGroupsCard() {
-	if (!groupsPreviewList || !groupsCardEmpty) return;
-	const groups = getStoredArray(GROUPS_KEY)
-		.map((group, index) => {
-			const normalizedName = normalizeEntityName(group, `Grupo ${index + 1}`);
-			const members = typeof group === "object" && group && Array.isArray(group.members)
-				? group.members.map((member) => normalizeEntityName(member, "")).filter((value) => value.length > 0)
-				: [];
-			return { ...group, name: normalizedName, members, sortTimestamp: getGroupSortTimestamp(group, index) };
-		})
-		.sort((a, b) => b.sortTimestamp - a.sortTimestamp)
-		.slice(0, 3);
-
-	groupsPreviewList.innerHTML = "";
-	if (groups.length === 0) { groupsCardEmpty.hidden = false; return; }
-	groupsCardEmpty.hidden = true;
-
-	groups.forEach((group) => {
-		const item = document.createElement("article");
-		item.className = "group-preview-item";
-		const main = document.createElement("div");
-		main.className = "group-preview-main";
-		const name = document.createElement("strong");
-		name.className = "group-preview-name";
-		name.textContent = group.name || "Grupo sem nome";
-		const meta = document.createElement("small");
-		meta.className = "group-preview-meta";
-		meta.textContent = group.members.length === 1 ? "1 membro" : `${group.members.length} membros`;
-		const badge = document.createElement("span");
-		badge.className = "group-preview-badge";
-		badge.textContent = "Recente";
-		main.appendChild(name);
-		main.appendChild(meta);
-		item.appendChild(main);
-		item.appendChild(badge);
-		groupsPreviewList.appendChild(item);
-	});
-}
-
-function syncTargetsIfModalOpen() {
-	if (!decisionModalOverlay || decisionModalOverlay.hidden) return;
-	populateDecisionTargets();
-}
-
-function hasSwal() {
-	return typeof window !== "undefined" && typeof window.Swal !== "undefined";
-}
-
-function clearSession() { localStorage.removeItem(SESSION_KEY); }
-function saveLatestDecision(decision) { localStorage.setItem(DECISION_TEMPLATE_KEY, JSON.stringify(decision)); }
-
-// ── DECISIONS (API) ───────────────────────────────────────────────────────────
-// Agora que o schemas.py/decisions.py aceitam e devolvem description, end_date,
-// created_by, target_group_id e created_at, a API é a fonte de verdade.
-// O localStorage deixa de ser necessário como fallback para estes campos —
-// só guardamos targetFriendIds localmente, pois ainda não há tabela para isso.
+// ── DECISIONS ─────────────────────────────────────────────────────────────────
 async function createDecisionOnAPI(decision) {
+	const friendshipIds = (decision.targetFriendIds || [])
+		.map(userId => window._friendshipMap?.[parseInt(userId)])
+		.filter(id => id !== undefined)
+		.map(id => parseInt(id));
+
 	const payload = {
 		vote_id: `decision_${Date.now()}`,
 		title: decision.title,
@@ -318,43 +273,77 @@ async function createDecisionOnAPI(decision) {
 		description: decision.description,
 		end_date: decision.endDate,
 		created_by: decision.createdBy,
-		target_group_id: decision.targetGroup?.id ? parseInt(decision.targetGroup.id) || null : null,
-		created_at: new Date().toISOString()
+		target_group_id: null,
+		created_at: new Date().toISOString(),
+		target_friend_ids: friendshipIds
 	};
 
-	const created = await apiFetch("/decisions/", {
-		method: "POST",
-		body: JSON.stringify(payload)
-	});
+	const created = await api.post("/decisions/", payload);
 
-	// targetFriendIds ainda não tem tabela própria — guarda-se localmente por agora
-	if (decision.targetFriendIds && decision.targetFriendIds.length > 0) {
-		localStorage.setItem(`decision_friends_${created.id}`, JSON.stringify(decision.targetFriendIds));
-	}
-
-	// Criar as opções associadas a esta decisão
+	// Criar as opções associadas
 	for (const option of decision.options) {
-		await apiFetch("/options/", {
-			method: "POST",
-			body: JSON.stringify({
-				vote_id: created.id,
-				option_text: option.name
-			})
-		});
+		await api.createOption(created.id, option.name);
 	}
 
 	return created;
 }
 
-async function getDecisionsFromAPI() {
+async function updateDecisionCards() {
 	try {
-		return await apiFetch("/decisions/");
+		const decisions = await api.getDecisions();
+
+		if (decisionSummaryText) {
+			if (decisions.length === 0) decisionSummaryText.textContent = "Sem decisões";
+			else if (decisions.length === 1) decisionSummaryText.textContent = "1 decisão criada";
+			else decisionSummaryText.textContent = `${decisions.length} decisões criadas`;
+		}
+
+		if (!decisionList) return;
+		decisionList.innerHTML = "";
+
+		if (decisions.length === 0) {
+			if (decisionListEmpty) decisionListEmpty.hidden = false;
+			return;
+		}
+
+		if (decisionListEmpty) decisionListEmpty.hidden = true;
+
+		const latestDecision = decisions[decisions.length - 1];
+		decisionList.appendChild(createDecisionListItem(latestDecision, "New", "", "fa-sparkles", "status-new"));
+
+		const soonestEnding = decisions
+			.map((decision, index) => ({ 
+				decision, 
+				index, 
+				daysLeft: calculateDaysUntilEnd(decision.end_date || decision.endDate) 
+			}))
+			.filter((entry) => entry.daysLeft !== null && entry.daysLeft >= 0 && entry.daysLeft <= 3)
+			.sort((a, b) => a.daysLeft - b.daysLeft)[0];
+
+		if (soonestEnding && soonestEnding.index !== decisions.length - 1) {
+			const daysLabel = soonestEnding.daysLeft === 0 
+				? "Termina hoje" 
+				: soonestEnding.daysLeft === 1 
+				? "Termina em 1 dia" 
+				: `Termina em ${soonestEnding.daysLeft} dias`;
+			const endDateLabel = formatIsoDateToPt(soonestEnding.decision.end_date || soonestEnding.decision.endDate);
+			decisionList.appendChild(
+				createDecisionListItem(
+					soonestEnding.decision, 
+					"Finishing", 
+					"", 
+					"fa-hourglass-half", 
+					"status-finishing", 
+					`${daysLabel} · Prazo final: ${endDateLabel}`
+				)
+			);
+		}
 	} catch (err) {
-		console.error("Erro ao buscar decisões:", err);
-		return [];
+		console.error("Erro ao carregar decisões:", err);
 	}
 }
 
+<<<<<<< HEAD
 function getDecisions() {
 	const raw = localStorage.getItem(DECISIONS_KEY);
 	if (!raw) return [];
@@ -499,6 +488,55 @@ function createDecisionListItem(decision, statusText = "Decisão criada", descri
 	return item;
 }
 
+=======
+// ── DECISION LIST RENDERING ───────────────────────────────────────────────────
+function createDecisionListItem(decision, statusText = "Decisão criada", descriptionText = "", statusIconClass = "fa-circle-info", statusToneClass = "status-neutral", deadlineNote = "") {
+	const optionsCount = Array.isArray(decision.options) ? decision.options.length : 0;
+	const item = document.createElement("article");
+	item.className = "decision-list-item";
+
+	const infoBox = document.createElement("div");
+	infoBox.className = "info-box";
+	const infoLabel = document.createElement("span");
+	infoLabel.textContent = "Estado:";
+	const infoValue = document.createElement("strong");
+	infoValue.className = `decision-status-badge ${statusToneClass}`;
+	infoValue.innerHTML = `<i class="fa-solid ${statusIconClass} decision-status-icon" aria-hidden="true"></i><span>${statusText}</span>`;
+	infoBox.appendChild(infoLabel);
+	infoBox.appendChild(infoValue);
+
+	const winnerBox = document.createElement("div");
+	winnerBox.className = "winner-box";
+	const winnerDescription = document.createElement("small");
+	winnerDescription.textContent = descriptionText || `${optionsCount} opções prontas para votação.`;
+	const winnerValue = document.createElement("h3");
+	winnerValue.textContent = decision.title || "Decisão sem título";
+	winnerBox.appendChild(winnerDescription);
+	winnerBox.appendChild(winnerValue);
+
+	if (deadlineNote) {
+		const deadlineElement = document.createElement("p");
+		deadlineElement.className = "decision-deadline-note";
+		deadlineElement.innerHTML = `<i class="fa-regular fa-clock" aria-hidden="true"></i> ${deadlineNote}`;
+		winnerBox.appendChild(deadlineElement);
+	}
+
+	const viewMoreButton = document.createElement("button");
+	viewMoreButton.className = "view-btn decision-view-more-btn";
+	viewMoreButton.type = "button";
+	viewMoreButton.innerHTML = 'View More <i class="fa-solid fa-angle-right"></i>';
+	viewMoreButton.addEventListener("click", () => {
+		localStorage.setItem("votesync.decision.latest", JSON.stringify(decision));
+		window.location.href = "./decisionMaking.html";
+	});
+
+	item.appendChild(infoBox);
+	item.appendChild(winnerBox);
+	item.appendChild(viewMoreButton);
+	return item;
+}
+
+>>>>>>> 9224db4 (Fix auth and friendships backend issues; update frontend deployment docs)
 // ── MODAL FUNCTIONS ───────────────────────────────────────────────────────────
 async function openDecisionModal() {
 	if (!decisionModalOverlay) return;
@@ -685,6 +723,7 @@ function formatIsoDateToPt(isoDate) {
 	return `${day}/${month}/${year}`;
 }
 
+<<<<<<< HEAD
 <<<<<<< HEAD
 =======
 function initializeEndDateInput() {
@@ -877,6 +916,8 @@ async function handleCreateDecision() {
 function handleCancelDecision() { closeDecisionModal(); resetDecisionForm(); }
 
 >>>>>>> c3f90b4 (feat:Decision-making feature and decisions listing page (frontend + backend + database))
+=======
+>>>>>>> 9224db4 (Fix auth and friendships backend issues; update frontend deployment docs)
 function initializeDecisionModal() {
 	if (!decisionModalOverlay) return;
 	decisionModalOverlay.hidden = true;
@@ -926,6 +967,7 @@ initializeEndDateInput();
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 // Aguarda completamente a atualização dos amigos
 >>>>>>> c3f90b4 (feat:Decision-making feature and decisions listing page (frontend + backend + database))
@@ -941,12 +983,15 @@ initializeEndDateInput();
 =======
 // Aguarda completamente a atualização dos amigos
 >>>>>>> c3f90b4 (feat:Decision-making feature and decisions listing page (frontend + backend + database))
+=======
+>>>>>>> 9224db4 (Fix auth and friendships backend issues; update frontend deployment docs)
 (async () => {
 	await updateFriendsCard();
 	await updateGroupsCard();
 	await updateDecisionCards();
 })();
 
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -964,6 +1009,8 @@ initializeEndDateInput();
 // EXPÕE A FUNÇÃO GLOBALMENTE
 // Para que friendSearch.js possa atualizar o card quando um amigo é adicionado
 >>>>>>> c3f90b4 (feat:Decision-making feature and decisions listing page (frontend + backend + database))
+=======
+>>>>>>> 9224db4 (Fix auth and friendships backend issues; update frontend deployment docs)
 window.refreshFriendsCard = async function() {
 	await updateFriendsCard();
 };

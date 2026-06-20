@@ -17,6 +17,7 @@ class Users(Base):
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
     is_admin = Column(Boolean, default=False, nullable=False)  # ✅ NOVO
     
     # ✅ Relações
@@ -38,14 +39,18 @@ class Users(Base):
 >>>>>>> c3f90b4 (feat:Decision-making feature and decisions listing page (frontend + backend + database))
 =======
 >>>>>>> c3f90b4 (feat:Decision-making feature and decisions listing page (frontend + backend + database))
+=======
+    is_admin = Column(Boolean, default=False, nullable=False)  # ✅ NOVO
+>>>>>>> 9224db4 (Fix auth and friendships backend issues; update frontend deployment docs)
     
     # ✅ Relações
     friendships = relationship(
-        "Friendships", 
-        foreign_keys="Friendships.user_id", 
-        backref="user"
+        "Friendships",
+        foreign_keys="Friendships.user_id",
+        back_populates="user"
     )
     friend_of = relationship(
+<<<<<<< HEAD
         "Friendships", 
         foreign_keys="Friendships.friend_id", 
         backref="friend_user"
@@ -62,6 +67,11 @@ class Users(Base):
 >>>>>>> c3f90b4 (feat:Decision-making feature and decisions listing page (frontend + backend + database))
 =======
 >>>>>>> c3f90b4 (feat:Decision-making feature and decisions listing page (frontend + backend + database))
+=======
+        "Friendships",
+        foreign_keys="Friendships.friend_id",
+        back_populates="friend"
+>>>>>>> 9224db4 (Fix auth and friendships backend issues; update frontend deployment docs)
     )
 
 
@@ -69,6 +79,7 @@ class Friendships(Base):
     __tablename__ = "friendships"
 
     id = Column(Integer, primary_key=True, nullable=False)
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -109,12 +120,22 @@ class Friendships(Base):
 >>>>>>> c3f90b4 (feat:Decision-making feature and decisions listing page (frontend + backend + database))
 =======
 >>>>>>> c3f90b4 (feat:Decision-making feature and decisions listing page (frontend + backend + database))
+=======
+    user_id = Column(Integer, ForeignKey("users.id"), nullable=False)
+    friend_id = Column(Integer, ForeignKey("users.id"), nullable=False)
+    status = Column(String, nullable=False)
+    
+    # ✅ Relação para dados do amigo
+    friend = relationship("Users", foreign_keys=[friend_id], back_populates="friend_of")
+    user = relationship("Users", foreign_keys=[user_id], back_populates="friendships")
+>>>>>>> 9224db4 (Fix auth and friendships backend issues; update frontend deployment docs)
 
 
 class Group_members(Base):
     __tablename__ = "group_members"
 
     id = Column(Integer, primary_key=True, nullable=False)
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -153,6 +174,14 @@ class Group_members(Base):
 >>>>>>> c3f90b4 (feat:Decision-making feature and decisions listing page (frontend + backend + database))
 =======
 >>>>>>> c3f90b4 (feat:Decision-making feature and decisions listing page (frontend + backend + database))
+=======
+    group_id = Column(Integer, ForeignKey("user_groups.id"), nullable=False)
+    user_id = Column(Integer, ForeignKey("users.id"), nullable=False)
+    
+    # ✅ Relações
+    group = relationship("User_Groups", backref="members")
+    user = relationship("Users", backref="group_memberships")  # ✅ NOVO
+>>>>>>> 9224db4 (Fix auth and friendships backend issues; update frontend deployment docs)
 
 
 class User_Groups(Base):
@@ -188,6 +217,17 @@ class DecisionFriends(Base):
 >>>>>>> c3f90b4 (feat:Decision-making feature and decisions listing page (frontend + backend + database))
 
 
+class DecisionFriends(Base):
+    __tablename__ = "decision_friends"
+
+    id = Column(Integer, primary_key=True, nullable=False)
+    decision_id = Column(Integer, ForeignKey("decisions.id"), nullable=False)
+    friendship_id = Column(Integer, ForeignKey("friendships.id"), nullable=False)
+
+    # ✅ Relação para aceder aos dados da friendship
+    friendship = relationship("Friendships")
+
+
 class Decisions(Base):
     __tablename__ = "decisions"
 
@@ -200,11 +240,15 @@ class Decisions(Base):
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+=======
+>>>>>>> 9224db4 (Fix auth and friendships backend issues; update frontend deployment docs)
     description = Column(String, nullable=True)
     end_date = Column(String, nullable=True)
     created_by = Column(String, nullable=True)
     target_group_id = Column(Integer, ForeignKey("user_groups.id"), nullable=True)
     created_at = Column(String, nullable=True)
+<<<<<<< HEAD
 =======
 =======
 >>>>>>> c3f90b4 (feat:Decision-making feature and decisions listing page (frontend + backend + database))
@@ -232,11 +276,14 @@ class Decisions(Base):
 >>>>>>> c3f90b4 (feat:Decision-making feature and decisions listing page (frontend + backend + database))
 =======
 >>>>>>> c3f90b4 (feat:Decision-making feature and decisions listing page (frontend + backend + database))
+=======
+>>>>>>> 9224db4 (Fix auth and friendships backend issues; update frontend deployment docs)
     
     # ✅ Relações
     votes = relationship("Votes", backref="decision")
     options = relationship("Options", backref="decision")
     target_group = relationship("User_Groups", backref="decisions")
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -253,12 +300,16 @@ class Decisions(Base):
 >>>>>>> c3f90b4 (feat:Decision-making feature and decisions listing page (frontend + backend + database))
 =======
 >>>>>>> c3f90b4 (feat:Decision-making feature and decisions listing page (frontend + backend + database))
+=======
+    target_friends = relationship("DecisionFriends", backref="decision_ref")  # ✅ NOVO
+>>>>>>> 9224db4 (Fix auth and friendships backend issues; update frontend deployment docs)
 
 
 class Votes(Base):
     __tablename__ = "votes"
 
     id = Column(Integer, primary_key=True, nullable=False)
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -292,6 +343,11 @@ class Votes(Base):
     decision_id = Column(Integer, ForeignKey("decisions.id"), nullable=False)  # ✅ ForeignKey
     option_id = Column(Integer, ForeignKey("options.id"), nullable=False)  # ✅ ForeignKey
 >>>>>>> c3f90b4 (feat:Decision-making feature and decisions listing page (frontend + backend + database))
+=======
+    user_id = Column(Integer, ForeignKey("users.id"), nullable=False)
+    decision_id = Column(Integer, ForeignKey("decisions.id"), nullable=False)
+    option_id = Column(Integer, ForeignKey("options.id"), nullable=False)
+>>>>>>> 9224db4 (Fix auth and friendships backend issues; update frontend deployment docs)
     
     # ✅ Relações
     option = relationship("Options", backref="votes")
@@ -301,6 +357,7 @@ class Options(Base):
     __tablename__ = "options"
 
     id = Column(Integer, primary_key=True, nullable=False)
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -322,4 +379,7 @@ class Options(Base):
 =======
     vote_id = Column(Integer, ForeignKey("decisions.id"), nullable=False)  # ✅ ForeignKey
 >>>>>>> c3f90b4 (feat:Decision-making feature and decisions listing page (frontend + backend + database))
+=======
+    vote_id = Column(Integer, ForeignKey("decisions.id"), nullable=False)
+>>>>>>> 9224db4 (Fix auth and friendships backend issues; update frontend deployment docs)
     option_text = Column(String, nullable=False)

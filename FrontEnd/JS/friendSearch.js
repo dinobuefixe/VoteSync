@@ -130,6 +130,7 @@
     btn.disabled = true;
     btn.textContent = "...";
     try {
+<<<<<<< HEAD
       await apiFetch("/friendships/", {
         method: "POST",
         body: JSON.stringify({ user_id: myId, friend_id: friendId, status: "pending" }),
@@ -139,6 +140,14 @@
       btn.style.color = "#fff";
       
       // 🔄 ATUALIZA O CARD DE AMIGOS AUTOMATICAMENTE
+=======
+      const friendship = await api.createFriendship(myId, friendId, "pending");
+      btn.textContent = "Pedido enviado";
+      btn.style.background = "#f7f4fd";
+      btn.style.color = "#7c5cbf";
+      btn.disabled = true;
+
+>>>>>>> 9224db4 (Fix auth and friendships backend issues; update frontend deployment docs)
       if (typeof window.refreshFriendsCard === "function") {
         await window.refreshFriendsCard();
       }

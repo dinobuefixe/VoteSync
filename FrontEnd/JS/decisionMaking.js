@@ -85,6 +85,7 @@ function renderOptionCard(option, index) {
 }
 
 <<<<<<< HEAD
+<<<<<<< HEAD
 // ── RENDER TARGETS ────────────────────────────────────────────────────────────
 function renderDecisionTargets(decision) {
 =======
@@ -131,6 +132,10 @@ function renderDecisionTargets(decision, friendshipsData = []) {
 >>>>>>> c3f90b4 (feat:Decision-making feature and decisions listing page (frontend + backend + database))
 =======
 >>>>>>> c3f90b4 (feat:Decision-making feature and decisions listing page (frontend + backend + database))
+=======
+// ── RENDER TARGETS ────────────────────────────────────────────────────────────
+function renderDecisionTargets(decision) {
+>>>>>>> 9224db4 (Fix auth and friendships backend issues; update frontend deployment docs)
     if (decisionTargetGroup) {
         const groupName = decision?.target_group_name || "";
         decisionTargetGroup.textContent = groupName || "Sem grupo associado";
@@ -139,6 +144,7 @@ function renderDecisionTargets(decision, friendshipsData = []) {
     if (!decisionTargetFriends) return;
     decisionTargetFriends.innerHTML = "";
 
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -171,6 +177,9 @@ function renderDecisionTargets(decision, friendshipsData = []) {
 >>>>>>> c3f90b4 (feat:Decision-making feature and decisions listing page (frontend + backend + database))
 =======
 >>>>>>> c3f90b4 (feat:Decision-making feature and decisions listing page (frontend + backend + database))
+=======
+    const targetFriends = Array.isArray(decision?.target_friends) ? decision.target_friends : [];
+>>>>>>> 9224db4 (Fix auth and friendships backend issues; update frontend deployment docs)
 
     if (targetFriends.length === 0) {
         const empty = document.createElement("span");
@@ -194,6 +203,7 @@ function renderDecisionTargets(decision, friendshipsData = []) {
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 // ── RENDER TEMPLATE ───────────────────────────────────────────────────────────
 =======
 // ── RENDERIZAR TEMPLATE DE DECISÃO ────────────────────────────────────────────
@@ -210,6 +220,9 @@ function renderDecisionTargets(decision, friendshipsData = []) {
 =======
 // ── RENDERIZAR TEMPLATE DE DECISÃO ────────────────────────────────────────────
 >>>>>>> c3f90b4 (feat:Decision-making feature and decisions listing page (frontend + backend + database))
+=======
+// ── RENDER TEMPLATE ───────────────────────────────────────────────────────────
+>>>>>>> 9224db4 (Fix auth and friendships backend issues; update frontend deployment docs)
 async function renderDecisionTemplate() {
     const decision = getLatestDecision();
 
@@ -222,7 +235,7 @@ async function renderDecisionTemplate() {
         if (decisionTotalVotes)       decisionTotalVotes.textContent       = "0";
         if (decisionTotalOptions)     decisionTotalOptions.textContent     = "0";
         if (decisionCreatedBy)        decisionCreatedBy.textContent        = "-";
-        renderDecisionTargets(null, []);
+        renderDecisionTargets(null);
         return;
     }
 
@@ -274,12 +287,7 @@ function renderWithData(decision) {
     if (decisionTotalOptions) decisionTotalOptions.textContent = String(options.length);
     if (decisionCreatedBy)    decisionCreatedBy.textContent    = decision.created_by || decision.createdBy || "Utilizador";
 
-    // ✅ NOVO: Buscar amigos da API e renderizar
-    let friendshipsData = [];
-    if (decision.targetFriends && Array.isArray(decision.targetFriends)) {
-        friendshipsData = await fetchFriendshipsByIds(decision.targetFriends);
-    }
-    renderDecisionTargets(decision, friendshipsData);
+    renderDecisionTargets(decision);
 }
 
 // ── INIT ──────────────────────────────────────────────────────────────────────
