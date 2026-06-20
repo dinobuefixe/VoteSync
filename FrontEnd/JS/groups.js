@@ -1,28 +1,29 @@
-/* ── VoteSync — groups.js ── */
+/* ── VoteSync — groups.js (ATUALIZADO COM CHECKBOXES) ── */
 
 // ── DOM REFS ──────────────────────────────────────────────────────────────────
-const groupsSubtitle      = document.querySelector("#groups-subtitle");
-const groupsEmptyState    = document.querySelector("#groups-empty-state");
-const groupsList          = document.querySelector("#groups-list");
-const modalOverlay        = document.querySelector("#group-modal-overlay");
-const openModalButton     = document.querySelector("#open-create-group-modal");
-const openModalFromEmpty  = document.querySelector("#open-create-group-empty");
-const closeModalButton    = document.querySelector("#close-group-modal");
-const cancelModalButton   = document.querySelector("#cancel-group-modal");
-const groupForm           = document.querySelector("#group-form");
-const groupNameInput      = document.querySelector("#group-name-input");
+const groupsSubtitle = document.querySelector("#groups-subtitle");
+const groupsEmptyState = document.querySelector("#groups-empty-state");
+const groupsList = document.querySelector("#groups-list");
+const modalOverlay = document.querySelector("#group-modal-overlay");
+const openModalButton = document.querySelector("#open-create-group-modal");
+const openModalFromEmpty = document.querySelector("#open-create-group-empty");
+const closeModalButton = document.querySelector("#close-group-modal");
+const cancelModalButton = document.querySelector("#cancel-group-modal");
+const groupForm = document.querySelector("#group-form");
+const groupNameInput = document.querySelector("#group-name-input");
 const groupDescriptionInput = document.querySelector("#group-description-input");
-const groupFriendsSelect  = document.querySelector("#group-friends-select");
-const groupFormMessage    = document.querySelector("#group-form-message");
-const groupModalTitle     = document.querySelector("#group-modal-title");
-const groupModalSubmit    = document.querySelector("#group-modal-submit");
+const groupFriendsContainer = document.querySelector("#group-friends-container");
+const groupFriendsEmpty = document.querySelector("#group-friends-empty");
+const groupFormMessage = document.querySelector("#group-form-message");
+const groupModalTitle = document.querySelector("#group-modal-title");
+const groupModalSubmit = document.querySelector("#group-modal-submit");
 
 // ── STATE ─────────────────────────────────────────────────────────────────────
 let editingGroupId = null;
-let cachedFriends  = [];
+let cachedFriends = [];
 
 const session = api.getSession();
-const myId    = parseInt(session?.user?.id);
+const myId = parseInt(session?.user?.id);
 
 // ── LOGO ──────────────────────────────────────────────────────────────────────
 function handleLogoClick(e) {
@@ -47,6 +48,7 @@ async function loadFriends() {
             .map(f => f.user_id === myId ? f.friend_id : f.user_id);
         cachedFriends = users.filter(u => myFriendIds.includes(u.id));
     } catch (err) {
+        console.error("Erro ao carregar amigos:", err);
         cachedFriends = [];
     }
 }
@@ -71,42 +73,76 @@ function showValidationMessage(message) {
 function setModalMode(mode) {
     if (!groupModalTitle || !groupModalSubmit) return;
     if (mode === "edit") {
-        groupModalTitle.textContent  = "Editar grupo";
+        groupModalTitle.textContent = "Editar grupo";
         groupModalSubmit.textContent = "Guardar alterações";
         return;
     }
-    groupModalTitle.textContent  = "Criar novo grupo";
+    groupModalTitle.textContent = "Criar novo grupo";
     groupModalSubmit.textContent = "Criar grupo";
 }
 
-function populateFriendsSelect() {
-    if (!groupFriendsSelect) return;
-    groupFriendsSelect.innerHTML = "";
+// ── RENDERIZAR CHECKBOXES DE AMIGOS ───────────────────────────────────────────
+function populateFriendsCheckboxes(selectedIds = []) {
+    if (!groupFriendsContainer) return;
+
+    groupFriendsContainer.innerHTML = "";
 
     if (cachedFriends.length === 0) {
-        const option = document.createElement("option");
-        option.value    = "";
-        option.textContent = "Sem amigos disponíveis";
-        option.disabled = true;
-        option.selected = true;
-        groupFriendsSelect.appendChild(option);
+        if (groupFriendsEmpty) {
+            groupFriendsEmpty.textContent = "Sem amigos disponíveis";
+            groupFriendsEmpty.hidden = false;
+        }
         return;
     }
 
+    if (groupFriendsEmpty) {
+        groupFriendsEmpty.hidden = true;
+    }
+
     cachedFriends.forEach((friend) => {
-        const option = document.createElement("option");
-        option.value       = friend.id;
-        option.textContent = friend.name;
-        groupFriendsSelect.appendChild(option);
+        const item = document.createElement("div");
+        item.className = "group-friend-item";
+
+        const checkbox = document.createElement("input");
+        checkbox.type = "checkbox";
+        checkbox.className = "group-friend-checkbox";
+        checkbox.id = `friend-${friend.id}`;
+        checkbox.value = friend.id;
+        checkbox.checked = selectedIds.includes(friend.id);
+
+        const info = document.createElement("div");
+        info.style.display = "flex";
+        info.style.flexDirection = "column";
+        info.style.gap = "0.15rem";
+        info.style.flex = "1";
+        info.style.minWidth = "0";
+
+        const nameDiv = document.createElement("span");
+        nameDiv.className = "group-friend-name";
+        nameDiv.textContent = friend.name;
+
+        const emailDiv = document.createElement("span");
+        emailDiv.className = "group-friend-email";
+        emailDiv.textContent = friend.email;
+
+        info.appendChild(nameDiv);
+        info.appendChild(emailDiv);
+
+        item.addEventListener("click", (event) => {
+            if (event.target === checkbox) return;
+            checkbox.checked = !checkbox.checked;
+        });
+
+        item.appendChild(checkbox);
+        item.appendChild(info);
+        groupFriendsContainer.appendChild(item);
     });
 }
 
-function setSelectedFriendOptions(memberUserIds) {
-    if (!groupFriendsSelect) return;
-    const ids = Array.isArray(memberUserIds) ? memberUserIds.map(String) : [];
-    Array.from(groupFriendsSelect.options).forEach((option) => {
-        option.selected = ids.includes(String(option.value));
-    });
+function getSelectedFriendIds() {
+    if (!groupFriendsContainer) return [];
+    const checkboxes = groupFriendsContainer.querySelectorAll("input[type='checkbox']:checked");
+    return Array.from(checkboxes).map(cb => parseInt(cb.value)).filter(Boolean);
 }
 
 // ── RENDER GROUPS ─────────────────────────────────────────────────────────────
@@ -129,18 +165,18 @@ async function renderGroups() {
     groupsList.innerHTML = "";
 
     groups.forEach((group) => {
-        const members     = Array.isArray(group.members) ? group.members : [];
+        const members = Array.isArray(group.members) ? group.members : [];
         const memberNames = members.map(m => m.user?.name || "");
 
         const card = document.createElement("article");
         card.className = "group-card";
 
         const title = document.createElement("h3");
-        title.className   = "group-card-title";
+        title.className = "group-card-title";
         title.textContent = group.name || "Grupo sem nome";
 
         const membersLabel = document.createElement("p");
-        membersLabel.className   = "group-members-label";
+        membersLabel.className = "group-members-label";
         membersLabel.textContent = members.length > 0
             ? `${members.length} amigo(s) no grupo`
             : "Sem amigos neste grupo";
@@ -149,28 +185,28 @@ async function renderGroups() {
         membersWrapper.className = "group-members";
         memberNames.slice(0, 8).forEach((name) => {
             const chip = document.createElement("span");
-            chip.className   = "group-member-chip";
+            chip.className = "group-member-chip";
             chip.textContent = name;
             membersWrapper.appendChild(chip);
         });
         if (memberNames.length > 8) {
             const chip = document.createElement("span");
-            chip.className   = "group-member-chip";
+            chip.className = "group-member-chip";
             chip.textContent = `+${memberNames.length - 8}`;
             membersWrapper.appendChild(chip);
         }
 
-        const actions    = document.createElement("div");
+        const actions = document.createElement("div");
         actions.className = "group-card-actions";
 
         const editButton = document.createElement("button");
-        editButton.type      = "button";
+        editButton.type = "button";
         editButton.className = "group-action-btn edit";
         editButton.innerHTML = '<i class="fa-regular fa-pen-to-square"></i> Editar';
         editButton.addEventListener("click", () => openEditModal(group));
 
         const deleteButton = document.createElement("button");
-        deleteButton.type      = "button";
+        deleteButton.type = "button";
         deleteButton.className = "group-action-btn delete";
         deleteButton.innerHTML = '<i class="fa-regular fa-trash-can"></i> Remover';
         deleteButton.addEventListener("click", () => removeGroup(group.id));
@@ -188,7 +224,7 @@ async function renderGroups() {
 // ── MODAL ─────────────────────────────────────────────────────────────────────
 function resetForm() {
     if (groupForm) groupForm.reset();
-    if (groupFriendsSelect) Array.from(groupFriendsSelect.options).forEach((o) => { o.selected = false; });
+    populateFriendsCheckboxes([]);
     editingGroupId = null;
     setModalMode("create");
     setMessage("");
@@ -196,21 +232,23 @@ function resetForm() {
 
 function openModal() {
     if (!modalOverlay) return;
-    populateFriendsSelect();
+    populateFriendsCheckboxes([]);
     resetForm();
     modalOverlay.hidden = false;
 }
 
 function openEditModal(group) {
     if (!modalOverlay || !group) return;
-    populateFriendsSelect();
-    resetForm();
+
+    const memberUserIds = (group.members || []).map(m => m.user_id);
+    populateFriendsCheckboxes(memberUserIds);
+
     editingGroupId = group.id;
     setModalMode("edit");
-    if (groupNameInput)        groupNameInput.value        = group.name        || "";
+    if (groupNameInput) groupNameInput.value = group.name || "";
     if (groupDescriptionInput) groupDescriptionInput.value = group.description || "";
-    const memberUserIds = (group.members || []).map(m => m.user_id);
-    setSelectedFriendOptions(memberUserIds);
+
+    setMessage("");
     modalOverlay.hidden = false;
 }
 
@@ -224,9 +262,12 @@ async function removeGroup(groupId) {
     if (!groupId) return;
     if (hasSwal()) {
         const result = await window.Swal.fire({
-            title: "Remover grupo?", text: "Esta ação não pode ser desfeita.",
-            icon: "warning", showCancelButton: true,
-            confirmButtonText: "Remover", cancelButtonText: "Cancelar",
+            title: "Remover grupo?",
+            text: "Esta ação não pode ser desfeita.",
+            icon: "warning",
+            showCancelButton: true,
+            confirmButtonText: "Remover",
+            cancelButtonText: "Cancelar",
             confirmButtonColor: "#c0392b"
         });
         if (!result.isConfirmed) return;
@@ -237,7 +278,12 @@ async function removeGroup(groupId) {
     try {
         await api.deleteUserGroup(groupId);
         await renderGroups();
-        if (hasSwal()) window.Swal.fire({ icon: "success", title: "Grupo removido", timer: 1600, showConfirmButton: false });
+        if (hasSwal()) window.Swal.fire({
+            icon: "success",
+            title: "Grupo removido",
+            timer: 1600,
+            showConfirmButton: false
+        });
     } catch (err) {
         showValidationMessage("Erro ao remover grupo: " + err.message);
     }
@@ -245,22 +291,25 @@ async function removeGroup(groupId) {
 
 async function handleSubmit(event) {
     event.preventDefault();
-    const name        = groupNameInput        ? groupNameInput.value.trim()        : "";
+    const name = groupNameInput ? groupNameInput.value.trim() : "";
     const description = groupDescriptionInput ? groupDescriptionInput.value.trim() : "";
+    const selectedIds = getSelectedFriendIds();
 
-    if (!name) { showValidationMessage("Indica um nome para o grupo."); return; }
-
-    const selectedIds = groupFriendsSelect
-        ? Array.from(groupFriendsSelect.selectedOptions).map((o) => parseInt(o.value)).filter(Boolean)
-        : [];
+    if (!name) {
+        showValidationMessage("Indica um nome para o grupo.");
+        return;
+    }
 
     const isEditing = Boolean(editingGroupId);
 
     if (isEditing && hasSwal()) {
         const result = await window.Swal.fire({
-            title: "Guardar alterações?", text: "O grupo será atualizado com os novos dados.",
-            icon: "question", showCancelButton: true,
-            confirmButtonText: "Guardar", cancelButtonText: "Cancelar"
+            title: "Guardar alterações?",
+            text: "O grupo será atualizado com os novos dados.",
+            icon: "question",
+            showCancelButton: true,
+            confirmButtonText: "Guardar",
+            cancelButtonText: "Cancelar"
         });
         if (!result.isConfirmed) return;
     }
@@ -281,21 +330,23 @@ async function handleSubmit(event) {
                 icon: "success",
                 title: isEditing ? "Grupo alterado" : "Grupo criado",
                 text: isEditing ? "As alterações foram guardadas com sucesso." : "O novo grupo foi criado com sucesso.",
-                timer: 1800, showConfirmButton: false
+                timer: 1800,
+                showConfirmButton: false
             });
         }
     } catch (err) {
+        console.error("Erro ao guardar grupo:", err);
         showValidationMessage("Erro ao guardar grupo: " + err.message);
     }
 }
 
 // ── EVENTS ────────────────────────────────────────────────────────────────────
-if (openModalButton)    openModalButton.addEventListener("click", openModal);
+if (openModalButton) openModalButton.addEventListener("click", openModal);
 if (openModalFromEmpty) openModalFromEmpty.addEventListener("click", openModal);
-if (closeModalButton)   closeModalButton.addEventListener("click", closeModal);
-if (cancelModalButton)  cancelModalButton.addEventListener("click", closeModal);
-if (modalOverlay)       modalOverlay.addEventListener("click", (e) => { if (e.target === modalOverlay) closeModal(); });
-if (groupForm)          groupForm.addEventListener("submit", handleSubmit);
+if (closeModalButton) closeModalButton.addEventListener("click", closeModal);
+if (cancelModalButton) cancelModalButton.addEventListener("click", closeModal);
+if (modalOverlay) modalOverlay.addEventListener("click", (e) => { if (e.target === modalOverlay) closeModal(); });
+if (groupForm) groupForm.addEventListener("submit", handleSubmit);
 
 document.querySelector(".btn-logout")?.addEventListener("click", () => api.logout());
 

@@ -54,10 +54,16 @@ class APIClient {
             // ✅ Handle 204 No Content
             if (res.status === 204) return null;
 
-            const responseData = await res.json();
+            let responseData;
+            const text = await res.text();
+            try {
+                responseData = text ? JSON.parse(text) : null;
+            } catch {
+                responseData = { detail: text };
+            }
 
             if (!res.ok) {
-                throw new Error(responseData.detail || `Erro: ${res.status}`);
+                throw new Error(responseData?.detail || `Erro: ${res.status}`);
             }
 
             return responseData;
@@ -79,6 +85,10 @@ class APIClient {
 
     put(path, data) {
         return this.request("PUT", path, data);
+    }
+
+    patch(path, data = null) {
+        return this.request("PATCH", path, data);
     }
 
     delete(path) {
@@ -138,11 +148,20 @@ class APIClient {
         return this.put(`/friendships/${id}`, data);
     }
 
+    acceptFriendship(id) {
+        return this.updateFriendship(id, { status: "accepted" });
+    }
+
+    rejectFriendship(id) {
+        return this.updateFriendship(id, { status: "rejected" });
+    }
+
     deleteFriendship(id) {
         return this.delete(`/friendships/${id}`);
     }
 
     // ── USER GROUPS ───────────────────────────────────────────────────────────
+    // ✅ ATUALIZADO: Suporta member_ids para adicionar amigos automaticamente
 
     getUserGroups() {
         return this.get("/user-groups/");
@@ -153,11 +172,19 @@ class APIClient {
     }
 
     createUserGroup(name, description = "", memberIds = []) {
-        return this.post("/user-groups/", { name, description, member_ids: memberIds });
+        return this.post("/user-groups/", {
+            name,
+            description,
+            member_ids: memberIds  // ✅ Envia IDs dos amigos
+        });
     }
 
     updateUserGroup(id, name, description = "", memberIds = []) {
-        return this.put(`/user-groups/${id}`, { name, description, member_ids: memberIds });
+        return this.put(`/user-groups/${id}`, {
+            name,
+            description,
+            member_ids: memberIds  // ✅ Atualiza membros do grupo
+        });
     }
 
     deleteUserGroup(id) {

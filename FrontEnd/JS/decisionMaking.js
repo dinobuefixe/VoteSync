@@ -1,17 +1,17 @@
 /* ── VoteSync — decisionMaking.js ── */
 
 // ── DOM REFS ──────────────────────────────────────────────────────────────────
-const decisionTitle            = document.querySelector("#decision-title");
-const decisionDescription      = document.querySelector("#decision-description");
-const decisionDate             = document.querySelector("#decision-date");
-const decisionTimeLeft         = document.querySelector("#decision-time-left");
+const decisionTitle = document.querySelector("#decision-title");
+const decisionDescription = document.querySelector("#decision-description");
+const decisionDate = document.querySelector("#decision-date");
+const decisionTimeLeft = document.querySelector("#decision-time-left");
 const decisionOptionsContainer = document.querySelector("#decision-options-container");
-const decisionTotalVotes       = document.querySelector("#decision-total-votes");
-const decisionTotalOptions     = document.querySelector("#decision-total-options");
-const decisionCreatedBy        = document.querySelector("#decision-created-by");
-const decisionTargetGroup      = document.querySelector("#decision-target-group");
-const decisionTargetFriends    = document.querySelector("#decision-target-friends");
-const logoutButton             = document.querySelector("#decision-logout-btn");
+const decisionTotalVotes = document.querySelector("#decision-total-votes");
+const decisionTotalOptions = document.querySelector("#decision-total-options");
+const decisionCreatedBy = document.querySelector("#decision-created-by");
+const decisionTargetGroup = document.querySelector("#decision-target-group");
+const decisionTargetFriends = document.querySelector("#decision-target-friends");
+const logoutButton = document.querySelector("#decision-logout-btn");
 
 // ── LOGO / LOGOUT ─────────────────────────────────────────────────────────────
 function handleLogoClick(e) {
@@ -36,6 +36,17 @@ function getLatestDecision() {
 function getTodayDate() {
     const now = new Date();
     return `${String(now.getDate()).padStart(2, "0")}/${String(now.getMonth() + 1).padStart(2, "0")}/${now.getFullYear()}`;
+}
+
+async function resolveGroupName(groupId) {
+    if (!groupId) return "";
+    try {
+        const group = await api.getUserGroup(groupId);
+        return group?.name || "";
+    } catch (err) {
+        console.warn("Não foi possível carregar nome do grupo:", err);
+        return "";
+    }
 }
 
 function formatIsoToDisplay(isoDate) {
@@ -63,7 +74,7 @@ function renderOptionCard(option, index) {
     }
 
     const name = document.createElement("p");
-    name.className   = "option-name";
+    name.className = "option-name";
     // ✅ Suporta tanto option.name (criação) como option.option_text (API)
     name.textContent = option.option_text || option.name || "";
 
@@ -74,7 +85,7 @@ function renderOptionCard(option, index) {
     for (let i = 0; i < votesCount; i++) {
         const chip = document.createElement("button");
         chip.className = "vote-chip";
-        chip.type      = "button";
+        chip.type = "button";
         chip.innerHTML = '<i class="fa-regular fa-thumbs-up"></i>';
         votesWrap.appendChild(chip);
     }
@@ -95,20 +106,36 @@ function renderDecisionTargets(decision) {
     decisionTargetFriends.innerHTML = "";
 
     const targetFriends = Array.isArray(decision?.target_friends) ? decision.target_friends : [];
+    const creatorName = decision?.created_by || decision?.createdBy || "";
+    const friendNames = [];
 
-    if (targetFriends.length === 0) {
+    if (creatorName) {
+        friendNames.push(creatorName);
+    }
+
+    targetFriends.forEach(df => {
+        const friendship = df?.friendship;
+        const userName = friendship?.user?.name || "";
+        const friendName = friendship?.friend?.name || "";
+        const isCreatorFriend = creatorName && friendName === creatorName;
+        const participantName = isCreatorFriend ? userName : friendName || userName;
+        if (participantName && !friendNames.includes(participantName)) {
+            friendNames.push(participantName);
+        }
+    });
+
+    if (friendNames.length === 0) {
         const empty = document.createElement("span");
-        empty.className   = "friend-empty";
+        empty.className = "friend-empty";
         empty.textContent = "Sem amigos associados";
         decisionTargetFriends.appendChild(empty);
         return;
     }
 
-    targetFriends.forEach(df => {
-        const friendName = df?.friendship?.friend?.name || "Amigo desconhecido";
+    friendNames.forEach((name) => {
         const chip = document.createElement("span");
-        chip.className   = "friend-chip";
-        chip.textContent = friendName;
+        chip.className = "friend-chip";
+        chip.textContent = name;
         decisionTargetFriends.appendChild(chip);
     });
 }
@@ -118,14 +145,14 @@ async function renderDecisionTemplate() {
     const decision = getLatestDecision();
 
     if (!decision) {
-        if (decisionTitle)            decisionTitle.textContent            = "Sem decisões criadas";
-        if (decisionDescription)      decisionDescription.textContent      = "Cria uma decisão no dashboard para ela aparecer aqui.";
-        if (decisionDate)             decisionDate.textContent             = "--/--/----";
-        if (decisionTimeLeft)         decisionTimeLeft.textContent         = "Sem prazo";
-        if (decisionOptionsContainer) decisionOptionsContainer.innerHTML   = "";
-        if (decisionTotalVotes)       decisionTotalVotes.textContent       = "0";
-        if (decisionTotalOptions)     decisionTotalOptions.textContent     = "0";
-        if (decisionCreatedBy)        decisionCreatedBy.textContent        = "-";
+        if (decisionTitle) decisionTitle.textContent = "Sem decisões criadas";
+        if (decisionDescription) decisionDescription.textContent = "Cria uma decisão no dashboard para ela aparecer aqui.";
+        if (decisionDate) decisionDate.textContent = "--/--/----";
+        if (decisionTimeLeft) decisionTimeLeft.textContent = "Sem prazo";
+        if (decisionOptionsContainer) decisionOptionsContainer.innerHTML = "";
+        if (decisionTotalVotes) decisionTotalVotes.textContent = "0";
+        if (decisionTotalOptions) decisionTotalOptions.textContent = "0";
+        if (decisionCreatedBy) decisionCreatedBy.textContent = "-";
         renderDecisionTargets(null);
         return;
     }
@@ -135,8 +162,10 @@ async function renderDecisionTemplate() {
         try {
             const fresh = await api.getDecision(decision.id);
             if (fresh) {
-                // Preservar target_group_name do localStorage
                 fresh.target_group_name = decision.target_group_name || "";
+                if (!fresh.target_group_name) {
+                    fresh.target_group_name = await resolveGroupName(fresh.target_group_id);
+                }
                 localStorage.setItem("votesync.decision.latest", JSON.stringify(fresh));
                 return renderWithData(fresh);
             }
@@ -151,7 +180,7 @@ async function renderDecisionTemplate() {
 function renderWithData(decision) {
     const options = Array.isArray(decision.options) ? decision.options : [];
 
-    if (decisionTitle)       decisionTitle.textContent       = decision.title       || "Decisão sem título";
+    if (decisionTitle) decisionTitle.textContent = decision.title || "Decisão sem título";
     if (decisionDescription) decisionDescription.textContent = decision.description || "Sem descrição disponível.";
 
     if (decisionDate) {
@@ -161,11 +190,11 @@ function renderWithData(decision) {
 
     if (decisionTimeLeft) {
         const daysLeft = calculateDaysLeft(decision.end_date || decision.endDate);
-        if      (daysLeft === null) decisionTimeLeft.textContent = "Sem prazo";
-        else if (daysLeft < 0)     decisionTimeLeft.textContent = "Encerrada";
-        else if (daysLeft === 0)   decisionTimeLeft.textContent = "Termina hoje";
-        else if (daysLeft === 1)   decisionTimeLeft.textContent = "1 dia restante";
-        else                       decisionTimeLeft.textContent = `${daysLeft} dias restantes`;
+        if (daysLeft === null) decisionTimeLeft.textContent = "Sem prazo";
+        else if (daysLeft < 0) decisionTimeLeft.textContent = "Encerrada";
+        else if (daysLeft === 0) decisionTimeLeft.textContent = "Termina hoje";
+        else if (daysLeft === 1) decisionTimeLeft.textContent = "1 dia restante";
+        else decisionTimeLeft.textContent = `${daysLeft} dias restantes`;
     }
 
     if (decisionOptionsContainer) {
@@ -174,9 +203,9 @@ function renderWithData(decision) {
     }
 
     const totalVotes = options.reduce((sum, o) => sum + Math.max(0, Number.isFinite(o.votes) ? o.votes : 0), 0);
-    if (decisionTotalVotes)   decisionTotalVotes.textContent   = String(totalVotes);
+    if (decisionTotalVotes) decisionTotalVotes.textContent = String(totalVotes);
     if (decisionTotalOptions) decisionTotalOptions.textContent = String(options.length);
-    if (decisionCreatedBy)    decisionCreatedBy.textContent    = decision.created_by || decision.createdBy || "Utilizador";
+    if (decisionCreatedBy) decisionCreatedBy.textContent = decision.created_by || decision.createdBy || "Utilizador";
 
     renderDecisionTargets(decision);
 }

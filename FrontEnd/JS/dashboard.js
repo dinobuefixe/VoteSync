@@ -43,7 +43,7 @@ async function updateFriendsCard() {
 			api.getUsers(),
 			api.getFriendships()
 		]);
-		
+
 		const myFriendIds = friendships
 			.filter(f => f.status === "accepted" && (f.user_id === myId || f.friend_id === myId))
 			.map(f => f.user_id === myId ? f.friend_id : f.user_id);
@@ -59,7 +59,7 @@ async function updateFriendsCard() {
 		friendsListEl.innerHTML = friendUsers.slice(0, 5).map((u, index) => `
 			<div style="display:flex;align-items:center;gap:8px;padding:8px 10px;margin-bottom:${index === friendUsers.length - 1 ? '0' : '4px'};margin-left:-8px;margin-right:-8px;border-radius:0px;background:#f8f6fc;border:none;border-bottom:1px solid #e8e4f0;">
 				<div style="width:36px;height:36px;border-radius:50%;background:linear-gradient(135deg,#9b7dd4,#5bc8e8);display:flex;align-items:center;justify-content:center;color:#fff;font-weight:700;font-size:12px;flex-shrink:0;">
-					${u.name.split(" ").slice(0,2).map(w => w[0]).join("").toUpperCase()}
+					${u.name.split(" ").slice(0, 2).map(w => w[0]).join("").toUpperCase()}
 				</div>
 				<div style="min-width:0;">
 					<div style="font-weight:700;font-size:13px;color:#182033;margin:0;">${u.name}</div>
@@ -80,10 +80,10 @@ async function updateFriendsCard() {
 // ── GROUPS CARD ───────────────────────────────────────────────────────────────
 async function updateGroupsCard() {
 	if (!groupsPreviewList || !groupsCardEmpty) return;
-	
+
 	try {
 		const groups = await api.getUserGroups();
-		
+
 		// Pegar apenas os 3 primeiros grupos
 		const preview = groups.slice(0, 3);
 
@@ -98,23 +98,23 @@ async function updateGroupsCard() {
 		preview.forEach((group) => {
 			const item = document.createElement("article");
 			item.className = "group-preview-item";
-			
+
 			const main = document.createElement("div");
 			main.className = "group-preview-main";
-			
+
 			const name = document.createElement("strong");
 			name.className = "group-preview-name";
 			name.textContent = group.name || "Grupo sem nome";
-			
+
 			const meta = document.createElement("small");
 			meta.className = "group-preview-meta";
 			const memberCount = Array.isArray(group.members) ? group.members.length : 0;
 			meta.textContent = memberCount === 1 ? "1 membro" : `${memberCount} membros`;
-			
+
 			const badge = document.createElement("span");
 			badge.className = "group-preview-badge";
 			badge.textContent = "Recente";
-			
+
 			main.appendChild(name);
 			main.appendChild(meta);
 			item.appendChild(main);
@@ -131,12 +131,12 @@ async function updateGroupsCard() {
 async function populateGroupOptions(groups) {
 	if (!decisionGroupSelect) return;
 	decisionGroupSelect.innerHTML = "";
-	
+
 	const defaultOption = document.createElement("option");
 	defaultOption.value = "";
 	defaultOption.textContent = "Sem grupo selecionado";
 	decisionGroupSelect.appendChild(defaultOption);
-	
+
 	groups.forEach((group) => {
 		const option = document.createElement("option");
 		option.value = group.id;
@@ -244,14 +244,13 @@ async function createDecisionOnAPI(decision) {
 		description: decision.description,
 		end_date: decision.endDate,
 		created_by: decision.createdBy,
-		target_group_id: null,
+		target_group_id: decision.targetGroupId || null,
 		created_at: new Date().toISOString(),
 		target_friend_ids: friendshipIds
 	};
 
 	const created = await api.post("/decisions/", payload);
 
-	// Criar as opções associadas
 	for (const option of decision.options) {
 		await api.createOption(created.id, option.name);
 	}
@@ -283,28 +282,28 @@ async function updateDecisionCards() {
 		decisionList.appendChild(createDecisionListItem(latestDecision, "New", "", "fa-sparkles", "status-new"));
 
 		const soonestEnding = decisions
-			.map((decision, index) => ({ 
-				decision, 
-				index, 
-				daysLeft: calculateDaysUntilEnd(decision.end_date || decision.endDate) 
+			.map((decision, index) => ({
+				decision,
+				index,
+				daysLeft: calculateDaysUntilEnd(decision.end_date || decision.endDate)
 			}))
 			.filter((entry) => entry.daysLeft !== null && entry.daysLeft >= 0 && entry.daysLeft <= 3)
 			.sort((a, b) => a.daysLeft - b.daysLeft)[0];
 
 		if (soonestEnding && soonestEnding.index !== decisions.length - 1) {
-			const daysLabel = soonestEnding.daysLeft === 0 
-				? "Termina hoje" 
-				: soonestEnding.daysLeft === 1 
-				? "Termina em 1 dia" 
-				: `Termina em ${soonestEnding.daysLeft} dias`;
+			const daysLabel = soonestEnding.daysLeft === 0
+				? "Termina hoje"
+				: soonestEnding.daysLeft === 1
+					? "Termina em 1 dia"
+					: `Termina em ${soonestEnding.daysLeft} dias`;
 			const endDateLabel = formatIsoDateToPt(soonestEnding.decision.end_date || soonestEnding.decision.endDate);
 			decisionList.appendChild(
 				createDecisionListItem(
-					soonestEnding.decision, 
-					"Finishing", 
-					"", 
-					"fa-hourglass-half", 
-					"status-finishing", 
+					soonestEnding.decision,
+					"Finishing",
+					"",
+					"fa-hourglass-half",
+					"status-finishing",
 					`${daysLabel} · Prazo final: ${endDateLabel}`
 				)
 			);
@@ -411,7 +410,7 @@ function setDecisionMessage(message, tone = "") {
 function createDecisionOptionRow(iconClass, isPrimary = false) {
 	const row = document.createElement("div");
 	row.className = isPrimary ? "decision-option-row focus-blue" : "decision-option-row";
-	
+
 	const inputWrapper = document.createElement("div");
 	inputWrapper.className = isPrimary ? "decision-option-input-wrapper dotted-border" : "decision-option-input-wrapper filled-bg";
 	const input = document.createElement("input");
@@ -419,13 +418,13 @@ function createDecisionOptionRow(iconClass, isPrimary = false) {
 	input.className = "decision-input-option";
 	input.placeholder = "Nome da opção...";
 	inputWrapper.appendChild(input);
-	
+
 	const iconBox = document.createElement("div");
 	iconBox.className = isPrimary ? "decision-option-icon-box dotted-border" : "decision-option-icon-box filled-bg";
 	const icon = document.createElement("i");
 	icon.className = `fa-solid ${iconClass}`;
 	iconBox.appendChild(icon);
-	
+
 	row.appendChild(inputWrapper);
 	row.appendChild(iconBox);
 	return row;
@@ -491,6 +490,8 @@ async function handleCreateDecision() {
 	}
 
 	const session = api.getSession();
+	const selectedGroupId = decisionGroupSelect?.value ? parseInt(decisionGroupSelect.value) : null;
+	const selectedGroupName = decisionGroupSelect?.selectedOptions?.[0]?.textContent || "";
 	const selectedFriendIds = decisionFriendsSelect
 		? Array.from(decisionFriendsSelect.selectedOptions).map((o) => o.value).filter((v) => v)
 		: [];
@@ -501,6 +502,8 @@ async function handleCreateDecision() {
 		date: decisionCurrentDate ? decisionCurrentDate.textContent : "",
 		endDate,
 		options: options.map((name) => ({ name, votes: 0 })),
+		targetGroupId: selectedGroupId,
+		target_group_name: selectedGroupName,
 		targetFriendIds: selectedFriendIds,
 		createdBy: session?.user?.name || "Utilizador"
 	};
@@ -597,6 +600,6 @@ initializeEndDateInput();
 	await updateDecisionCards();
 })();
 
-window.refreshFriendsCard = async function() {
+window.refreshFriendsCard = async function () {
 	await updateFriendsCard();
 };

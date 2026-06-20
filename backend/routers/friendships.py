@@ -91,6 +91,30 @@ def create_friendship(friendship: schemas.CreateFriendships, db: Session = Depen
     return new_friendship
 
 
+@router.patch("/{id}/accept", response_model=schemas.FriendshipWithFriendData)
+def accept_friendship(id: int, db: Session = Depends(get_db)):
+    friendship = db.query(models.Friendships).filter(models.Friendships.id == id).first()
+    if not friendship:
+        raise HTTPException(404, "Friendship not found")
+    if friendship.status != "accepted":
+        friendship.status = "accepted"
+        db.commit()
+        db.refresh(friendship)
+    return friendship
+
+
+@router.patch("/{id}/reject", response_model=schemas.FriendshipWithFriendData)
+def reject_friendship(id: int, db: Session = Depends(get_db)):
+    friendship = db.query(models.Friendships).filter(models.Friendships.id == id).first()
+    if not friendship:
+        raise HTTPException(404, "Friendship not found")
+    if friendship.status != "rejected":
+        friendship.status = "rejected"
+        db.commit()
+        db.refresh(friendship)
+    return friendship
+
+
 @router.put("/{id}", response_model=schemas.FriendshipWithFriendData)
 def update_friendship(id: int, updated: schemas.UpdateFriendships, db: Session = Depends(get_db)):
     if updated.status not in {"pending", "accepted", "rejected"}:

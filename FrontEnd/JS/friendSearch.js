@@ -152,7 +152,7 @@
     btn.disabled = true;
     btn.textContent = "...";
     try {
-      await api.updateFriendship(friendshipId, { status: "accepted" });
+      await api.acceptFriendship(friendshipId);
       btn.textContent = "Aceito";
       btn.style.background = "#1a7a52";
       btn.style.color = "#fff";
@@ -172,7 +172,7 @@
     btn.disabled = true;
     btn.textContent = "...";
     try {
-      await api.updateFriendship(friendshipId, { status: "rejected" });
+      await api.rejectFriendship(friendshipId);
       btn.textContent = "Recusado";
       btn.style.background = "#fff";
       btn.style.color = "#7c5cbf";
