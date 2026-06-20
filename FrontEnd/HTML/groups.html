@@ -18,7 +18,7 @@
 
     <!-- CABEÇALHO DA PÁGINA -->
     <header class="navbar">
-       <a class="logo-area" href="#" onclick="handleLogoClick(event)">
+        <a class="logo-area" href="#" onclick="handleLogoClick(event)">
             <img class="logo-icon" src="/static/IMG/votesync_logo.png" alt="VoteSync logo" />
             <span class="logo-text">VoteSync</span>
         </a>
@@ -84,11 +84,12 @@
                         placeholder="Objetivo do grupo (opcional)"></textarea>
                 </label>
 
-                <label class="group-field">
+                <div class="group-field">
                     <span>Selecionar amigos</span>
-                    <select id="group-friends-select" class="group-friends-select" multiple></select>
-                    <small class="group-field-hint">Usa Ctrl (ou Cmd no Mac) para selecionar vários amigos.</small>
-                </label>
+                    <div id="group-friends-container" class="group-friends-container"></div>
+                    <p id="group-friends-empty" class="group-friends-empty">Carregando amigos...</p>
+                    <small class="group-field-hint">Seleciona os amigos que queres adicionar ao grupo.</small>
+                </div>
 
                 <p id="group-form-message" class="group-form-message" aria-live="polite"></p>
 

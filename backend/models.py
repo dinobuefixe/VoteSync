@@ -194,6 +194,7 @@ class User_Groups(Base):
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 
 
 class DecisionFriends(Base):
@@ -215,6 +216,9 @@ class DecisionFriends(Base):
 >>>>>>> c3f90b4 (feat:Decision-making feature and decisions listing page (frontend + backend + database))
 =======
 >>>>>>> c3f90b4 (feat:Decision-making feature and decisions listing page (frontend + backend + database))
+=======
+    description = Column(String, nullable=True)
+>>>>>>> e098cb0 (Fix group creation, decision target rendering, backend schema, and README documentation)
 
 
 class DecisionFriends(Base):

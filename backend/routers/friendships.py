@@ -225,6 +225,7 @@ def create_friendship(friendship: schemas.CreateFriendships, db: Session = Depen
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 @router.put("/{friendship_id}")
 async def update_friendship(friendship_id: int, data: FriendshipUpdate, db: Session = Depends(get_db)):
     friendship = db.query(models.Friendships).filter(models.Friendships.id == friendship_id).first()
@@ -241,6 +242,32 @@ async def update_friendship(friendship_id: int, data: FriendshipUpdate, db: Sess
 >>>>>>> c3f90b4 (feat:Decision-making feature and decisions listing page (frontend + backend + database))
 =======
 >>>>>>> c3f90b4 (feat:Decision-making feature and decisions listing page (frontend + backend + database))
+=======
+@router.patch("/{id}/accept", response_model=schemas.FriendshipWithFriendData)
+def accept_friendship(id: int, db: Session = Depends(get_db)):
+    friendship = db.query(models.Friendships).filter(models.Friendships.id == id).first()
+    if not friendship:
+        raise HTTPException(404, "Friendship not found")
+    if friendship.status != "accepted":
+        friendship.status = "accepted"
+        db.commit()
+        db.refresh(friendship)
+    return friendship
+
+
+@router.patch("/{id}/reject", response_model=schemas.FriendshipWithFriendData)
+def reject_friendship(id: int, db: Session = Depends(get_db)):
+    friendship = db.query(models.Friendships).filter(models.Friendships.id == id).first()
+    if not friendship:
+        raise HTTPException(404, "Friendship not found")
+    if friendship.status != "rejected":
+        friendship.status = "rejected"
+        db.commit()
+        db.refresh(friendship)
+    return friendship
+
+
+>>>>>>> e098cb0 (Fix group creation, decision target rendering, backend schema, and README documentation)
 @router.put("/{id}", response_model=schemas.FriendshipWithFriendData)
 def update_friendship(id: int, updated: schemas.UpdateFriendships, db: Session = Depends(get_db)):
     if updated.status not in {"pending", "accepted", "rejected"}:

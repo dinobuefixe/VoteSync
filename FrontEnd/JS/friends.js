@@ -359,7 +359,7 @@ window.confirmFriendRequest = async function(id) {
 window.acceptFriend = async function (friendshipId) {
     if (!friendshipId) return;
     try {
-        await api.updateFriendship(friendshipId, { status: "accepted" });
+        await api.acceptFriendship(friendshipId);
         await loadData();
         renderFriends();
         showSwal("success", "Pedido aceite!", 1500);
@@ -371,7 +371,7 @@ window.acceptFriend = async function (friendshipId) {
 window.rejectFriend = async function (friendshipId) {
     if (!friendshipId) return;
     try {
-        await api.updateFriendship(friendshipId, { status: "rejected" });
+        await api.rejectFriendship(friendshipId);
         await loadData();
         renderFriends();
         showSwal("success", "Pedido recusado.", 1500);

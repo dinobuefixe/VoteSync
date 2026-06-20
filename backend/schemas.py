@@ -153,9 +153,30 @@ class FriendshipWithFriendData(BaseModel):
 # GROUP MEMBERS
 # ────────────────────────────────────────────────────────────────────────────────
 
+class GroupMemberUser(BaseModel):
+    """Dados do utilizador dentro de um membro do grupo"""
+    id: int
+    name: str
+    email: str
+    profile_picture: str | None = None
+
+    class Config:
+        from_attributes = True
+
 class GroupMembersBase(BaseModel):
+    id: int | None = None
     group_id: int
     user_id: int
+
+    class Config:
+        from_attributes = True
+
+class GroupMembersWithUser(BaseModel):
+    """Membro do grupo com dados completos do utilizador"""
+    id: int
+    group_id: int
+    user_id: int
+    user: GroupMemberUser
 
     class Config:
         from_attributes = True
@@ -170,17 +191,24 @@ class CreateGroupMembers(GroupMembersBase):
 # ────────────────────────────────────────────────────────────────────────────────
 
 class UserGroupsBase(BaseModel):
+    """Base para criar/atualizar grupos"""
     name: str
     description: str | None = None
 
     class Config:
         from_attributes = True
 
-class CreateUserGroups(UserGroupsBase):
+class UserGroupsCreate(BaseModel):
+    """Schema para criar/atualizar grupo COM suporte a member_ids"""
+    name: str
+    description: str | None = None
+    member_ids: List[int] = []  # ✅ NOVO - IDs dos amigos a adicionar
+
     class Config:
         from_attributes = True
 
 class UserGroupsResponse(BaseModel):
+    """Response com membros carregados"""
     id: int
     name: str
 <<<<<<< HEAD
@@ -190,6 +218,7 @@ class UserGroupsResponse(BaseModel):
 <<<<<<< HEAD
 <<<<<<< HEAD
     description: str | None = None
+<<<<<<< HEAD
     members: List[dict] = []  # ✅ Incluir membros
 =======
 >>>>>>> c3f90b4 (feat:Decision-making feature and decisions listing page (frontend + backend + database))
@@ -205,6 +234,9 @@ class UserGroupsResponse(BaseModel):
     description: str | None = None
     members: List[dict] = []  # ✅ Incluir membros
 >>>>>>> 9224db4 (Fix auth and friendships backend issues; update frontend deployment docs)
+=======
+    members: List[GroupMembersWithUser] = []
+>>>>>>> e098cb0 (Fix group creation, decision target rendering, backend schema, and README documentation)
 
     class Config:
         from_attributes = True
