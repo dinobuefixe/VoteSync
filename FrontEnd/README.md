@@ -68,5 +68,13 @@
 * **Problem Statement: The friend request flow was failing with a 422 error. The root cause was that the login and register flows were entirely local — users were stored in locagitStorage with UUID-based IDs instead of being persisted in the database. This meant the session never contained a real integer ID, breaking the backend schema validation for friendships. Additionally, GET /users/ was exposing passwords and not returning the id field, and the Friends page empty state was always visible due to a CSS specificity conflict.
 * **Support Requested: Full diagnosis and resolution across the stack — backend route creation, frontend JS refactoring, schema fixes, and CSS corrections.
 * **Project Outcome: Login and register were migrated to call the real backend API. A /auth/login endpoint was created in FastAPI. The GET /users/ response model was updated to use UserResponse, exposing id without leaking passwords. The Friends page empty state visibility was fixed using inline style to override CSS specificity. Friend requests now succeed with correct integer IDs. Claude AI provided the full implementation and guided the debugging process end to end.
+
+### 11. Decisions System Migration to Backend API & Database Schema Fix
+
+Tool Utilized: Claude AI
+Context / Functional Area: Decision-making feature and decisions listing page (frontend + backend + database)
+Problem Statement: Decisions weren't persisting correctly to the API — the Pydantic schema dropped key fields, the "view all" page was an accidental duplicate of the dashboard, and the database table was missing columns that already existed in the SQLAlchemy models, causing a 500 error on every fetch.
+Support Requested: Diagnosis and fix across the stack — schema/router updates, rebuilding the missing decisions page, refactoring its JS to use the live API, and a manual database migration.
+Project Outcome: Updated schemas and routers to expose full decision data with nested options; rebuilt decisions.html and refactored decisions.js to create, edit, and delete decisions via the API; applied a SQL migration adding the missing columns to the decisions table, resolving the error end to end.
 ***
 *End of Report. Compiled dynamically for project review documentation.*

@@ -1,6 +1,6 @@
-/* ── VoteSync — friendSearch.js (módulo partilhado) ──
+/* ── VoteSync — friendSearch.js (REFATORIZADO COM api.js) ──
    Inclui este ficheiro em qualquer página que tenha uma barra de pesquisa.
-   Requer: SESSION_KEY, apiFetch() e myId já definidos no JS da página.
+   Requer: api.js carregado ANTES deste ficheiro
    Selectors suportados:
      - .search-box input   (dashboard, decisions, decisionMaking)
      - .search-bar input   (friends, groups)
@@ -13,20 +13,29 @@
 
   if (!searchInput) return;
 
+  // ✅ Obter myId do session usando api.js
+  const session = api.getSession();
+  const myId = parseInt(session?.user?.id);
+
+  if (!myId) {
+    console.error("FriendSearch: Utilizador não autenticado");
+    return;
+  }
+
   // Dropdown de resultados
   const dropdown = document.createElement("div");
   dropdown.id = "friend-search-dropdown";
   Object.assign(dropdown.style, {
-    position:     "absolute",
-    background:   "#fff",
+    position: "absolute",
+    background: "#fff",
     borderRadius: "14px",
-    boxShadow:    "0 8px 30px rgba(0,0,0,0.13)",
-    zIndex:       "999",
-    minWidth:     "280px",
-    maxWidth:     "400px",
-    overflow:     "hidden",
-    display:      "none",
-    marginTop:    "6px",
+    boxShadow: "0 8px 30px rgba(0,0,0,0.13)",
+    zIndex: "999",
+    minWidth: "280px",
+    maxWidth: "400px",
+    overflow: "hidden",
+    display: "none",
+    marginTop: "6px",
   });
 
   // Posiciona o dropdown relativo ao input
@@ -50,9 +59,10 @@
 
   async function fetchAndRender(query) {
     try {
+      // ✅ Usar api.js em vez de apiFetch()
       const [users, friendships] = await Promise.all([
-        apiFetch("/users/"),
-        apiFetch("/friendships/"),
+        api.getUsers(),
+        api.getFriendships()
       ]);
 
       const myFriendIds = friendships
@@ -71,11 +81,27 @@
       }
 
       dropdown.innerHTML = results.map(u => {
-        const isFriend = myFriendIds.includes(u.id);
         const friendship = friendships.find(f =>
           (f.user_id === myId && f.friend_id === u.id) ||
           (f.friend_id === myId && f.user_id === u.id)
         );
+
+        const isFriend = friendship?.status === "accepted";
+        const isOutgoing = friendship?.status === "pending" && friendship.user_id === myId;
+        const isIncoming = friendship?.status === "pending" && friendship.friend_id === myId;
+
+        let actionHtml = `<button onclick="fsAddFriend(${u.id}, this)" style="border:none;background:linear-gradient(90deg,#83b5f0,#69c4ee);color:#132338;padding:5px 12px;border-radius:20px;font-size:12px;font-weight:600;cursor:pointer;white-space:nowrap;">Adicionar</button>`;
+        if (isFriend) {
+          actionHtml = `<button onclick="fsRemoveFriend(${friendship?.id}, this)" style="border:1px solid #e0d5f5;background:#f7f4fd;color:#7c5cbf;padding:5px 12px;border-radius:20px;font-size:12px;font-weight:600;cursor:pointer;white-space:nowrap;">Remover</button>`;
+        } else if (isOutgoing) {
+          actionHtml = `<button disabled style="border:1px solid #d6d0e8;background:#f7f4fd;color:#7c5cbf;padding:5px 12px;border-radius:20px;font-size:12px;font-weight:600;white-space:nowrap;">Pedido enviado</button>`;
+        } else if (isIncoming) {
+          actionHtml = `<div style="display:flex;gap:8px;">
+              <button onclick="fsAcceptFriend(${friendship?.id}, this)" style="border:none;background:#1a7a52;color:#fff;padding:5px 12px;border-radius:20px;font-size:12px;font-weight:600;cursor:pointer;white-space:nowrap;">Aceitar</button>
+              <button onclick="fsRejectFriend(${friendship?.id}, this)" style="border:1px solid #e0d5f5;background:#f7f4fd;color:#7c5cbf;padding:5px 12px;border-radius:20px;font-size:12px;font-weight:600;cursor:pointer;white-space:nowrap;">Recusar</button>
+            </div>`;
+        }
+
         return `
           <div style="display:flex;align-items:center;justify-content:space-between;padding:10px 14px;border-bottom:1px solid #f0edf8;gap:10px;">
             <div style="display:flex;align-items:center;gap:10px;">
@@ -87,63 +113,95 @@
                 <div style="font-size:11px;color:#5f6678;">${u.email}</div>
               </div>
             </div>
-            ${isFriend
-              ? `<button onclick="fsRemoveFriend(${friendship?.id}, this)" style="border:1px solid #e0d5f5;background:#f7f4fd;color:#7c5cbf;padding:5px 12px;border-radius:20px;font-size:12px;font-weight:600;cursor:pointer;white-space:nowrap;">Remover</button>`
-              : `<button onclick="fsAddFriend(${u.id}, this)" style="border:none;background:linear-gradient(90deg,#83b5f0,#69c4ee);color:#132338;padding:5px 12px;border-radius:20px;font-size:12px;font-weight:600;cursor:pointer;white-space:nowrap;">Adicionar</button>`
-            }
+            ${actionHtml}
           </div>`;
       }).join("");
 
       dropdown.style.display = "block";
     } catch (err) {
+      console.error("FriendSearch error:", err);
       dropdown.innerHTML = `<div style="padding:14px 16px;color:#a93226;font-size:13px;">Erro: ${err.message}</div>`;
       dropdown.style.display = "block";
     }
   }
 
   // ── Ações ──────────────────────────────────────────────────────────────────
-  window.fsAddFriend = async function(friendId, btn) {
+  window.fsAddFriend = async function (friendId, btn) {
     btn.disabled = true;
     btn.textContent = "...";
     try {
-      await apiFetch("/friendships/", {
-        method: "POST",
-        body: JSON.stringify({ user_id: myId, friend_id: friendId, status: "accepted" }),
-      });
-      btn.textContent = "✓ Adicionado";
-      btn.style.background = "#1a7a52";
-      btn.style.color = "#fff";
-      
-      // 🔄 ATUALIZA O CARD DE AMIGOS AUTOMATICAMENTE
+      const friendship = await api.createFriendship(myId, friendId, "pending");
+      btn.textContent = "Pedido enviado";
+      btn.style.background = "#f7f4fd";
+      btn.style.color = "#7c5cbf";
+      btn.disabled = true;
+
       if (typeof window.refreshFriendsCard === "function") {
         await window.refreshFriendsCard();
       }
-      
-      // Refresca os resultados
       setTimeout(() => fetchAndRender(searchInput.value.trim().toLowerCase()), 600);
     } catch (err) {
+      console.error("Error adding friend:", err);
       btn.textContent = "Erro";
       btn.disabled = false;
     }
   };
 
-  window.fsRemoveFriend = async function(friendshipId, btn) {
+  window.fsAcceptFriend = async function (friendshipId, btn) {
     if (!friendshipId) return;
     btn.disabled = true;
     btn.textContent = "...";
     try {
-      await apiFetch(`/friendships/${friendshipId}`, { method: "DELETE" });
-      btn.textContent = "Removido";
-      btn.style.background = "#a93226";
+      await api.updateFriendship(friendshipId, { status: "accepted" });
+      btn.textContent = "Aceito";
+      btn.style.background = "#1a7a52";
       btn.style.color = "#fff";
-      
-      // 🔄 ATUALIZA O CARD DE AMIGOS AUTOMATICAMENTE
       if (typeof window.refreshFriendsCard === "function") {
         await window.refreshFriendsCard();
       }
-      
       setTimeout(() => fetchAndRender(searchInput.value.trim().toLowerCase()), 600);
     } catch (err) {
+      console.error("Error accepting friend:", err);
+      btn.textContent = "Erro";
+      btn.disabled = false;
+    }
+  };
+
+  window.fsRejectFriend = async function (friendshipId, btn) {
+    if (!friendshipId) return;
+    btn.disabled = true;
+    btn.textContent = "...";
+    try {
+      await api.updateFriendship(friendshipId, { status: "rejected" });
+      btn.textContent = "Recusado";
+      btn.style.background = "#fff";
+      btn.style.color = "#7c5cbf";
+      if (typeof window.refreshFriendsCard === "function") {
+        await window.refreshFriendsCard();
+      }
+      setTimeout(() => fetchAndRender(searchInput.value.trim().toLowerCase()), 600);
+    } catch (err) {
+      console.error("Error rejecting friend:", err);
+      btn.textContent = "Erro";
+      btn.disabled = false;
+    }
+  };
+
+  window.fsRemoveFriend = async function (friendshipId, btn) {
+    if (!friendshipId) return;
+    btn.disabled = true;
+    btn.textContent = "...";
+    try {
+      await api.deleteFriendship(friendshipId);
+      btn.textContent = "Removido";
+      btn.style.background = "#a93226";
+      btn.style.color = "#fff";
+      if (typeof window.refreshFriendsCard === "function") {
+        await window.refreshFriendsCard();
+      }
+      setTimeout(() => fetchAndRender(searchInput.value.trim().toLowerCase()), 600);
+    } catch (err) {
+      console.error("Error removing friend:", err);
       btn.textContent = "Erro";
       btn.disabled = false;
     }

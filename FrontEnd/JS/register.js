@@ -1,14 +1,10 @@
-const SESSION_KEY = "votesync.session";
+/* ── VoteSync — register.js ── */
 
+// ── DOM REFS ──────────────────────────────────────────────────────────────────
 const registerForm = document.querySelector("#register-form");
 const authStatus   = document.querySelector("#auth-status");
 
-// ── Storage helpers ───────────────────────────────────────────────────────────
-function saveSession(session) {
-    localStorage.setItem(SESSION_KEY, JSON.stringify(session));
-}
-
-// ── UI helpers ────────────────────────────────────────────────────────────────
+// ── UI HELPERS ────────────────────────────────────────────────────────────────
 function setStatus(message, tone = "") {
     authStatus.textContent = message;
     authStatus.classList.remove("is-error", "is-success");
@@ -32,7 +28,7 @@ function setSubmitLoading(loading) {
     btn.textContent = loading ? "Please wait..." : btn.dataset.defaultText;
 }
 
-// ── Password toggles ──────────────────────────────────────────────────────────
+// ── PASSWORD TOGGLES ──────────────────────────────────────────────────────────
 document.querySelectorAll("[data-toggle-password]").forEach((btn) => {
     btn.addEventListener("click", () => {
         const input = document.querySelector(`#${btn.dataset.togglePassword}`);
@@ -43,7 +39,7 @@ document.querySelectorAll("[data-toggle-password]").forEach((btn) => {
     });
 });
 
-// ── Pre-fill name from index.html hero form ───────────────────────────────────
+// ── PRE-FILL NOME DO INDEX ────────────────────────────────────────────────────
 (function prefillName() {
     const params    = new URLSearchParams(window.location.search);
     const name      = params.get("name");
@@ -51,7 +47,7 @@ document.querySelectorAll("[data-toggle-password]").forEach((btn) => {
     if (name && nameInput) nameInput.value = name;
 })();
 
-// ── Validation ────────────────────────────────────────────────────────────────
+// ── VALIDAÇÃO ─────────────────────────────────────────────────────────────────
 function validateRegister() {
     clearFieldErrors();
     const name    = document.querySelector("#register-name").value.trim();
@@ -71,62 +67,37 @@ function validateRegister() {
     return { valid, name, email, password: pass };
 }
 
-// ── Register ──────────────────────────────────────────────────────────────────
+// ── REGISTO ───────────────────────────────────────────────────────────────────
 registerForm.addEventListener("submit", async (e) => {
     e.preventDefault();
     clearFieldErrors();
 
-    if (!validateRegister()) return;
-    console.log("Registering user...");
+    const result = validateRegister();
+    if (!result.valid) return;
 
-    const dataRegist = {
-        name: document.getElementById("register-name").value.trim(),
-        email: document.getElementById("register-email").value.trim(),
-        password: document.getElementById("register-password").value
-    };
-
+    setSubmitLoading(true);
     try {
-
-        const resRegister = await fetch("/users/", {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify(dataRegist),
-        });
-
-        const newUser = await resRegister.json();
-        if (!resRegister.ok) {
-            if (resRegister.status === 400) setFieldError("register-email", "This email is already registered.");
-            throw new Error(newUser.detail || "Could not create account.");
-        }
-
-        const dataAuth = {
-            email: document.getElementById("register-email").value.trim(),
-            password: document.getElementById("register-password").value
-        };
+        // 1. Criar utilizador
+        await api.createUser(result.name, result.email, result.password);
 
         // 2. Login automático para obter sessão com ID real da BD
-        const resLogin = await fetch("/auth/login", {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify(dataAuth),
-        });
-        const session = await resLogin.json();
-        if (!resLogin.ok) throw new Error(session.detail || "Login após registo falhou.");
-        console.log("Logged in successfully after registration:", session);
-        saveSession(session);
+        const session = await api.login(result.email, result.password);
+
         registerForm.reset();
         setStatus("Account created successfully! Redirecting…", "is-success");
         setTimeout(() => {
-            window.location.href = session.user.is_admin === true ? "/static/HTML/admin.html" : "/static/HTML/dashboard.html";
+            window.location.href = session.user.is_admin === true
+                ? "/static/HTML/admin.html"
+                : "/static/HTML/dashboard.html";
         }, 1500);
     } catch (err) {
-        const message = err.detail || "Não foi possível criar a conta. Tente novamente.";
-
+        const message = err.message || "Não foi possível criar a conta. Tente novamente.";
         if (message.toLowerCase().includes("email")) {
-            setFieldError("register-email", "Este email já está registrado.");
+            setFieldError("register-email", "Este email já está registado.");
         } else {
             setFieldError("register-email", message);
         }
+    } finally {
+        setSubmitLoading(false);
     }
 });
-

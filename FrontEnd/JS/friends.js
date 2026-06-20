@@ -1,65 +1,40 @@
-/* ── VoteSync — Friends JS ligado à API real ── */
+/* ── VoteSync — Friends JS (REFATORIZADO COM api.js) ── */
 
-const SESSION_KEY = "votesync.session";
-const API = "http://localhost:8000";
+// ✅ IMPORTANTE: Adiciona isto no HTML antes deste script:
+// <script src="./api.js"></script>
 
-// ── SESSION ───────────────────────────────────────────────────────────────────
-function getSession() {
-    const raw = localStorage.getItem(SESSION_KEY);
-    if (!raw) return null;
-    try { return JSON.parse(raw); } catch { return null; }
-}
+// ── DOM REFS ──────────────────────────────────────────────────────────────────
+const searchInput = document.querySelector(".search-bar input");
+let searchResults = document.getElementById("search-results");
+const mainContainer = document.querySelector(".main-container");
 
-function ensureAuthenticated() {
-    const session = getSession();
-    if (!session || !session.user) window.location.href = "./index.html";
-}
-
-// ── LOGO / LOGOUT ─────────────────────────────────────────────────────────────
-function handleLogoClick(e) {
-    e.preventDefault();
-    const session = getSession();
-    if (session && session.user) {
-        window.location.href = session.user.is_admin ? "./admin.html" : "./dashboard.html";
-    } else {
-        window.location.href = "./index.html";
-    }
-}
-
-document.querySelector(".btn-logout")?.addEventListener("click", () => {
-    localStorage.removeItem(SESSION_KEY);
-    window.location.href = "./index.html";
-});
-
-// ── API ───────────────────────────────────────────────────────────────────────
-async function apiFetch(path, options = {}) {
-    const res = await fetch(`${API}${path}`, {
-        headers: { "Content-Type": "application/json" },
-        ...options,
-    });
-    if (res.status === 204) return null;
-    const data = await res.json();
-    if (!res.ok) throw new Error(data.detail || "Erro na API");
-    return data;
+// Criar searchResults se não existir
+if (!searchResults) {
+    searchResults = document.createElement("div");
+    searchResults.id = "search-results";
+    searchResults.style.cssText = "width:min(100%,760px);display:flex;flex-direction:column;gap:10px;margin-top:1.5rem;";
+    mainContainer.prepend(searchResults);
 }
 
 // ── STATE ─────────────────────────────────────────────────────────────────────
-let allUsers      = [];
+let allUsers = [];
 let myFriendships = [];
-const session     = getSession();
-const myId        = parseInt(session?.user?.id);
+const session = api.getSession();
+const myId = parseInt(session?.user?.id);
 
 // ── LOAD DATA ─────────────────────────────────────────────────────────────────
 async function loadData() {
     try {
         const [users, friendships] = await Promise.all([
-            apiFetch("/users/"),
-            apiFetch("/friendships/"),
+            api.getUsers(),
+            api.getFriendships()
         ]);
+
         allUsers = users.filter(u => u.id !== myId);
         myFriendships = friendships.filter(
             f => f.user_id === myId || f.friend_id === myId
         );
+
         renderFriends();
     } catch (err) {
         showMessage("Erro ao carregar dados: " + err.message, "error");
@@ -73,8 +48,90 @@ function getMyFriendIds() {
         .map(f => f.user_id === myId ? f.friend_id : f.user_id);
 }
 
+function renderPendingRequests() {
+    const incoming = myFriendships.filter(f => f.status === "pending" && f.friend_id === myId);
+    const outgoing = myFriendships.filter(f => f.status === "pending" && f.user_id === myId);
+
+    let incomingSection = document.getElementById("incoming-requests");
+    if (!incomingSection) {
+        incomingSection = document.createElement("div");
+        incomingSection.id = "incoming-requests";
+        incomingSection.style.cssText = "width:min(100%,760px);display:flex;flex-direction:column;gap:12px;margin-top:1rem;";
+        mainContainer.insertBefore(incomingSection, mainContainer.querySelector(".empty-state-container") || mainContainer.firstChild);
+    }
+
+    if (incoming.length === 0) {
+        incomingSection.innerHTML = "";
+    } else {
+        incomingSection.innerHTML = `
+            <div style="display:flex;align-items:center;justify-content:space-between;gap:10px;">
+                <div>
+                    <h2 style=\"margin:0;font-size:1.1rem;color:#2d2248;\">Pedidos de amizade pendentes</h2>
+                    <p style=\"margin:6px 0 0;color:#5f6678;font-size:0.95rem;\">Aceita ou recusa pedidos recebidos.</p>
+                </div>
+            </div>
+            ${incoming.map(f => {
+            const user = allUsers.find(u => u.id === f.user_id);
+            return `
+                    <div style="background:#fff;border-radius:16px;padding:14px 18px;display:flex;align-items:center;justify-content:space-between;box-shadow:0 2px 10px rgba(0,0,0,0.06);">
+                        <div style="display:flex;align-items:center;gap:12px;">
+                            <div style="width:42px;height:42px;border-radius:50%;background:linear-gradient(135deg,#9b7dd4,#5bc8e8);display:flex;align-items:center;justify-content:center;color:#fff;font-weight:700;font-size:15px;">
+                                ${initials(user?.name || "?")}
+                            </div>
+                            <div>
+                                <div style="font-weight:700;color:#182033">${user?.name || "Utilizador"}</div>
+                                <div style="font-size:13px;color:#5f6678">${user?.email || ""}</div>
+                            </div>
+                        </div>
+                        <div style="display:flex;gap:8px;">
+                            <button onclick="acceptFriend(${f.id})" style="border:none;background:#1a7a52;color:#fff;padding:7px 16px;border-radius:20px;font-size:13px;font-weight:600;cursor:pointer;">Aceitar</button>
+                            <button onclick="rejectFriend(${f.id})" style="border:1px solid #e0d5f5;background:#f7f4fd;color:#7c5cbf;padding:7px 16px;border-radius:20px;font-size:13px;font-weight:600;cursor:pointer;">Recusar</button>
+                        </div>
+                    </div>`;
+        }).join("")}
+        `;
+    }
+
+    let outgoingSection = document.getElementById("outgoing-requests");
+    if (!outgoingSection) {
+        outgoingSection = document.createElement("div");
+        outgoingSection.id = "outgoing-requests";
+        outgoingSection.style.cssText = "width:min(100%,760px);display:flex;flex-direction:column;gap:12px;margin-top:1rem;";
+        mainContainer.insertBefore(outgoingSection, mainContainer.querySelector("#friends-list") || null);
+    }
+
+    if (outgoing.length === 0) {
+        outgoingSection.innerHTML = "";
+    } else {
+        outgoingSection.innerHTML = `
+            <div style="display:flex;align-items:center;justify-content:space-between;gap:10px;">
+                <div>
+                    <h2 style=\"margin:0;font-size:1.1rem;color:#2d2248;\">Pedidos enviados</h2>
+                    <p style=\"margin:6px 0 0;color:#5f6678;font-size:0.95rem;\">Aguarda resposta dos utilizadores que adicionaste.</p>
+                </div>
+            </div>
+            ${outgoing.map(f => {
+            const user = allUsers.find(u => u.id === f.friend_id);
+            return `
+                    <div style="background:#fff;border-radius:16px;padding:14px 18px;display:flex;align-items:center;justify-content:space-between;box-shadow:0 2px 10px rgba(0,0,0,0.06);">
+                        <div style="display:flex;align-items:center;gap:12px;">
+                            <div style="width:42px;height:42px;border-radius:50%;background:linear-gradient(135deg,#9b7dd4,#5bc8e8);display:flex;align-items:center;justify-content:center;color:#fff;font-weight:700;font-size:15px;">
+                                ${initials(user?.name || "?")}
+                            </div>
+                            <div>
+                                <div style="font-weight:700;color:#182033">${user?.name || "Utilizador"}</div>
+                                <div style="font-size:13px;color:#5f6678">${user?.email || ""}</div>
+                            </div>
+                        </div>
+                        <button disabled style="border:1px solid #d6d0e8;background:#f7f4fd;color:#7c5cbf;padding:7px 16px;border-radius:20px;font-size:13px;font-weight:600;">Pedido enviado</button>
+                    </div>`;
+        }).join("")}
+        `;
+    }
+}
+
 function renderFriends() {
-    const friendIds   = getMyFriendIds();
+    const friendIds = getMyFriendIds();
     const friendUsers = allUsers.filter(u => friendIds.includes(u.id));
 
     const subtitle = document.querySelector(".main-subtitle");
@@ -90,6 +147,7 @@ function renderFriends() {
     if (friendUsers.length === 0) {
         if (emptySection) emptySection.style.display = "flex";
         if (friendsList) friendsList.innerHTML = "";
+        renderPendingRequests();
         return;
     }
 
@@ -99,13 +157,13 @@ function renderFriends() {
         friendsList = document.createElement("div");
         friendsList.id = "friends-list";
         friendsList.style.cssText = "width:min(100%,760px);display:flex;flex-direction:column;gap:12px;margin-top:1rem;";
-        document.querySelector(".main-container").appendChild(friendsList);
+        mainContainer.appendChild(friendsList);
     }
 
     friendsList.innerHTML = friendUsers.map(u => {
         const friendship = myFriendships.find(
             f => (f.user_id === myId && f.friend_id === u.id) ||
-                 (f.friend_id === myId && f.user_id === u.id)
+                (f.friend_id === myId && f.user_id === u.id)
         );
         return `
         <div style="background:#fff;border-radius:16px;padding:14px 18px;display:flex;align-items:center;justify-content:space-between;box-shadow:0 2px 10px rgba(0,0,0,0.06);">
@@ -124,19 +182,11 @@ function renderFriends() {
             </button>
         </div>`;
     }).join("");
+
+    renderPendingRequests();
 }
 
 // ── SEARCH ────────────────────────────────────────────────────────────────────
-const searchInput = document.querySelector(".search-bar input");
-let searchResults = document.getElementById("search-results");
-
-if (!searchResults) {
-    searchResults = document.createElement("div");
-    searchResults.id = "search-results";
-    searchResults.style.cssText = "width:min(100%,760px);display:flex;flex-direction:column;gap:10px;margin-top:1.5rem;";
-    document.querySelector(".main-container").prepend(searchResults);
-}
-
 searchInput?.addEventListener("input", () => {
     const query = searchInput.value.trim().toLowerCase();
     if (query.length < 2) { searchResults.innerHTML = ""; return; }
@@ -171,44 +221,55 @@ searchInput?.addEventListener("input", () => {
 });
 
 // ── ADD FRIEND ────────────────────────────────────────────────────────────────
-window.addFriend = async function(friendId) {
+window.addFriend = async function (friendId) {
     try {
-        const newFriendship = await apiFetch("/friendships/", {
-            method: "POST",
-            body: JSON.stringify({ user_id: myId, friend_id: friendId, status: "accepted" }),
-        });
-        myFriendships.push(newFriendship);
+        await api.createFriendship(myId, friendId, "pending");
         searchInput.value = "";
         searchResults.innerHTML = "";
+        await loadData();
         renderFriends();
-        Swal.fire({ icon: "success", title: "Amigo adicionado!", timer: 1500, showConfirmButton: false });
+        showSwal("success", "Pedido de amizade enviado!", 1500);
+    } catch (err) {
+        showMessage("Erro: " + err.message, "error");
+    }
+};
+
+window.acceptFriend = async function (friendshipId) {
+    if (!friendshipId) return;
+    try {
+        await api.updateFriendship(friendshipId, { status: "accepted" });
+        await loadData();
+        renderFriends();
+        showSwal("success", "Pedido aceite!", 1500);
+    } catch (err) {
+        showMessage("Erro: " + err.message, "error");
+    }
+};
+
+window.rejectFriend = async function (friendshipId) {
+    if (!friendshipId) return;
+    try {
+        await api.updateFriendship(friendshipId, { status: "rejected" });
+        await loadData();
+        renderFriends();
+        showSwal("success", "Pedido recusado.", 1500);
     } catch (err) {
         showMessage("Erro: " + err.message, "error");
     }
 };
 
 // ── REMOVE FRIEND ─────────────────────────────────────────────────────────────
-window.removeFriend = async function(friendshipId) {
+window.removeFriend = async function (friendshipId) {
     if (!friendshipId) return;
 
-    const result = await Swal.fire({
-        title: "Remover amigo?",
-        text: "Tens a certeza que queres remover este amigo?",
-        icon: "warning",
-        showCancelButton: true,
-        confirmButtonColor: "#7c5cbf",
-        cancelButtonColor: "#aaa",
-        confirmButtonText: "Sim, remover",
-        cancelButtonText: "Cancelar",
-    });
-
-    if (!result.isConfirmed) return;
+    const result = await showSwal("confirm", "Remover amigo?", "Tens a certeza que queres remover este amigo?");
+    if (!result) return;
 
     try {
-        await apiFetch(`/friendships/${friendshipId}`, { method: "DELETE" });
+        await api.deleteFriendship(friendshipId);
         myFriendships = myFriendships.filter(f => f.id !== friendshipId);
         renderFriends();
-        Swal.fire({ icon: "success", title: "Removido!", text: "Amigo removido com sucesso.", timer: 1500, showConfirmButton: false });
+        showSwal("success", "Removido!", "Amigo removido com sucesso.", 1500);
     } catch (err) {
         showMessage("Erro: " + err.message, "error");
     }
@@ -235,6 +296,47 @@ function showMessage(msg, type = "") {
     setTimeout(() => toast.remove(), 3000);
 }
 
+async function showSwal(type, title, text = "", timer = 0) {
+    if (typeof window.Swal === "undefined") {
+        if (type === "confirm") return window.confirm(text || title);
+        return true;
+    }
+
+    if (type === "confirm") {
+        const result = await window.Swal.fire({
+            title,
+            text,
+            icon: "warning",
+            showCancelButton: true,
+            confirmButtonColor: "#7c5cbf",
+            cancelButtonColor: "#aaa",
+            confirmButtonText: "Sim",
+            cancelButtonText: "Cancelar",
+        });
+        return result.isConfirmed;
+    }
+
+    if (type === "success") {
+        await window.Swal.fire({ icon: "success", title, timer, showConfirmButton: false });
+        return true;
+    }
+}
+
+// ── LOGOUT ────────────────────────────────────────────────────────────────────
+document.querySelector(".btn-logout")?.addEventListener("click", () => {
+    api.logout();
+});
+
+function handleLogoClick(e) {
+    e.preventDefault();
+    const session = api.getSession();
+    if (session && session.user) {
+        window.location.href = session.user.is_admin ? "./admin.html" : "./dashboard.html";
+    } else {
+        window.location.href = "./index.html";
+    }
+}
+
 // ── INIT ──────────────────────────────────────────────────────────────────────
-ensureAuthenticated();
+api.ensureAuthenticated();
 loadData();

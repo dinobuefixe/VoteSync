@@ -28,6 +28,7 @@ class UserResponse(BaseModel):
     name: str
     email: str
     profile_picture: str | None = None
+    is_admin: bool = False  # ✅ NOVO
 
     class Config:
         from_attributes = True
@@ -37,11 +38,20 @@ class UserResponse(BaseModel):
 # FRIENDSHIPS
 # ────────────────────────────────────────────────────────────────────────────────
 
-class FriendshipsBase(BaseModel):
+class FriendshipResponse(BaseModel):
+    id: int
+    user_id: int
+    friend_id: int
+    status: str
+
+    class Config:
+        from_attributes = True
+
+class FriendsBase(BaseModel):
     id: int | None = None
     user_id: int
     friend_id: int
-    status: str = "accepted"
+    status: str = "pending"
 
     class Config:
         from_attributes = True
@@ -49,18 +59,24 @@ class FriendshipsBase(BaseModel):
 class CreateFriendships(BaseModel):
     user_id: int
     friend_id: int
-    status: str = "accepted"
+    status: str = "pending"
 
     class Config:
         from_attributes = True
 
-# ✅ NOVO: Schema com dados do amigo
+class UpdateFriendships(BaseModel):
+    status: str
+
+    class Config:
+        from_attributes = True
+
 class FriendshipWithFriendData(BaseModel):
     id: int
     user_id: int
     friend_id: int
     status: str
-    friend: UserResponse  # ✅ Dados completos do amigo
+    user: UserResponse
+    friend: UserResponse
 
     class Config:
         from_attributes = True
@@ -88,6 +104,7 @@ class CreateGroupMembers(GroupMembersBase):
 
 class UserGroupsBase(BaseModel):
     name: str
+    description: str | None = None
 
     class Config:
         from_attributes = True
@@ -99,6 +116,8 @@ class CreateUserGroups(UserGroupsBase):
 class UserGroupsResponse(BaseModel):
     id: int
     name: str
+    description: str | None = None
+    members: List[dict] = []  # ✅ Incluir membros
 
     class Config:
         from_attributes = True
@@ -158,6 +177,14 @@ class VotesResponse(BaseModel):
 # DECISIONS
 # ────────────────────────────────────────────────────────────────────────────────
 
+class DecisionFriendResponse(BaseModel):
+    id: int
+    friendship_id: int
+    friendship: FriendshipWithFriendData  # ✅ Dados completos da friendship + amigo
+
+    class Config:
+        from_attributes = True
+
 class DecisionsBase(BaseModel):
     vote_id: str
     title: str
@@ -167,6 +194,7 @@ class DecisionsBase(BaseModel):
     created_by: str | None = None
     target_group_id: int | None = None
     created_at: str | None = None
+    target_friend_ids: List[int] = []  # ✅ IDs das friendships selecionadas
 
     class Config:
         from_attributes = True
@@ -186,6 +214,7 @@ class DecisionsResponse(BaseModel):
     target_group_id: int | None = None
     created_at: str | None = None
     options: List[OptionsResponse] = []
+    target_friends: List[DecisionFriendResponse] = []  # ✅ Amigos associados
 
     class Config:
         from_attributes = True
