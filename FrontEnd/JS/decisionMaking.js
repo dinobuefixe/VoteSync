@@ -1,52 +1,22 @@
-const SESSION_KEY = "votesync.session";
-const DECISION_TEMPLATE_KEY = "votesync.decision.latest";
-const DECISIONS_KEY = "votesync.decisions";
-const API = "http://localhost:8000";
+/* ── VoteSync — decisionMaking.js ── */
 
-const decisionTitle = document.querySelector("#decision-title");
-const decisionDescription = document.querySelector("#decision-description");
-const decisionDate = document.querySelector("#decision-date");
-const decisionTimeLeft = document.querySelector("#decision-time-left");
+// ── DOM REFS ──────────────────────────────────────────────────────────────────
+const decisionTitle            = document.querySelector("#decision-title");
+const decisionDescription      = document.querySelector("#decision-description");
+const decisionDate             = document.querySelector("#decision-date");
+const decisionTimeLeft         = document.querySelector("#decision-time-left");
 const decisionOptionsContainer = document.querySelector("#decision-options-container");
-const decisionTotalVotes = document.querySelector("#decision-total-votes");
-const decisionTotalOptions = document.querySelector("#decision-total-options");
-const decisionCreatedBy = document.querySelector("#decision-created-by");
-const decisionTargetGroup = document.querySelector("#decision-target-group");
-const decisionTargetFriends = document.querySelector("#decision-target-friends");
-const logoutButton = document.querySelector("#decision-logout-btn");
-
-// ── SESSION / API ─────────────────────────────────────────────────────────────
-function getSession() {
-    const raw = localStorage.getItem(SESSION_KEY);
-    if (!raw) return null;
-    try { return JSON.parse(raw); } catch { return null; }
-}
-
-function clearSession() { localStorage.removeItem(SESSION_KEY); }
-function redirectToLogin() { window.location.href = "./index.html"; }
-
-function ensureAuthenticated() {
-    const session = getSession();
-    if (!session || !session.user || !session.token) redirectToLogin();
-}
-
-async function apiFetch(path, options = {}) {
-    const res = await fetch(`${API}${path}`, {
-        headers: { "Content-Type": "application/json" },
-        ...options,
-    });
-    if (res.status === 204) return null;
-    const data = await res.json();
-    if (!res.ok) throw new Error(data.detail || "Erro na API");
-    return data;
-}
-
-const myId = getSession()?.user?.id;
+const decisionTotalVotes       = document.querySelector("#decision-total-votes");
+const decisionTotalOptions     = document.querySelector("#decision-total-options");
+const decisionCreatedBy        = document.querySelector("#decision-created-by");
+const decisionTargetGroup      = document.querySelector("#decision-target-group");
+const decisionTargetFriends    = document.querySelector("#decision-target-friends");
+const logoutButton             = document.querySelector("#decision-logout-btn");
 
 // ── LOGO / LOGOUT ─────────────────────────────────────────────────────────────
 function handleLogoClick(e) {
     e.preventDefault();
-    const session = getSession();
+    const session = api.getSession();
     if (session && session.user) {
         window.location.href = session.user.is_admin ? "./admin.html" : "./dashboard.html";
     } else {
@@ -54,39 +24,22 @@ function handleLogoClick(e) {
     }
 }
 
-function handleLogout() {
-    clearSession();
-    redirectToLogin();
-}
+function handleLogout() { api.logout(); }
 
-// ── DECISIONS (localStorage) ──────────────────────────────────────────────────
-function getDecisions() {
-    const raw = localStorage.getItem(DECISIONS_KEY);
-    if (!raw) return [];
-    try {
-        const parsed = JSON.parse(raw);
-        return Array.isArray(parsed) ? parsed : [];
-    } catch { return []; }
-}
-
+// ── HELPERS ───────────────────────────────────────────────────────────────────
 function getLatestDecision() {
-    const decisions = getDecisions();
-    if (decisions.length > 0) return decisions[decisions.length - 1];
-    const raw = localStorage.getItem(DECISION_TEMPLATE_KEY);
+    const raw = localStorage.getItem("votesync.decision.latest");
     if (!raw) return null;
     try { return JSON.parse(raw) || null; } catch { return null; }
 }
 
 function getTodayDate() {
     const now = new Date();
-    const day   = String(now.getDate()).padStart(2, "0");
-    const month = String(now.getMonth() + 1).padStart(2, "0");
-    const year  = now.getFullYear();
-    return `${day}/${month}/${year}`;
+    return `${String(now.getDate()).padStart(2, "0")}/${String(now.getMonth() + 1).padStart(2, "0")}/${now.getFullYear()}`;
 }
 
 function formatIsoToDisplay(isoDate) {
-    if (!isoDate || typeof isoDate !== "string" || !isoDate.includes("-")) return "";
+    if (!isoDate || !isoDate.includes("-")) return "";
     const [year, month, day] = isoDate.split("-");
     if (!year || !month || !day) return "";
     return `${day}/${month}/${year}`;
@@ -101,6 +54,7 @@ function calculateDaysLeft(endDateIso) {
     return Math.ceil((endDate.getTime() - today.getTime()) / (1000 * 60 * 60 * 24));
 }
 
+// ── RENDER OPTIONS ────────────────────────────────────────────────────────────
 function renderOptionCard(option, index) {
     const card = document.createElement("article");
     card.className = "option-card";
@@ -109,8 +63,9 @@ function renderOptionCard(option, index) {
     }
 
     const name = document.createElement("p");
-    name.className = "option-name";
-    name.textContent = option.name;
+    name.className   = "option-name";
+    // ✅ Suporta tanto option.name (criação) como option.option_text (API)
+    name.textContent = option.option_text || option.name || "";
 
     const votesWrap = document.createElement("div");
     votesWrap.className = "option-votes";
@@ -119,7 +74,7 @@ function renderOptionCard(option, index) {
     for (let i = 0; i < votesCount; i++) {
         const chip = document.createElement("button");
         chip.className = "vote-chip";
-        chip.type = "button";
+        chip.type      = "button";
         chip.innerHTML = '<i class="fa-regular fa-thumbs-up"></i>';
         votesWrap.appendChild(chip);
     }
@@ -129,66 +84,36 @@ function renderOptionCard(option, index) {
     return card;
 }
 
-function normalizeEntityName(entity, fallbackLabel) {
-    if (typeof entity === "string") return entity;
-    if (!entity || typeof entity !== "object") return fallbackLabel;
-    return entity.name || entity.title || entity.label || fallbackLabel;
-}
-
-// ── FETCH AMIGOS DA API ───────────────────────────────────────────────────────
-async function fetchFriendshipsByIds(friendshipIds) {
-    if (!Array.isArray(friendshipIds) || friendshipIds.length === 0) {
-        return [];
-    }
-
-    try {
-        // Buscar todos os friendships e filtrar pelos IDs
-        const allFriendships = await apiFetch("/friendships/");
-        
-        if (!Array.isArray(allFriendships)) {
-            return [];
-        }
-
-        // Filtrar pelos IDs solicitados
-        return allFriendships.filter(f => friendshipIds.includes(f.id));
-    } catch (error) {
-        console.error("Erro ao buscar amigos:", error);
-        return [];
-    }
-}
-
-// ── RENDERIZAR TARGETS COM DADOS DOS AMIGOS ───────────────────────────────────
-function renderDecisionTargets(decision, friendshipsData = []) {
+// ── RENDER TARGETS ────────────────────────────────────────────────────────────
+function renderDecisionTargets(decision) {
     if (decisionTargetGroup) {
-        const groupName = decision?.targetGroup ? normalizeEntityName(decision.targetGroup, "") : "";
+        const groupName = decision?.target_group_name || "";
         decisionTargetGroup.textContent = groupName || "Sem grupo associado";
     }
 
     if (!decisionTargetFriends) return;
     decisionTargetFriends.innerHTML = "";
 
-    // Usar dados da API para extrair nomes dos amigos
-    const targetFriends = friendshipsData
-        .map(f => normalizeEntityName(f, ""))
-        .filter(n => n && n.length > 0);
+    const targetFriends = Array.isArray(decision?.target_friends) ? decision.target_friends : [];
 
     if (targetFriends.length === 0) {
         const empty = document.createElement("span");
-        empty.className = "friend-empty";
+        empty.className   = "friend-empty";
         empty.textContent = "Sem amigos associados";
         decisionTargetFriends.appendChild(empty);
         return;
     }
 
-    targetFriends.forEach(friendName => {
+    targetFriends.forEach(df => {
+        const friendName = df?.friendship?.friend?.name || "Amigo desconhecido";
         const chip = document.createElement("span");
-        chip.className = "friend-chip";
+        chip.className   = "friend-chip";
         chip.textContent = friendName;
         decisionTargetFriends.appendChild(chip);
     });
 }
 
-// ── RENDERIZAR TEMPLATE DE DECISÃO ────────────────────────────────────────────
+// ── RENDER TEMPLATE ───────────────────────────────────────────────────────────
 async function renderDecisionTemplate() {
     const decision = getLatestDecision();
 
@@ -201,22 +126,41 @@ async function renderDecisionTemplate() {
         if (decisionTotalVotes)       decisionTotalVotes.textContent       = "0";
         if (decisionTotalOptions)     decisionTotalOptions.textContent     = "0";
         if (decisionCreatedBy)        decisionCreatedBy.textContent        = "-";
-        renderDecisionTargets(null, []);
+        renderDecisionTargets(null);
         return;
     }
 
+    // ✅ Se tiver id, vai buscar dados frescos da API (inclui target_friends)
+    if (decision.id) {
+        try {
+            const fresh = await api.getDecision(decision.id);
+            if (fresh) {
+                // Preservar target_group_name do localStorage
+                fresh.target_group_name = decision.target_group_name || "";
+                localStorage.setItem("votesync.decision.latest", JSON.stringify(fresh));
+                return renderWithData(fresh);
+            }
+        } catch (err) {
+            console.warn("Não foi possível buscar decisão da API, usando cache:", err);
+        }
+    }
+
+    renderWithData(decision);
+}
+
+function renderWithData(decision) {
     const options = Array.isArray(decision.options) ? decision.options : [];
 
     if (decisionTitle)       decisionTitle.textContent       = decision.title       || "Decisão sem título";
     if (decisionDescription) decisionDescription.textContent = decision.description || "Sem descrição disponível.";
 
     if (decisionDate) {
-        const endDateLabel = formatIsoToDisplay(decision.endDate);
+        const endDateLabel = formatIsoToDisplay(decision.end_date || decision.endDate);
         decisionDate.textContent = endDateLabel || decision.date || getTodayDate();
     }
 
     if (decisionTimeLeft) {
-        const daysLeft = calculateDaysLeft(decision.endDate);
+        const daysLeft = calculateDaysLeft(decision.end_date || decision.endDate);
         if      (daysLeft === null) decisionTimeLeft.textContent = "Sem prazo";
         else if (daysLeft < 0)     decisionTimeLeft.textContent = "Encerrada";
         else if (daysLeft === 0)   decisionTimeLeft.textContent = "Termina hoje";
@@ -232,18 +176,13 @@ async function renderDecisionTemplate() {
     const totalVotes = options.reduce((sum, o) => sum + Math.max(0, Number.isFinite(o.votes) ? o.votes : 0), 0);
     if (decisionTotalVotes)   decisionTotalVotes.textContent   = String(totalVotes);
     if (decisionTotalOptions) decisionTotalOptions.textContent = String(options.length);
-    if (decisionCreatedBy)    decisionCreatedBy.textContent    = decision.createdBy || "Utilizador";
+    if (decisionCreatedBy)    decisionCreatedBy.textContent    = decision.created_by || decision.createdBy || "Utilizador";
 
-    // ✅ NOVO: Buscar amigos da API e renderizar
-    let friendshipsData = [];
-    if (decision.targetFriends && Array.isArray(decision.targetFriends)) {
-        friendshipsData = await fetchFriendshipsByIds(decision.targetFriends);
-    }
-    renderDecisionTargets(decision, friendshipsData);
+    renderDecisionTargets(decision);
 }
 
 // ── INIT ──────────────────────────────────────────────────────────────────────
-ensureAuthenticated();
+api.ensureAuthenticated();
 renderDecisionTemplate();
 
 if (logoutButton) logoutButton.addEventListener("click", handleLogout);

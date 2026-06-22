@@ -1,14 +1,12 @@
-/* ── VoteSync — Friends JS ligado à API real ── */
+/* ── VoteSync — Friends JS (REFATORIZADO COM api.js) ── */
 
-const SESSION_KEY = "votesync.session";
-const API = "http://localhost:8000";
+// ✅ IMPORTANTE: Adiciona isto no HTML antes deste script:
+// <script src="./api.js"></script>
 
-// ── SESSION ───────────────────────────────────────────────────────────────────
-function getSession() {
-    const raw = localStorage.getItem(SESSION_KEY);
-    if (!raw) return null;
-    try { return JSON.parse(raw); } catch { return null; }
-}
+// ── DOM REFS ──────────────────────────────────────────────────────────────────
+const searchInput = document.querySelector(".search-bar input");
+let searchResults = document.getElementById("search-results");
+const mainContainer = document.querySelector(".main-container");
 
 function ensureAuthenticated() {
     const session = getSession();
@@ -44,18 +42,19 @@ async function apiFetch(path, options = {}) {
 }
 
 // ── STATE ─────────────────────────────────────────────────────────────────────
-let allUsers      = [];
+let allUsers = [];
 let myFriendships = [];
-const session     = getSession();
-const myId        = parseInt(session?.user?.id);
+const session = api.getSession();
+const myId = parseInt(session?.user?.id);
 
 // ── LOAD DATA ─────────────────────────────────────────────────────────────────
 async function loadData() {
     try {
         const [users, friendships] = await Promise.all([
-            apiFetch("/users/"),
-            apiFetch("/friendships/"),
+            api.getUsers(),
+            api.getFriendships()
         ]);
+
         allUsers = users.filter(u => u.id !== myId);
         myFriendships = friendships.filter(
             f => f.user_id === myId || f.friend_id === myId
@@ -145,19 +144,11 @@ function renderFriends(friendsIds, whichfriends) {
             </div>
         `;
     }).join("");
+
+    renderPendingRequests();
 }
 
 // ── SEARCH ────────────────────────────────────────────────────────────────────
-const searchInput = document.querySelector(".search-bar input");
-let searchResults = document.getElementById("search-results");
-
-if (!searchResults) {
-    searchResults = document.createElement("div");
-    searchResults.id = "search-results";
-    searchResults.style.cssText = "width:min(100%,760px);display:flex;flex-direction:column;gap:10px;margin-top:1.5rem;";
-    document.querySelector(".main-container").prepend(searchResults);
-}
-
 searchInput?.addEventListener("input", () => {
     const query = searchInput.value.trim().toLowerCase();
     if (query.length < 2) { searchResults.innerHTML = ""; return; }
@@ -192,7 +183,7 @@ searchInput?.addEventListener("input", () => {
 });
 
 // ── ADD FRIEND ────────────────────────────────────────────────────────────────
-window.addFriend = async function(friendId) {
+window.addFriend = async function (friendId) {
     try {
         const newFriendship = await apiFetch("/friendships/", {
             method: "POST",
@@ -256,7 +247,7 @@ window.removeFriend = async function(friendshipId) {
     if (!result.isConfirmed) return;
 
     try {
-        await apiFetch(`/friendships/${friendshipId}`, { method: "DELETE" });
+        await api.deleteFriendship(friendshipId);
         myFriendships = myFriendships.filter(f => f.id !== friendshipId);
         const friendsIds = getMyFriendIds();
         renderFriends(friendsIds, "accepted");
@@ -288,6 +279,47 @@ function showMessage(msg, type = "") {
     setTimeout(() => toast.remove(), 3000);
 }
 
+async function showSwal(type, title, text = "", timer = 0) {
+    if (typeof window.Swal === "undefined") {
+        if (type === "confirm") return window.confirm(text || title);
+        return true;
+    }
+
+    if (type === "confirm") {
+        const result = await window.Swal.fire({
+            title,
+            text,
+            icon: "warning",
+            showCancelButton: true,
+            confirmButtonColor: "#7c5cbf",
+            cancelButtonColor: "#aaa",
+            confirmButtonText: "Sim",
+            cancelButtonText: "Cancelar",
+        });
+        return result.isConfirmed;
+    }
+
+    if (type === "success") {
+        await window.Swal.fire({ icon: "success", title, timer, showConfirmButton: false });
+        return true;
+    }
+}
+
+// ── LOGOUT ────────────────────────────────────────────────────────────────────
+document.querySelector(".btn-logout")?.addEventListener("click", () => {
+    api.logout();
+});
+
+function handleLogoClick(e) {
+    e.preventDefault();
+    const session = api.getSession();
+    if (session && session.user) {
+        window.location.href = session.user.is_admin ? "./admin.html" : "./dashboard.html";
+    } else {
+        window.location.href = "./index.html";
+    }
+}
+
 // ── INIT ──────────────────────────────────────────────────────────────────────
-ensureAuthenticated();
+api.ensureAuthenticated();
 loadData();

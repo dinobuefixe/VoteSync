@@ -1,6 +1,6 @@
-const USERS_KEY   = "votesync.users";
-const SESSION_KEY = "votesync.session";
+/* ── VoteSync — login.js ── */
 
+// ── DOM REFS ──────────────────────────────────────────────────────────────────
 const loginForm          = document.querySelector("#login-form");
 const forgotForm         = document.querySelector("#forgot-form");
 const authStatus         = document.querySelector("#auth-status");
@@ -12,22 +12,7 @@ const sessionRow         = document.querySelector("#session-row");
 const sessionText        = document.querySelector("#session-text");
 const logoutBtn          = document.querySelector("#logout-btn");
 
-// ── Storage helpers ───────────────────────────────────────────────────────────
-function saveSession(session) {
-    localStorage.setItem(SESSION_KEY, JSON.stringify(session));
-}
-
-function getSession() {
-    const raw = localStorage.getItem(SESSION_KEY);
-    if (!raw) return null;
-    try { return JSON.parse(raw); } catch { return null; }
-}
-
-function clearSession() {
-    localStorage.removeItem(SESSION_KEY);
-}
-
-// ── UI helpers ────────────────────────────────────────────────────────────────
+// ── UI HELPERS ────────────────────────────────────────────────────────────────
 function setStatus(message, tone = "") {
     authStatus.textContent = message;
     authStatus.classList.remove("is-error", "is-success");
@@ -52,35 +37,33 @@ function setSubmitLoading(form, loading) {
 }
 
 function showSession(user) {
-    if (sessionRow) sessionRow.hidden = false;
+    if (sessionRow)  sessionRow.hidden = false;
     if (sessionText) sessionText.textContent = `Logged in as ${user.name || user.email}`;
 }
 
 function hideSession() {
-    if (sessionRow) sessionRow.hidden = true;
+    if (sessionRow)  sessionRow.hidden = true;
     if (sessionText) sessionText.textContent = "";
 }
 
 function redirectAfterLogin(user) {
-    if (user.is_admin === true) {
-        window.location.href = "/static/HTML/admin.html";
-    } else {
-        window.location.href = "/static/HTML/dashboard.html";
-    }
+    window.location.href = user.is_admin === true
+        ? "/static/HTML/admin.html"
+        : "/static/HTML/dashboard.html";
 }
 
-// ── Form switching ────────────────────────────────────────────────────────────
+// ── FORM SWITCHING ────────────────────────────────────────────────────────────
 function showForm(which) {
-    loginForm.hidden  = which !== "login";
-    forgotForm.hidden = which !== "forgot";
-    switchLogin.hidden  = which !== "login";
-    switchForgot.hidden = which !== "forgot";
+    loginForm.hidden        = which !== "login";
+    forgotForm.hidden       = which !== "forgot";
+    switchLogin.hidden      = which !== "login";
+    switchForgot.hidden     = which !== "forgot";
     clearFieldErrors(loginForm);
     clearFieldErrors(forgotForm);
     setStatus("");
 }
 
-// ── Password toggles ──────────────────────────────────────────────────────────
+// ── PASSWORD TOGGLES ──────────────────────────────────────────────────────────
 document.querySelectorAll("[data-toggle-password]").forEach((btn) => {
     btn.addEventListener("click", () => {
         const input = document.querySelector(`#${btn.dataset.togglePassword}`);
@@ -91,7 +74,7 @@ document.querySelectorAll("[data-toggle-password]").forEach((btn) => {
     });
 });
 
-// ── Login ─────────────────────────────────────────────────────────────────────
+// ── LOGIN ─────────────────────────────────────────────────────────────────────
 function validateLogin() {
     clearFieldErrors(loginForm);
     const email    = document.querySelector("#login-email").value.trim();
@@ -111,7 +94,7 @@ loginForm.addEventListener("submit", async (e) => {
 
     setSubmitLoading(loginForm, true);
     try {
-
+        
         const dataAuth = {
             email: document.getElementById("login-email").value.trim(),
             password: document.getElementById("login-password").value
@@ -138,7 +121,7 @@ loginForm.addEventListener("submit", async (e) => {
     }
 });
 
-// ── Forgot / Reset ────────────────────────────────────────────────────────────
+// ── FORGOT / RESET ────────────────────────────────────────────────────────────
 function validateForgot() {
     clearFieldErrors(forgotForm);
     const email   = document.querySelector("#forgot-email").value.trim();
@@ -163,7 +146,7 @@ forgotPasswordLink.addEventListener("click", (e) => {
 
 if (backToLoginBtn) backToLoginBtn.addEventListener("click", () => showForm("login"));
 
-forgotForm.addEventListener("submit", (e) => {
+forgotForm.addEventListener("submit", async (e) => {
     e.preventDefault();
     setStatus("");
     const result = validateForgot();
@@ -171,16 +154,12 @@ forgotForm.addEventListener("submit", (e) => {
 
     setSubmitLoading(forgotForm, true);
     try {
-        const users = JSON.parse(localStorage.getItem(USERS_KEY) || "[]");
-        const idx   = users.findIndex((u) => u.email.toLowerCase() === result.email.toLowerCase());
-        if (idx === -1) { setFieldError("forgot-email", "Email not found."); throw new Error("No account for this email."); }
+        // ✅ Reset de password via API
+        await api.post("/auth/reset-password", { email: result.email, password: result.password });
 
-        users[idx].password = result.password;
-        localStorage.setItem(USERS_KEY, JSON.stringify(users));
         forgotForm.reset();
-
         const loginEmail = document.querySelector("#login-email");
-        if (loginEmail) loginEmail.value = users[idx].email;
+        if (loginEmail) loginEmail.value = result.email;
 
         setStatus("Password updated. You can sign in now.", "is-success");
         setTimeout(() => showForm("login"), 1800);
@@ -191,16 +170,16 @@ forgotForm.addEventListener("submit", (e) => {
     }
 });
 
-// ── Logout ────────────────────────────────────────────────────────────────────
-logoutBtn.addEventListener("click", () => {
-    clearSession();
+// ── LOGOUT ────────────────────────────────────────────────────────────────────
+logoutBtn?.addEventListener("click", () => {
+    api.clearSession();
     hideSession();
     setStatus("You have logged out.", "is-success");
 });
 
-// ── Restaurar sessão ──────────────────────────────────────────────────────────
+// ── RESTAURAR SESSÃO ──────────────────────────────────────────────────────────
 (function restoreSession() {
-    const session = getSession();
+    const session = api.getSession();
     if (!session || !session.user) return hideSession();
     showSession(session.user);
     redirectAfterLogin(session.user);

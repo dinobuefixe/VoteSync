@@ -1,13 +1,9 @@
-const SESSION_KEY = "votesync.session";
+/* ── VoteSync — index.js ── */
 
-function getSession() {
-    const raw = localStorage.getItem(SESSION_KEY);
-    if (!raw) return null;
-    try { return JSON.parse(raw); } catch { return null; }
-}
+// ── LOGO / LOGIN ──────────────────────────────────────────────────────────────
 function handleLoginClick(e) {
     e.preventDefault();
-    const session = getSession();
+    const session = api.getSession();
     if (session && session.user) {
         window.location.href = session.user.is_admin ? "/static/HTML/admin.html" : "/static/HTML/dashboard.html";
     } else {
@@ -17,7 +13,7 @@ function handleLoginClick(e) {
 
 function handleLogoClick(e) {
     e.preventDefault();
-    const session = getSession();
+    const session = api.getSession();
     if (session && session.user) {
         window.location.href = session.user.is_admin ? "/static/HTML/admin.html" : "/static/HTML/dashboard.html";
     } else {
@@ -25,15 +21,15 @@ function handleLogoClick(e) {
     }
 }
 
-// Se já há sessão activa, redireciona para o dashboard
-const session = getSession();
+// ── REDIRECIONAR SE JÁ AUTENTICADO ───────────────────────────────────────────
+const session = api.getSession();
 if (session && session.user) {
     window.location.href = "/static/HTML/dashboard.html";
 }
 
-// Botão "Let's Go!" — passa o nome para o register
-const heroBtn  = document.querySelector(".hero-form button");
-const heroForm = document.querySelector(".hero-form");
+// ── HERO FORM ─────────────────────────────────────────────────────────────────
+const heroBtn       = document.querySelector(".hero-form button");
+const heroForm      = document.querySelector(".hero-form");
 const heroNameInput = document.querySelector("#hero-name");
 
 function goToRegister() {
@@ -44,5 +40,5 @@ function goToRegister() {
     window.location.href = url;
 }
 
-if (heroBtn) heroBtn.addEventListener("click", goToRegister);
+if (heroBtn)  heroBtn.addEventListener("click", goToRegister);
 if (heroForm) heroForm.addEventListener("submit", (e) => { e.preventDefault(); goToRegister(); });
