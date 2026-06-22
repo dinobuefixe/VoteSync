@@ -1,5 +1,5 @@
 from fastapi import APIRouter, Depends, HTTPException
-from sqlalchemy.orm import Session
+from sqlalchemy.orm import Session, joinedload  # ✅ Importar joinedload
 from typing import List
 from backend import models, schemas
 from backend.schemas import FriendshipUpdate
@@ -8,21 +8,29 @@ from backend.database import get_db
 router = APIRouter(prefix="/friendships", tags=["Friendships"])
 
 
-@router.get("/", response_model=List[schemas.FriendshipsBase])
+@router.get("/", response_model=List[schemas.FriendshipWithFriendData])
 def get_friendships(db: Session = Depends(get_db)):
-    return db.query(models.Friendships).all()
+    # ✅ Usar joinedload para carregar os dados do amigo
+    friendships = db.query(models.Friendships).options(
+        joinedload(models.Friendships.friend)
+    ).all()
+    return friendships
 
 
-@router.get("/{id}", response_model=schemas.FriendshipsBase)
+@router.get("/{id}", response_model=schemas.FriendshipWithFriendData)
 def get_friendship(id: int, db: Session = Depends(get_db)):
-    friendship = db.query(models.Friendships).filter(models.Friendships.id == id).first()
+    # ✅ Usar joinedload aqui também
+    friendship = db.query(models.Friendships).options(
+        joinedload(models.Friendships.friend)
+    ).filter(models.Friendships.id == id).first()
+    
     if not friendship:
         raise HTTPException(404, "Friendship not found")
     return friendship
 
 
-@router.post("/", response_model=schemas.FriendshipsBase)
-def create_friendship(friendship: schemas.FriendshipsBase, db: Session = Depends(get_db)):
+@router.post("/", response_model=schemas.FriendshipWithFriendData)
+def create_friendship(friendship: schemas.CreateFriendships, db: Session = Depends(get_db)):
     new_friendship = models.Friendships(**friendship.dict())
     db.add(new_friendship)
     db.commit()

@@ -1,6 +1,9 @@
 from pydantic import BaseModel
+from typing import Optional, List
 
-# users
+# ────────────────────────────────────────────────────────────────────────────────
+# USERS
+# ────────────────────────────────────────────────────────────────────────────────
 
 class UserBase(BaseModel):
     email: str
@@ -30,7 +33,9 @@ class UserResponse(BaseModel):
         from_attributes = True
 
 
-# friendships
+# ────────────────────────────────────────────────────────────────────────────────
+# FRIENDSHIPS
+# ────────────────────────────────────────────────────────────────────────────────
 
 class FriendshipsBase(BaseModel):
     id: int | None = None
@@ -41,7 +46,6 @@ class FriendshipsBase(BaseModel):
     class Config:
         from_attributes = True
 
-
 class CreateFriendships(BaseModel):
     user_id: int
     friend_id: int
@@ -50,11 +54,21 @@ class CreateFriendships(BaseModel):
     class Config:
         from_attributes = True
 
-
-class FriendshipUpdate(BaseModel):
+# ✅ NOVO: Schema com dados do amigo
+class FriendshipWithFriendData(BaseModel):
+    id: int
+    user_id: int
+    friend_id: int
     status: str
+    friend: UserResponse  # ✅ Dados completos do amigo
 
-# members
+    class Config:
+        from_attributes = True
+
+
+# ────────────────────────────────────────────────────────────────────────────────
+# GROUP MEMBERS
+# ────────────────────────────────────────────────────────────────────────────────
 
 class GroupMembersBase(BaseModel):
     group_id: int
@@ -63,13 +77,14 @@ class GroupMembersBase(BaseModel):
     class Config:
         from_attributes = True
 
-
 class CreateGroupMembers(GroupMembersBase):
     class Config:
         from_attributes = True
 
 
-# groups
+# ────────────────────────────────────────────────────────────────────────────────
+# USER GROUPS
+# ────────────────────────────────────────────────────────────────────────────────
 
 class UserGroupsBase(BaseModel):
     name: str
@@ -77,29 +92,45 @@ class UserGroupsBase(BaseModel):
     class Config:
         from_attributes = True
 
-
 class CreateUserGroups(UserGroupsBase):
     class Config:
         from_attributes = True
 
-
-# decisions
-
-class DecisionsBase(BaseModel):
-    vote_id: str
-    title: str
-    decision_text: str
+class UserGroupsResponse(BaseModel):
+    id: int
+    name: str
 
     class Config:
         from_attributes = True
 
 
-class CreateDecisions(DecisionsBase):
+# ────────────────────────────────────────────────────────────────────────────────
+# OPTIONS
+# ────────────────────────────────────────────────────────────────────────────────
+
+class OptionsBase(BaseModel):
+    vote_id: int
+    option_text: str
+
+    class Config:
+        from_attributes = True
+
+class CreateOptions(OptionsBase):
+    class Config:
+        from_attributes = True
+
+class OptionsResponse(BaseModel):
+    id: int
+    vote_id: int
+    option_text: str
+
     class Config:
         from_attributes = True
 
 
-# votes
+# ────────────────────────────────────────────────────────────────────────────────
+# VOTES
+# ────────────────────────────────────────────────────────────────────────────────
 
 class VotesBase(BaseModel):
     user_id: int
@@ -109,22 +140,52 @@ class VotesBase(BaseModel):
     class Config:
         from_attributes = True
 
-
 class CreateVotes(VotesBase):
     class Config:
         from_attributes = True
 
-
-# options
-
-class OptionsBase(BaseModel):
-    vote_id: int
-    option_text: str
+class VotesResponse(BaseModel):
+    id: int
+    user_id: int
+    decision_id: int
+    option_id: int
 
     class Config:
         from_attributes = True
 
 
-class CreateOptions(OptionsBase):
+# ────────────────────────────────────────────────────────────────────────────────
+# DECISIONS
+# ────────────────────────────────────────────────────────────────────────────────
+
+class DecisionsBase(BaseModel):
+    vote_id: str
+    title: str
+    decision_text: str
+    description: str | None = None
+    end_date: str | None = None
+    created_by: str | None = None
+    target_group_id: int | None = None
+    created_at: str | None = None
+
+    class Config:
+        from_attributes = True
+
+class CreateDecisions(DecisionsBase):
+    class Config:
+        from_attributes = True
+
+class DecisionsResponse(BaseModel):
+    id: int
+    vote_id: str
+    title: str
+    decision_text: str
+    description: str | None = None
+    end_date: str | None = None
+    created_by: str | None = None
+    target_group_id: int | None = None
+    created_at: str | None = None
+    options: List[OptionsResponse] = []
+
     class Config:
         from_attributes = True
