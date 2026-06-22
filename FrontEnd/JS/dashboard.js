@@ -602,4 +602,4 @@ initializeEndDateInput();
 
 window.refreshFriendsCard = async function () {
 	await updateFriendsCard();
-};
+}; 
