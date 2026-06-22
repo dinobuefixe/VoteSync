@@ -82,10 +82,14 @@ class CreateFriendships(BaseModel):
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 class FriendshipUpdate(BaseModel):
 =======
 class UpdateFriendships(BaseModel):
 >>>>>>> 94946f3 (Fix auth and friendships backend issues; update frontend deployment docs)
+=======
+class FriendshipUpdate(BaseModel):
+>>>>>>> c653642 (fix/register-fixes)
     status: str
 =======
 =======

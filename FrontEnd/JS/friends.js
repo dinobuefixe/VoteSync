@@ -89,10 +89,10 @@ async function loadData() {
 >>>>>>> 9224db4 (Fix auth and friendships backend issues; update frontend deployment docs)
 =======
         
-        const friendsIds = getMyFriendIds();
+        const friendsIds = getMyFriendIds("accepted");
         renderFriends(friendsIds, "accepted");
 
-        const pendingFriendsIds = getMyPendingFriendIds();
+        const pendingFriendsIds = getMyFriendIds("pending");
         renderFriends(pendingFriendsIds, "pending");
 
 >>>>>>> 7cbe1b4 (feat/friends:pending-friendship-requests)
@@ -109,7 +109,10 @@ function getMyFriendIds(type) {
 }
 
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
+=======
+>>>>>>> c653642 (fix/register-fixes)
 function renderPendingRequests() {
     const incoming = myFriendships.filter(f => f.status === "pending" && f.friend_id === myId);
     const outgoing = myFriendships.filter(f => f.status === "pending" && f.user_id === myId);
@@ -205,6 +208,8 @@ function getMyPendingFriendIds() {
         .filter(f => f.status === "pending")
         .map(f => f.user_id === myId ? f.friend_id : f.user_id);
 }
+=======
+>>>>>>> fd9f2bd (fix/register-fixes)
 
 function renderFriends(friendsIds, whichfriends) {
 
@@ -309,9 +314,12 @@ function renderFriends(friendsIds, whichfriends) {
     }).join("");
 
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
     renderPendingRequests();
 >>>>>>> 9224db4 (Fix auth and friendships backend issues; update frontend deployment docs)
+=======
+>>>>>>> c653642 (fix/register-fixes)
 }
 
 // ── SEARCH ────────────────────────────────────────────────────────────────────
