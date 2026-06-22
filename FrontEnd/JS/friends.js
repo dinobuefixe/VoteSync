@@ -88,17 +88,10 @@ function getMyPendingFriendIds() {
 function renderFriends(friendsIds, whichfriends) {
 
     const friendUsers = allUsers.filter(u => friendsIds.includes(u.id));
-
     const emptySection = document.querySelector(".empty-state-container");
     let friendsList = document.getElementById("friends-list");
 
-    if (friendUsers.length === 0) {
-        if (emptySection) emptySection.style.display = "flex";
-        if (friendsList) friendsList.innerHTML = "";
-        return;
-    }
-
-    if (emptySection) emptySection.style.display = "none";
+    if (emptySection) emptySection.style.display = "flex";
 
     friendsList = document.createElement("div");
     friendsList.id = "friends-list";

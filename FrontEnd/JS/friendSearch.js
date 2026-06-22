@@ -56,7 +56,7 @@
       ]);
 
       const myFriendIds = friendships
-        .filter(f => f.status === "accepted" && (f.user_id === myId || f.friend_id === myId))
+        .filter(f => f.status === "pending" && (f.user_id === myId || f.friend_id === myId))
         .map(f => f.user_id === myId ? f.friend_id : f.user_id);
 
       const results = users.filter(u =>
@@ -108,9 +108,9 @@
     try {
       await apiFetch("/friendships/", {
         method: "POST",
-        body: JSON.stringify({ user_id: myId, friend_id: friendId, status: "accepted" }),
+        body: JSON.stringify({ user_id: myId, friend_id: friendId, status: "pending" }),
       });
-      btn.textContent = "✓ Adicionado";
+      btn.textContent = "✓ Enviado";
       btn.style.background = "#1a7a52";
       btn.style.color = "#fff";
       
