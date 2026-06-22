@@ -92,5 +92,13 @@ Context / Functional Area: Group creation UI, decision target persistence, backe
 Problem Statement: Group member selection in the create group modal was broken and group creation failed with a backend 500 due to a schema mismatch. Saved decisions also were missing the selected group and friends on view detail, and a dashboard syntax error was preventing the decision creation flow from working reliably.
 Support Requested: Fix the `User_Groups` model and database schema, repair the group modal friend selection UI, ensure `target_group_id` and `target_friend_ids` are stored and returned correctly by the API, and update decision detail rendering so the creator plus selected friends appear properly.
 Project Outcome: Added `description` to `User_Groups` in `backend/models.py` and migrated the database schema; corrected `backend/routers/user_groups.py` create/update logic; fixed group modal checkbox selection in `FrontEnd/JS/groups.js` and CSS in `FrontEnd/Styles/groups.css`; repaired `FrontEnd/JS/dashboard.js` decision payload and syntax; applied eager loading in `backend/routers/decisions.py`; and updated `FrontEnd/JS/decisionMaking.js` so the decision view displays the correct group name and participant list.
+
+### 14. Friend Selection in Groups, Member Persistence & UX Improvement
+
+Tool Utilized: Claude AI 
+Context / Functional Area: Group creation/editing UI, backend schemas/routers, member management, frontend rendering 
+Problem Statement: Confusing select UI, no member_ids support, N+1 queries, incomplete member data 
+Support Requested: Checkboxes, member_ids, eager loading, API refactored 
+Project Outcome: 7 production-ready files (backend + frontend) 
 ***
 *End of Report. Compiled dynamically for project review documentation.*
