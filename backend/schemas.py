@@ -129,17 +129,25 @@ class UpdateFriendships(BaseModel):
     class Config:
         from_attributes = True
 
-
-class FriendshipUpdate(BaseModel):
+# ✅ NOVO: Schema com dados do amigo
+class FriendshipWithFriendData(BaseModel):
+    id: int
+    user_id: int
+    friend_id: int
     status: str
+    friend: UserResponse  # ✅ Dados completos do amigo
 
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 =======
+=======
+>>>>>>> 1d52963 (feat:Decision-making feature and decisions listing page (frontend + backend + database))
     class Config:
         from_attributes = True
 
 
+<<<<<<< HEAD
 >>>>>>> c3f90b4 (feat:Decision-making feature and decisions listing page (frontend + backend + database))
 =======
 
@@ -169,6 +177,11 @@ class GroupMemberUser(BaseModel):
 =======
 # members
 >>>>>>> 7cbe1b4 (feat/friends:pending-friendship-requests)
+=======
+# ────────────────────────────────────────────────────────────────────────────────
+# GROUP MEMBERS
+# ────────────────────────────────────────────────────────────────────────────────
+>>>>>>> 1d52963 (feat:Decision-making feature and decisions listing page (frontend + backend + database))
 
 class GroupMembersBase(BaseModel):
     id: int | None = None
@@ -178,6 +191,7 @@ class GroupMembersBase(BaseModel):
     class Config:
         from_attributes = True
 
+<<<<<<< HEAD
 class GroupMembersWithUser(BaseModel):
     """Membro do grupo com dados completos do utilizador"""
     id: int
@@ -188,6 +202,8 @@ class GroupMembersWithUser(BaseModel):
     class Config:
         from_attributes = True
 
+=======
+>>>>>>> fc68462 (feat:Decision-making feature and decisions listing page (frontend + backend + database))
 class CreateGroupMembers(GroupMembersBase):
     class Config:
         from_attributes = True
@@ -248,8 +264,44 @@ class UserGroupsResponse(BaseModel):
     class Config:
         from_attributes = True
 
+<<<<<<< HEAD
 
 # ────────────────────────────────────────────────────────────────────────────────
+# OPTIONS
+# ────────────────────────────────────────────────────────────────────────────────
+
+class OptionsBase(BaseModel):
+    vote_id: int
+    option_text: str
+
+    class Config:
+        from_attributes = True
+
+class CreateOptions(OptionsBase):
+    class Config:
+        from_attributes = True
+
+class OptionsResponse(BaseModel):
+    id: int
+    vote_id: int
+    option_text: str
+=======
+class CreateUserGroups(UserGroupsBase):
+    class Config:
+        from_attributes = True
+
+class UserGroupsResponse(BaseModel):
+    id: int
+    name: str
+>>>>>>> fc68462 (feat:Decision-making feature and decisions listing page (frontend + backend + database))
+
+    class Config:
+        from_attributes = True
+
+
+# ────────────────────────────────────────────────────────────────────────────────
+<<<<<<< HEAD
+=======
 # OPTIONS
 # ────────────────────────────────────────────────────────────────────────────────
 
@@ -274,6 +326,7 @@ class OptionsResponse(BaseModel):
 
 
 # ────────────────────────────────────────────────────────────────────────────────
+>>>>>>> fc68462 (feat:Decision-making feature and decisions listing page (frontend + backend + database))
 # VOTES
 # ────────────────────────────────────────────────────────────────────────────────
 
@@ -309,8 +362,11 @@ class VotesResponse(BaseModel):
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> 9224db4 (Fix auth and friendships backend issues; update frontend deployment docs)
+=======
+>>>>>>> 1d52963 (feat:Decision-making feature and decisions listing page (frontend + backend + database))
 class DecisionFriendResponse(BaseModel):
     id: int
     friendship_id: int
@@ -319,6 +375,7 @@ class DecisionFriendResponse(BaseModel):
     class Config:
         from_attributes = True
 
+<<<<<<< HEAD
 <<<<<<< HEAD
 =======
 >>>>>>> c3f90b4 (feat:Decision-making feature and decisions listing page (frontend + backend + database))
@@ -332,6 +389,10 @@ class DecisionFriendResponse(BaseModel):
 >>>>>>> c3f90b4 (feat:Decision-making feature and decisions listing page (frontend + backend + database))
 =======
 >>>>>>> 9224db4 (Fix auth and friendships backend issues; update frontend deployment docs)
+=======
+=======
+>>>>>>> fc68462 (feat:Decision-making feature and decisions listing page (frontend + backend + database))
+>>>>>>> 1d52963 (feat:Decision-making feature and decisions listing page (frontend + backend + database))
 class DecisionsBase(BaseModel):
     vote_id: str
     title: str
@@ -347,6 +408,7 @@ class DecisionsBase(BaseModel):
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
     target_friend_ids: List[int] = []  # ✅ IDs das friendships selecionadas
 =======
 >>>>>>> c3f90b4 (feat:Decision-making feature and decisions listing page (frontend + backend + database))
@@ -361,6 +423,11 @@ class DecisionsBase(BaseModel):
 =======
     target_friend_ids: List[int] = []  # ✅ IDs das friendships selecionadas
 >>>>>>> 9224db4 (Fix auth and friendships backend issues; update frontend deployment docs)
+=======
+    target_friend_ids: List[int] = []  # ✅ IDs das friendships selecionadas
+=======
+>>>>>>> fc68462 (feat:Decision-making feature and decisions listing page (frontend + backend + database))
+>>>>>>> 1d52963 (feat:Decision-making feature and decisions listing page (frontend + backend + database))
 
     class Config:
         from_attributes = True
@@ -386,6 +453,7 @@ class DecisionsResponse(BaseModel):
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
     target_friends: List[DecisionFriendResponse] = []  # ✅ Amigos associados
 =======
 >>>>>>> c3f90b4 (feat:Decision-making feature and decisions listing page (frontend + backend + database))
@@ -400,6 +468,11 @@ class DecisionsResponse(BaseModel):
 =======
     target_friends: List[DecisionFriendResponse] = []  # ✅ Amigos associados
 >>>>>>> 9224db4 (Fix auth and friendships backend issues; update frontend deployment docs)
+=======
+    target_friends: List[DecisionFriendResponse] = []  # ✅ Amigos associados
+=======
+>>>>>>> fc68462 (feat:Decision-making feature and decisions listing page (frontend + backend + database))
+>>>>>>> 1d52963 (feat:Decision-making feature and decisions listing page (frontend + backend + database))
 
     class Config:
         from_attributes = True

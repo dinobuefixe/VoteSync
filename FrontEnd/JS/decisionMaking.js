@@ -476,6 +476,7 @@ async function handleVote(optionId, buttonElement) {
     }
 }
 
+<<<<<<< HEAD
 >>>>>>> 5ff1690 (feat:DecisionMaking)
 // ── RENDER TARGETS ────────────────────────────────────────────────────────────
 function renderDecisionTargets(decision) {
@@ -486,6 +487,12 @@ function normalizeEntityName(entity, fallbackLabel) {
     return entity.name || entity.title || entity.label || fallbackLabel;
 }
 
+=======
+<<<<<<< HEAD
+// ── RENDER TARGETS ────────────────────────────────────────────────────────────
+function renderDecisionTargets(decision) {
+=======
+>>>>>>> 1d52963 (feat:Decision-making feature and decisions listing page (frontend + backend + database))
 // ── FETCH AMIGOS DA API ───────────────────────────────────────────────────────
 async function fetchFriendshipsByIds(friendshipIds) {
     if (!Array.isArray(friendshipIds) || friendshipIds.length === 0) {
@@ -514,6 +521,7 @@ function renderDecisionTargets(decision, friendshipsData = []) {
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> c3f90b4 (feat:Decision-making feature and decisions listing page (frontend + backend + database))
 =======
 >>>>>>> c3f90b4 (feat:Decision-making feature and decisions listing page (frontend + backend + database))
@@ -527,6 +535,9 @@ function renderDecisionTargets(decision, friendshipsData = []) {
 // ── RENDER TARGETS ────────────────────────────────────────────────────────────
 function renderDecisionTargets(decision) {
 >>>>>>> 9224db4 (Fix auth and friendships backend issues; update frontend deployment docs)
+=======
+>>>>>>> fc68462 (feat:Decision-making feature and decisions listing page (frontend + backend + database))
+>>>>>>> 1d52963 (feat:Decision-making feature and decisions listing page (frontend + backend + database))
     if (decisionTargetGroup) {
         const groupName = decision?.target_group_name || "";
         decisionTargetGroup.textContent = groupName || "Sem grupo associado";
@@ -541,6 +552,9 @@ function renderDecisionTargets(decision) {
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+=======
+>>>>>>> 1d52963 (feat:Decision-making feature and decisions listing page (frontend + backend + database))
     const targetFriends = Array.isArray(decision?.target_friends) ? decision.target_friends : [];
 <<<<<<< HEAD
 =======
@@ -575,7 +589,16 @@ function renderDecisionTargets(decision) {
 =======
     const creatorName = decision?.created_by || decision?.createdBy || "";
     const friendNames = [];
+<<<<<<< HEAD
 >>>>>>> e098cb0 (Fix group creation, decision target rendering, backend schema, and README documentation)
+=======
+=======
+    // Usar dados da API para extrair nomes dos amigos
+    const targetFriends = friendshipsData
+        .map(f => normalizeEntityName(f, ""))
+        .filter(n => n && n.length > 0);
+>>>>>>> fc68462 (feat:Decision-making feature and decisions listing page (frontend + backend + database))
+>>>>>>> 1d52963 (feat:Decision-making feature and decisions listing page (frontend + backend + database))
 
     if (creatorName) {
         friendNames.push(creatorName);
@@ -614,6 +637,7 @@ function renderDecisionTargets(decision) {
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 // ── RENDER TEMPLATE ───────────────────────────────────────────────────────────
 =======
 // ── RENDERIZAR TEMPLATE DE DECISÃO ────────────────────────────────────────────
@@ -633,10 +657,17 @@ function renderDecisionTargets(decision) {
 =======
 // ── RENDER TEMPLATE ───────────────────────────────────────────────────────────
 >>>>>>> 9224db4 (Fix auth and friendships backend issues; update frontend deployment docs)
+=======
+// ── RENDER TEMPLATE ───────────────────────────────────────────────────────────
+=======
+// ── RENDERIZAR TEMPLATE DE DECISÃO ────────────────────────────────────────────
+>>>>>>> fc68462 (feat:Decision-making feature and decisions listing page (frontend + backend + database))
+>>>>>>> 1d52963 (feat:Decision-making feature and decisions listing page (frontend + backend + database))
 async function renderDecisionTemplate() {
     const decision = getLatestDecision();
 
     if (!decision) {
+<<<<<<< HEAD
         if (decisionTitle) decisionTitle.textContent = "Sem decisões criadas";
         if (decisionDescription) decisionDescription.textContent = "Cria uma decisão no dashboard para ela aparecer aqui.";
         if (decisionDate) decisionDate.textContent = "--/--/----";
@@ -646,6 +677,17 @@ async function renderDecisionTemplate() {
         if (decisionTotalOptions) decisionTotalOptions.textContent = "0";
         if (decisionCreatedBy) decisionCreatedBy.textContent = "-";
         renderDecisionTargets(null);
+=======
+        if (decisionTitle)            decisionTitle.textContent            = "Sem decisões criadas";
+        if (decisionDescription)      decisionDescription.textContent      = "Cria uma decisão no dashboard para ela aparecer aqui.";
+        if (decisionDate)             decisionDate.textContent             = "--/--/----";
+        if (decisionTimeLeft)         decisionTimeLeft.textContent         = "Sem prazo";
+        if (decisionOptionsContainer) decisionOptionsContainer.innerHTML   = "";
+        if (decisionTotalVotes)       decisionTotalVotes.textContent       = "0";
+        if (decisionTotalOptions)     decisionTotalOptions.textContent     = "0";
+        if (decisionCreatedBy)        decisionCreatedBy.textContent        = "-";
+        renderDecisionTargets(null, []);
+>>>>>>> fc68462 (feat:Decision-making feature and decisions listing page (frontend + backend + database))
         return;
     }
 
@@ -759,7 +801,12 @@ async function renderWithData(decision) {
     if (decisionTotalOptions) decisionTotalOptions.textContent = String(options.length);
     if (decisionCreatedBy) decisionCreatedBy.textContent = decision.created_by || decision.createdBy || "Utilizador";
 
-    renderDecisionTargets(decision);
+    // ✅ NOVO: Buscar amigos da API e renderizar
+    let friendshipsData = [];
+    if (decision.targetFriends && Array.isArray(decision.targetFriends)) {
+        friendshipsData = await fetchFriendshipsByIds(decision.targetFriends);
+    }
+    renderDecisionTargets(decision, friendshipsData);
 }
 
 // ── INIT ──────────────────────────────────────────────────────────────────────

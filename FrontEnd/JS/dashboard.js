@@ -45,6 +45,7 @@ async function updateFriendsCard() {
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 =======
 >>>>>>> c3f90b4 (feat:Decision-making feature and decisions listing page (frontend + backend + database))
@@ -60,6 +61,13 @@ async function updateFriendsCard() {
 >>>>>>> c3f90b4 (feat:Decision-making feature and decisions listing page (frontend + backend + database))
 =======
 >>>>>>> 9224db4 (Fix auth and friendships backend issues; update frontend deployment docs)
+=======
+=======
+		const session = getSession();
+		const myId = parseInt(session?.user?.id);
+		
+>>>>>>> fc68462 (feat:Decision-making feature and decisions listing page (frontend + backend + database))
+>>>>>>> 1d52963 (feat:Decision-making feature and decisions listing page (frontend + backend + database))
 		const [users, friendships] = await Promise.all([
 			api.getUsers(),
 			api.getFriendships()
@@ -244,10 +252,14 @@ async function populateFriendsOptions(groups) {
 async function populateDecisionTargets() {
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+=======
+>>>>>>> 1d52963 (feat:Decision-making feature and decisions listing page (frontend + backend + database))
 =======
 	const groups = getStoredGroups();
 	populateGroupOptions(groups);
 	await populateFriendsOptions(groups);
+<<<<<<< HEAD
 =======
 	try {
 		const groups = await api.getUserGroups();
@@ -266,6 +278,75 @@ async function createDecisionOnAPI(decision) {
 		.filter(id => id !== undefined)
 		.map(id => parseInt(id));
 
+=======
+}
+
+function getGroupSortTimestamp(group, fallbackIndex) {
+	if (!group || typeof group !== "object") return fallbackIndex;
+	const rawValue = group.createdAt || group.updatedAt || "";
+	const parsed = Date.parse(rawValue);
+	if (!Number.isNaN(parsed)) return parsed;
+	return fallbackIndex;
+}
+
+function updateGroupsCard() {
+	if (!groupsPreviewList || !groupsCardEmpty) return;
+	const groups = getStoredArray(GROUPS_KEY)
+		.map((group, index) => {
+			const normalizedName = normalizeEntityName(group, `Grupo ${index + 1}`);
+			const members = typeof group === "object" && group && Array.isArray(group.members)
+				? group.members.map((member) => normalizeEntityName(member, "")).filter((value) => value.length > 0)
+				: [];
+			return { ...group, name: normalizedName, members, sortTimestamp: getGroupSortTimestamp(group, index) };
+		})
+		.sort((a, b) => b.sortTimestamp - a.sortTimestamp)
+		.slice(0, 3);
+
+	groupsPreviewList.innerHTML = "";
+	if (groups.length === 0) { groupsCardEmpty.hidden = false; return; }
+	groupsCardEmpty.hidden = true;
+
+	groups.forEach((group) => {
+		const item = document.createElement("article");
+		item.className = "group-preview-item";
+		const main = document.createElement("div");
+		main.className = "group-preview-main";
+		const name = document.createElement("strong");
+		name.className = "group-preview-name";
+		name.textContent = group.name || "Grupo sem nome";
+		const meta = document.createElement("small");
+		meta.className = "group-preview-meta";
+		meta.textContent = group.members.length === 1 ? "1 membro" : `${group.members.length} membros`;
+		const badge = document.createElement("span");
+		badge.className = "group-preview-badge";
+		badge.textContent = "Recente";
+		main.appendChild(name);
+		main.appendChild(meta);
+		item.appendChild(main);
+		item.appendChild(badge);
+		groupsPreviewList.appendChild(item);
+	});
+}
+
+function syncTargetsIfModalOpen() {
+	if (!decisionModalOverlay || decisionModalOverlay.hidden) return;
+	populateDecisionTargets();
+}
+
+function hasSwal() {
+	return typeof window !== "undefined" && typeof window.Swal !== "undefined";
+}
+
+function clearSession() { localStorage.removeItem(SESSION_KEY); }
+function saveLatestDecision(decision) { localStorage.setItem(DECISION_TEMPLATE_KEY, JSON.stringify(decision)); }
+
+// ── DECISIONS (API) ───────────────────────────────────────────────────────────
+// Agora que o schemas.py/decisions.py aceitam e devolvem description, end_date,
+// created_by, target_group_id e created_at, a API é a fonte de verdade.
+// O localStorage deixa de ser necessário como fallback para estes campos —
+// só guardamos targetFriendIds localmente, pois ainda não há tabela para isso.
+async function createDecisionOnAPI(decision) {
+>>>>>>> 1d52963 (feat:Decision-making feature and decisions listing page (frontend + backend + database))
 	const payload = {
 		vote_id: `decision_${Date.now()}`,
 		title: decision.title,
@@ -273,6 +354,7 @@ async function createDecisionOnAPI(decision) {
 		description: decision.description,
 		end_date: decision.endDate,
 		created_by: decision.createdBy,
+<<<<<<< HEAD
 		target_group_id: null,
 		created_at: new Date().toISOString(),
 		target_friend_ids: friendshipIds
@@ -283,11 +365,37 @@ async function createDecisionOnAPI(decision) {
 	// Criar as opções associadas
 	for (const option of decision.options) {
 		await api.createOption(created.id, option.name);
+=======
+		target_group_id: decision.targetGroup?.id ? parseInt(decision.targetGroup.id) || null : null,
+		created_at: new Date().toISOString()
+	};
+
+	const created = await apiFetch("/decisions/", {
+		method: "POST",
+		body: JSON.stringify(payload)
+	});
+
+	// targetFriendIds ainda não tem tabela própria — guarda-se localmente por agora
+	if (decision.targetFriendIds && decision.targetFriendIds.length > 0) {
+		localStorage.setItem(`decision_friends_${created.id}`, JSON.stringify(decision.targetFriendIds));
+	}
+
+	// Criar as opções associadas a esta decisão
+	for (const option of decision.options) {
+		await apiFetch("/options/", {
+			method: "POST",
+			body: JSON.stringify({
+				vote_id: created.id,
+				option_text: option.name
+			})
+		});
+>>>>>>> 1d52963 (feat:Decision-making feature and decisions listing page (frontend + backend + database))
 	}
 
 	return created;
 }
 
+<<<<<<< HEAD
 async function updateDecisionCards() {
 	try {
 		const decisions = await api.getDecisions();
@@ -348,6 +456,21 @@ function getDecisions() {
 	const raw = localStorage.getItem(DECISIONS_KEY);
 	if (!raw) return [];
 >>>>>>> c3f90b4 (feat:Decision-making feature and decisions listing page (frontend + backend + database))
+=======
+async function getDecisionsFromAPI() {
+	try {
+		return await apiFetch("/decisions/");
+	} catch (err) {
+		console.error("Erro ao buscar decisões:", err);
+		return [];
+	}
+}
+
+function getDecisions() {
+	const raw = localStorage.getItem(DECISIONS_KEY);
+	if (!raw) return [];
+>>>>>>> fc68462 (feat:Decision-making feature and decisions listing page (frontend + backend + database))
+>>>>>>> 1d52963 (feat:Decision-making feature and decisions listing page (frontend + backend + database))
 	try {
 		const groups = await api.getUserGroups();
 		await populateGroupOptions(groups);
@@ -728,6 +851,9 @@ function formatIsoDateToPt(isoDate) {
 
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+=======
+>>>>>>> 1d52963 (feat:Decision-making feature and decisions listing page (frontend + backend + database))
 =======
 function initializeEndDateInput() {
 	if (!decisionEndDateInput) return;
@@ -918,9 +1044,13 @@ async function handleCreateDecision() {
 
 function handleCancelDecision() { closeDecisionModal(); resetDecisionForm(); }
 
+<<<<<<< HEAD
 >>>>>>> c3f90b4 (feat:Decision-making feature and decisions listing page (frontend + backend + database))
 =======
 >>>>>>> 9224db4 (Fix auth and friendships backend issues; update frontend deployment docs)
+=======
+>>>>>>> fc68462 (feat:Decision-making feature and decisions listing page (frontend + backend + database))
+>>>>>>> 1d52963 (feat:Decision-making feature and decisions listing page (frontend + backend + database))
 function initializeDecisionModal() {
 	if (!decisionModalOverlay) return;
 	decisionModalOverlay.hidden = true;
@@ -971,6 +1101,7 @@ initializeEndDateInput();
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 // Aguarda completamente a atualização dos amigos
 >>>>>>> c3f90b4 (feat:Decision-making feature and decisions listing page (frontend + backend + database))
@@ -988,12 +1119,18 @@ initializeEndDateInput();
 >>>>>>> c3f90b4 (feat:Decision-making feature and decisions listing page (frontend + backend + database))
 =======
 >>>>>>> 9224db4 (Fix auth and friendships backend issues; update frontend deployment docs)
+=======
+=======
+// Aguarda completamente a atualização dos amigos
+>>>>>>> fc68462 (feat:Decision-making feature and decisions listing page (frontend + backend + database))
+>>>>>>> 1d52963 (feat:Decision-making feature and decisions listing page (frontend + backend + database))
 (async () => {
 	await updateFriendsCard();
 	await updateGroupsCard();
 	await updateDecisionCards();
 })();
 
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -1019,5 +1156,13 @@ window.refreshFriendsCard = async function() {
 =======
 window.refreshFriendsCard = async function () {
 >>>>>>> e098cb0 (Fix group creation, decision target rendering, backend schema, and README documentation)
+=======
+window.refreshFriendsCard = async function () {
+=======
+// EXPÕE A FUNÇÃO GLOBALMENTE
+// Para que friendSearch.js possa atualizar o card quando um amigo é adicionado
+window.refreshFriendsCard = async function() {
+>>>>>>> fc68462 (feat:Decision-making feature and decisions listing page (frontend + backend + database))
+>>>>>>> 1d52963 (feat:Decision-making feature and decisions listing page (frontend + backend + database))
 	await updateFriendsCard();
 }; 
