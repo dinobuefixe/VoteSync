@@ -211,6 +211,7 @@ function getMyPendingFriendIds() {
 function renderFriends(friendsIds, whichfriends) {
 
     const friendUsers = allUsers.filter(u => friendsIds.includes(u.id));
+<<<<<<< HEAD
 >>>>>>> 7cbe1b4 (feat/friends:pending-friendship-requests)
 
     const friendUsers = allUsers.filter(u => friendsIds.includes(u.id));
@@ -232,6 +233,12 @@ function renderFriends(friendsIds, whichfriends) {
     friendsList.id = "friends-list";
     friendsList.style.cssText = "width:min(100%,760px);display:flex;flex-direction:column;gap:12px;margin-top:1rem;";
     document.querySelector(".main-container").appendChild(friendsList);
+=======
+    const emptySection = document.querySelector(".empty-state-container");
+    let friendsList = document.getElementById("friends-list");
+
+    if (emptySection) emptySection.style.display = "flex";
+>>>>>>> d7339f2 (fix/search-bar-pending-friend-requests)
 
 <<<<<<< HEAD
 <<<<<<< HEAD
