@@ -76,6 +76,7 @@ Context / Functional Area: Decision-making feature and decisions listing page (f
 Problem Statement: Decisions weren't persisting correctly to the API — the Pydantic schema dropped key fields, the "view all" page was an accidental duplicate of the dashboard, and the database table was missing columns that already existed in the SQLAlchemy models, causing a 500 error on every fetch.
 Support Requested: Diagnosis and fix across the stack — schema/router updates, rebuilding the missing decisions page, refactoring its JS to use the live API, and a manual database migration.
 Project Outcome: Updated schemas and routers to expose full decision data with nested options; rebuilt decisions.html and refactored decisions.js to create, edit, and delete decisions via the API; applied a SQL migration adding the missing columns to the decisions table, resolving the error end to end.
+<<<<<<< HEAD
 
 ### 12. Full API Integration & Frontend Refactoring
 
@@ -100,5 +101,7 @@ Context / Functional Area: Group creation/editing UI, backend schemas/routers, m
 Problem Statement: Confusing select UI, no member_ids support, N+1 queries, incomplete member data 
 Support Requested: Checkboxes, member_ids, eager loading, API refactored 
 Project Outcome: 7 production-ready files (backend + frontend) 
+=======
+>>>>>>> f094ba3 (Fix auth and friendships backend issues; update frontend deployment docs)
 ***
 *End of Report. Compiled dynamically for project review documentation.*

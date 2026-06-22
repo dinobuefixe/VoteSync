@@ -6,8 +6,11 @@ from fastapi import APIRouter, Depends, HTTPException
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> 1d52963 (feat:Decision-making feature and decisions listing page (frontend + backend + database))
+=======
+>>>>>>> 94946f3 (Fix auth and friendships backend issues; update frontend deployment docs)
 from sqlalchemy import and_, or_
 from sqlalchemy.orm import Session, joinedload
 =======
@@ -32,7 +35,14 @@ from sqlalchemy.orm import Session, joinedload
 >>>>>>> 9224db4 (Fix auth and friendships backend issues; update frontend deployment docs)
 =======
 >>>>>>> fc68462 (feat:Decision-making feature and decisions listing page (frontend + backend + database))
+<<<<<<< HEAD
 >>>>>>> 1d52963 (feat:Decision-making feature and decisions listing page (frontend + backend + database))
+=======
+=======
+from sqlalchemy import and_, or_
+from sqlalchemy.orm import Session, joinedload
+>>>>>>> f094ba3 (Fix auth and friendships backend issues; update frontend deployment docs)
+>>>>>>> 94946f3 (Fix auth and friendships backend issues; update frontend deployment docs)
 from typing import List
 from backend import models, schemas
 from backend.schemas import FriendshipUpdate
@@ -50,8 +60,11 @@ def get_friendships(db: Session = Depends(get_db)):
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> 1d52963 (feat:Decision-making feature and decisions listing page (frontend + backend + database))
+=======
+>>>>>>> 94946f3 (Fix auth and friendships backend issues; update frontend deployment docs)
     friendships = db.query(models.Friendships).options(
         joinedload(models.Friendships.friend),
         joinedload(models.Friendships.user)
@@ -94,7 +107,18 @@ def get_friendships(db: Session = Depends(get_db)):
 >>>>>>> 9224db4 (Fix auth and friendships backend issues; update frontend deployment docs)
 =======
 >>>>>>> fc68462 (feat:Decision-making feature and decisions listing page (frontend + backend + database))
+<<<<<<< HEAD
 >>>>>>> 1d52963 (feat:Decision-making feature and decisions listing page (frontend + backend + database))
+=======
+=======
+    friendships = db.query(models.Friendships).options(
+        joinedload(models.Friendships.friend),
+        joinedload(models.Friendships.user)
+    ).filter(
+        models.Friendships.user.has(),
+        models.Friendships.friend.has()
+>>>>>>> f094ba3 (Fix auth and friendships backend issues; update frontend deployment docs)
+>>>>>>> 94946f3 (Fix auth and friendships backend issues; update frontend deployment docs)
     ).all()
     return friendships
 
@@ -108,8 +132,11 @@ def get_friendship(id: int, db: Session = Depends(get_db)):
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> 1d52963 (feat:Decision-making feature and decisions listing page (frontend + backend + database))
+=======
+>>>>>>> 94946f3 (Fix auth and friendships backend issues; update frontend deployment docs)
     friendship = db.query(models.Friendships).options(
         joinedload(models.Friendships.friend),
         joinedload(models.Friendships.user)
@@ -160,7 +187,20 @@ def get_friendship(id: int, db: Session = Depends(get_db)):
 >>>>>>> 9224db4 (Fix auth and friendships backend issues; update frontend deployment docs)
 =======
 >>>>>>> fc68462 (feat:Decision-making feature and decisions listing page (frontend + backend + database))
+<<<<<<< HEAD
 >>>>>>> 1d52963 (feat:Decision-making feature and decisions listing page (frontend + backend + database))
+=======
+=======
+    friendship = db.query(models.Friendships).options(
+        joinedload(models.Friendships.friend),
+        joinedload(models.Friendships.user)
+    ).filter(
+        models.Friendships.id == id,
+        models.Friendships.user.has(),
+        models.Friendships.friend.has()
+    ).first()
+>>>>>>> f094ba3 (Fix auth and friendships backend issues; update frontend deployment docs)
+>>>>>>> 94946f3 (Fix auth and friendships backend issues; update frontend deployment docs)
     
     if not friendship:
         raise HTTPException(404, "Friendship not found")
@@ -176,10 +216,15 @@ def create_friendship(friendship: schemas.CreateFriendships, db: Session = Depen
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> 9224db4 (Fix auth and friendships backend issues; update frontend deployment docs)
 =======
 >>>>>>> 1d52963 (feat:Decision-making feature and decisions listing page (frontend + backend + database))
+=======
+=======
+>>>>>>> f094ba3 (Fix auth and friendships backend issues; update frontend deployment docs)
+>>>>>>> 94946f3 (Fix auth and friendships backend issues; update frontend deployment docs)
     if friendship.user_id == friendship.friend_id:
         raise HTTPException(400, "Cannot create friendship with yourself")
 
@@ -229,6 +274,7 @@ def create_friendship(friendship: schemas.CreateFriendships, db: Session = Depen
     )
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 =======
 >>>>>>> c3f90b4 (feat:Decision-making feature and decisions listing page (frontend + backend + database))
@@ -247,6 +293,13 @@ def create_friendship(friendship: schemas.CreateFriendships, db: Session = Depen
     new_friendship = models.Friendships(**friendship.dict())
 >>>>>>> fc68462 (feat:Decision-making feature and decisions listing page (frontend + backend + database))
 >>>>>>> 1d52963 (feat:Decision-making feature and decisions listing page (frontend + backend + database))
+=======
+=======
+    new_friendship = models.Friendships(**friendship.dict())
+>>>>>>> fc68462 (feat:Decision-making feature and decisions listing page (frontend + backend + database))
+=======
+>>>>>>> f094ba3 (Fix auth and friendships backend issues; update frontend deployment docs)
+>>>>>>> 94946f3 (Fix auth and friendships backend issues; update frontend deployment docs)
     db.add(new_friendship)
     db.commit()
     db.refresh(new_friendship)

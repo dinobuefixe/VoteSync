@@ -14,11 +14,14 @@ def get_decisions(db: Session = Depends(get_db)):
         .options(
             joinedload(models.Decisions.options),
             joinedload(models.Decisions.target_friends)
+<<<<<<< HEAD
                 .joinedload(models.DecisionFriends.friendship)
                 .joinedload(models.Friendships.user),
             joinedload(models.Decisions.target_friends)
                 .joinedload(models.DecisionFriends.friendship)
                 .joinedload(models.Friendships.friend)
+=======
+>>>>>>> f094ba3 (Fix auth and friendships backend issues; update frontend deployment docs)
         ).all()
     return decisions
 
@@ -30,11 +33,14 @@ def get_decision(id: int, db: Session = Depends(get_db)):
         .options(
             joinedload(models.Decisions.options),
             joinedload(models.Decisions.target_friends)
+<<<<<<< HEAD
                 .joinedload(models.DecisionFriends.friendship)
                 .joinedload(models.Friendships.user),
             joinedload(models.Decisions.target_friends)
                 .joinedload(models.DecisionFriends.friendship)
                 .joinedload(models.Friendships.friend)
+=======
+>>>>>>> f094ba3 (Fix auth and friendships backend issues; update frontend deployment docs)
         )\
         .filter(models.Decisions.id == id).first()
     if not decision:
@@ -75,11 +81,14 @@ def create_decision(decision: schemas.DecisionsBase, db: Session = Depends(get_d
         .options(
             joinedload(models.Decisions.options),
             joinedload(models.Decisions.target_friends)
+<<<<<<< HEAD
                 .joinedload(models.DecisionFriends.friendship)
                 .joinedload(models.Friendships.user),
             joinedload(models.Decisions.target_friends)
                 .joinedload(models.DecisionFriends.friendship)
                 .joinedload(models.Friendships.friend)
+=======
+>>>>>>> f094ba3 (Fix auth and friendships backend issues; update frontend deployment docs)
         )\
         .filter(models.Decisions.id == new_decision.id).first()
 
@@ -121,11 +130,14 @@ def update_decision(id: int, updated: schemas.DecisionsBase, db: Session = Depen
         .options(
             joinedload(models.Decisions.options),
             joinedload(models.Decisions.target_friends)
+<<<<<<< HEAD
                 .joinedload(models.DecisionFriends.friendship)
                 .joinedload(models.Friendships.user),
             joinedload(models.Decisions.target_friends)
                 .joinedload(models.DecisionFriends.friendship)
                 .joinedload(models.Friendships.friend)
+=======
+>>>>>>> f094ba3 (Fix auth and friendships backend issues; update frontend deployment docs)
         )\
         .filter(models.Decisions.id == id).first()
 

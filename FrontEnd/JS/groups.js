@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 /* ── VoteSync — groups.js (ATUALIZADO COM CHECKBOXES) ── */
 
 // ── DOM REFS ──────────────────────────────────────────────────────────────────
@@ -17,13 +18,37 @@ const groupFriendsEmpty = document.querySelector("#group-friends-empty");
 const groupFormMessage = document.querySelector("#group-form-message");
 const groupModalTitle = document.querySelector("#group-modal-title");
 const groupModalSubmit = document.querySelector("#group-modal-submit");
+=======
+/* ── VoteSync — groups.js ── */
+
+// ── DOM REFS ──────────────────────────────────────────────────────────────────
+const groupsSubtitle      = document.querySelector("#groups-subtitle");
+const groupsEmptyState    = document.querySelector("#groups-empty-state");
+const groupsList          = document.querySelector("#groups-list");
+const modalOverlay        = document.querySelector("#group-modal-overlay");
+const openModalButton     = document.querySelector("#open-create-group-modal");
+const openModalFromEmpty  = document.querySelector("#open-create-group-empty");
+const closeModalButton    = document.querySelector("#close-group-modal");
+const cancelModalButton   = document.querySelector("#cancel-group-modal");
+const groupForm           = document.querySelector("#group-form");
+const groupNameInput      = document.querySelector("#group-name-input");
+const groupDescriptionInput = document.querySelector("#group-description-input");
+const groupFriendsSelect  = document.querySelector("#group-friends-select");
+const groupFormMessage    = document.querySelector("#group-form-message");
+const groupModalTitle     = document.querySelector("#group-modal-title");
+const groupModalSubmit    = document.querySelector("#group-modal-submit");
+>>>>>>> f094ba3 (Fix auth and friendships backend issues; update frontend deployment docs)
 
 // ── STATE ─────────────────────────────────────────────────────────────────────
 let editingGroupId = null;
-let cachedFriends = [];
+let cachedFriends  = [];
 
 const session = api.getSession();
+<<<<<<< HEAD
 const myId = parseInt(session?.user?.id);
+=======
+const myId    = parseInt(session?.user?.id);
+>>>>>>> f094ba3 (Fix auth and friendships backend issues; update frontend deployment docs)
 
 // ── LOGO ──────────────────────────────────────────────────────────────────────
 function handleLogoClick(e) {
@@ -73,14 +98,15 @@ function showValidationMessage(message) {
 function setModalMode(mode) {
     if (!groupModalTitle || !groupModalSubmit) return;
     if (mode === "edit") {
-        groupModalTitle.textContent = "Editar grupo";
+        groupModalTitle.textContent  = "Editar grupo";
         groupModalSubmit.textContent = "Guardar alterações";
         return;
     }
-    groupModalTitle.textContent = "Criar novo grupo";
+    groupModalTitle.textContent  = "Criar novo grupo";
     groupModalSubmit.textContent = "Criar grupo";
 }
 
+<<<<<<< HEAD
 // ── RENDERIZAR CHECKBOXES DE AMIGOS ───────────────────────────────────────────
 function populateFriendsCheckboxes(selectedIds = []) {
     if (!groupFriendsContainer) return;
@@ -92,6 +118,19 @@ function populateFriendsCheckboxes(selectedIds = []) {
             groupFriendsEmpty.textContent = "Sem amigos disponíveis";
             groupFriendsEmpty.hidden = false;
         }
+=======
+function populateFriendsSelect() {
+    if (!groupFriendsSelect) return;
+    groupFriendsSelect.innerHTML = "";
+
+    if (cachedFriends.length === 0) {
+        const option = document.createElement("option");
+        option.value    = "";
+        option.textContent = "Sem amigos disponíveis";
+        option.disabled = true;
+        option.selected = true;
+        groupFriendsSelect.appendChild(option);
+>>>>>>> f094ba3 (Fix auth and friendships backend issues; update frontend deployment docs)
         return;
     }
 
@@ -100,6 +139,7 @@ function populateFriendsCheckboxes(selectedIds = []) {
     }
 
     cachedFriends.forEach((friend) => {
+<<<<<<< HEAD
         const item = document.createElement("div");
         item.className = "group-friend-item";
 
@@ -143,6 +183,21 @@ function getSelectedFriendIds() {
     if (!groupFriendsContainer) return [];
     const checkboxes = groupFriendsContainer.querySelectorAll("input[type='checkbox']:checked");
     return Array.from(checkboxes).map(cb => parseInt(cb.value)).filter(Boolean);
+=======
+        const option = document.createElement("option");
+        option.value       = friend.id;
+        option.textContent = friend.name;
+        groupFriendsSelect.appendChild(option);
+    });
+}
+
+function setSelectedFriendOptions(memberUserIds) {
+    if (!groupFriendsSelect) return;
+    const ids = Array.isArray(memberUserIds) ? memberUserIds.map(String) : [];
+    Array.from(groupFriendsSelect.options).forEach((option) => {
+        option.selected = ids.includes(String(option.value));
+    });
+>>>>>>> f094ba3 (Fix auth and friendships backend issues; update frontend deployment docs)
 }
 
 // ── RENDER GROUPS ─────────────────────────────────────────────────────────────
@@ -165,18 +220,26 @@ async function renderGroups() {
     groupsList.innerHTML = "";
 
     groups.forEach((group) => {
+<<<<<<< HEAD
         const members = Array.isArray(group.members) ? group.members : [];
+=======
+        const members     = Array.isArray(group.members) ? group.members : [];
+>>>>>>> f094ba3 (Fix auth and friendships backend issues; update frontend deployment docs)
         const memberNames = members.map(m => m.user?.name || "");
 
         const card = document.createElement("article");
         card.className = "group-card";
 
         const title = document.createElement("h3");
-        title.className = "group-card-title";
+        title.className   = "group-card-title";
         title.textContent = group.name || "Grupo sem nome";
 
         const membersLabel = document.createElement("p");
+<<<<<<< HEAD
         membersLabel.className = "group-members-label";
+=======
+        membersLabel.className   = "group-members-label";
+>>>>>>> f094ba3 (Fix auth and friendships backend issues; update frontend deployment docs)
         membersLabel.textContent = members.length > 0
             ? `${members.length} amigo(s) no grupo`
             : "Sem amigos neste grupo";
@@ -185,28 +248,36 @@ async function renderGroups() {
         membersWrapper.className = "group-members";
         memberNames.slice(0, 8).forEach((name) => {
             const chip = document.createElement("span");
+<<<<<<< HEAD
             chip.className = "group-member-chip";
+=======
+            chip.className   = "group-member-chip";
+>>>>>>> f094ba3 (Fix auth and friendships backend issues; update frontend deployment docs)
             chip.textContent = name;
             membersWrapper.appendChild(chip);
         });
         if (memberNames.length > 8) {
             const chip = document.createElement("span");
+<<<<<<< HEAD
             chip.className = "group-member-chip";
+=======
+            chip.className   = "group-member-chip";
+>>>>>>> f094ba3 (Fix auth and friendships backend issues; update frontend deployment docs)
             chip.textContent = `+${memberNames.length - 8}`;
             membersWrapper.appendChild(chip);
         }
 
-        const actions = document.createElement("div");
+        const actions    = document.createElement("div");
         actions.className = "group-card-actions";
 
         const editButton = document.createElement("button");
-        editButton.type = "button";
+        editButton.type      = "button";
         editButton.className = "group-action-btn edit";
         editButton.innerHTML = '<i class="fa-regular fa-pen-to-square"></i> Editar';
         editButton.addEventListener("click", () => openEditModal(group));
 
         const deleteButton = document.createElement("button");
-        deleteButton.type = "button";
+        deleteButton.type      = "button";
         deleteButton.className = "group-action-btn delete";
         deleteButton.innerHTML = '<i class="fa-regular fa-trash-can"></i> Remover';
         deleteButton.addEventListener("click", () => removeGroup(group.id));
@@ -239,16 +310,26 @@ function openModal() {
 
 function openEditModal(group) {
     if (!modalOverlay || !group) return;
+<<<<<<< HEAD
 
     const memberUserIds = (group.members || []).map(m => m.user_id);
     populateFriendsCheckboxes(memberUserIds);
 
+=======
+    populateFriendsSelect();
+    resetForm();
+>>>>>>> f094ba3 (Fix auth and friendships backend issues; update frontend deployment docs)
     editingGroupId = group.id;
     setModalMode("edit");
-    if (groupNameInput) groupNameInput.value = group.name || "";
+    if (groupNameInput)        groupNameInput.value        = group.name        || "";
     if (groupDescriptionInput) groupDescriptionInput.value = group.description || "";
+<<<<<<< HEAD
 
     setMessage("");
+=======
+    const memberUserIds = (group.members || []).map(m => m.user_id);
+    setSelectedFriendOptions(memberUserIds);
+>>>>>>> f094ba3 (Fix auth and friendships backend issues; update frontend deployment docs)
     modalOverlay.hidden = false;
 }
 
@@ -262,12 +343,9 @@ async function removeGroup(groupId) {
     if (!groupId) return;
     if (hasSwal()) {
         const result = await window.Swal.fire({
-            title: "Remover grupo?",
-            text: "Esta ação não pode ser desfeita.",
-            icon: "warning",
-            showCancelButton: true,
-            confirmButtonText: "Remover",
-            cancelButtonText: "Cancelar",
+            title: "Remover grupo?", text: "Esta ação não pode ser desfeita.",
+            icon: "warning", showCancelButton: true,
+            confirmButtonText: "Remover", cancelButtonText: "Cancelar",
             confirmButtonColor: "#c0392b"
         });
         if (!result.isConfirmed) return;
@@ -278,12 +356,16 @@ async function removeGroup(groupId) {
     try {
         await api.deleteUserGroup(groupId);
         await renderGroups();
+<<<<<<< HEAD
         if (hasSwal()) window.Swal.fire({
             icon: "success",
             title: "Grupo removido",
             timer: 1600,
             showConfirmButton: false
         });
+=======
+        if (hasSwal()) window.Swal.fire({ icon: "success", title: "Grupo removido", timer: 1600, showConfirmButton: false });
+>>>>>>> f094ba3 (Fix auth and friendships backend issues; update frontend deployment docs)
     } catch (err) {
         showValidationMessage("Erro ao remover grupo: " + err.message);
     }
@@ -291,25 +373,30 @@ async function removeGroup(groupId) {
 
 async function handleSubmit(event) {
     event.preventDefault();
-    const name = groupNameInput ? groupNameInput.value.trim() : "";
+    const name        = groupNameInput        ? groupNameInput.value.trim()        : "";
     const description = groupDescriptionInput ? groupDescriptionInput.value.trim() : "";
     const selectedIds = getSelectedFriendIds();
 
+<<<<<<< HEAD
     if (!name) {
         showValidationMessage("Indica um nome para o grupo.");
         return;
     }
+=======
+    if (!name) { showValidationMessage("Indica um nome para o grupo."); return; }
+
+    const selectedIds = groupFriendsSelect
+        ? Array.from(groupFriendsSelect.selectedOptions).map((o) => parseInt(o.value)).filter(Boolean)
+        : [];
+>>>>>>> f094ba3 (Fix auth and friendships backend issues; update frontend deployment docs)
 
     const isEditing = Boolean(editingGroupId);
 
     if (isEditing && hasSwal()) {
         const result = await window.Swal.fire({
-            title: "Guardar alterações?",
-            text: "O grupo será atualizado com os novos dados.",
-            icon: "question",
-            showCancelButton: true,
-            confirmButtonText: "Guardar",
-            cancelButtonText: "Cancelar"
+            title: "Guardar alterações?", text: "O grupo será atualizado com os novos dados.",
+            icon: "question", showCancelButton: true,
+            confirmButtonText: "Guardar", cancelButtonText: "Cancelar"
         });
         if (!result.isConfirmed) return;
     }
@@ -330,23 +417,41 @@ async function handleSubmit(event) {
                 icon: "success",
                 title: isEditing ? "Grupo alterado" : "Grupo criado",
                 text: isEditing ? "As alterações foram guardadas com sucesso." : "O novo grupo foi criado com sucesso.",
+<<<<<<< HEAD
                 timer: 1800,
                 showConfirmButton: false
             });
         }
     } catch (err) {
         console.error("Erro ao guardar grupo:", err);
+=======
+                timer: 1800, showConfirmButton: false
+            });
+        }
+    } catch (err) {
+>>>>>>> f094ba3 (Fix auth and friendships backend issues; update frontend deployment docs)
         showValidationMessage("Erro ao guardar grupo: " + err.message);
     }
 }
 
 // ── EVENTS ────────────────────────────────────────────────────────────────────
+<<<<<<< HEAD
 if (openModalButton) openModalButton.addEventListener("click", openModal);
 if (openModalFromEmpty) openModalFromEmpty.addEventListener("click", openModal);
 if (closeModalButton) closeModalButton.addEventListener("click", closeModal);
 if (cancelModalButton) cancelModalButton.addEventListener("click", closeModal);
 if (modalOverlay) modalOverlay.addEventListener("click", (e) => { if (e.target === modalOverlay) closeModal(); });
 if (groupForm) groupForm.addEventListener("submit", handleSubmit);
+=======
+if (openModalButton)    openModalButton.addEventListener("click", openModal);
+if (openModalFromEmpty) openModalFromEmpty.addEventListener("click", openModal);
+if (closeModalButton)   closeModalButton.addEventListener("click", closeModal);
+if (cancelModalButton)  cancelModalButton.addEventListener("click", closeModal);
+if (modalOverlay)       modalOverlay.addEventListener("click", (e) => { if (e.target === modalOverlay) closeModal(); });
+if (groupForm)          groupForm.addEventListener("submit", handleSubmit);
+
+document.querySelector(".btn-logout")?.addEventListener("click", () => api.logout());
+>>>>>>> f094ba3 (Fix auth and friendships backend issues; update frontend deployment docs)
 
 document.querySelector(".btn-logout")?.addEventListener("click", () => api.logout());
 

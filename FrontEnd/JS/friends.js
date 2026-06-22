@@ -1,14 +1,12 @@
-/* ── VoteSync — Friends JS ligado à API real ── */
+/* ── VoteSync — Friends JS (REFATORIZADO COM api.js) ── */
 
-const SESSION_KEY = "votesync.session";
-const API = "http://localhost:8000";
+// ✅ IMPORTANTE: Adiciona isto no HTML antes deste script:
+// <script src="./api.js"></script>
 
-// ── SESSION ───────────────────────────────────────────────────────────────────
-function getSession() {
-    const raw = localStorage.getItem(SESSION_KEY);
-    if (!raw) return null;
-    try { return JSON.parse(raw); } catch { return null; }
-}
+// ── DOM REFS ──────────────────────────────────────────────────────────────────
+const searchInput = document.querySelector(".search-bar input");
+let searchResults = document.getElementById("search-results");
+const mainContainer = document.querySelector(".main-container");
 
 <<<<<<< HEAD
 <<<<<<< HEAD

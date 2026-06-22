@@ -1,6 +1,7 @@
 /* ── VoteSync — decisionMaking.js ── */
 
 // ── DOM REFS ──────────────────────────────────────────────────────────────────
+<<<<<<< HEAD
 const decisionTitle = document.querySelector("#decision-title");
 const decisionDescription = document.querySelector("#decision-description");
 const decisionDate = document.querySelector("#decision-date");
@@ -12,6 +13,19 @@ const decisionCreatedBy = document.querySelector("#decision-created-by");
 const decisionTargetGroup = document.querySelector("#decision-target-group");
 const decisionTargetFriends = document.querySelector("#decision-target-friends");
 const logoutButton = document.querySelector("#decision-logout-btn");
+=======
+const decisionTitle            = document.querySelector("#decision-title");
+const decisionDescription      = document.querySelector("#decision-description");
+const decisionDate             = document.querySelector("#decision-date");
+const decisionTimeLeft         = document.querySelector("#decision-time-left");
+const decisionOptionsContainer = document.querySelector("#decision-options-container");
+const decisionTotalVotes       = document.querySelector("#decision-total-votes");
+const decisionTotalOptions     = document.querySelector("#decision-total-options");
+const decisionCreatedBy        = document.querySelector("#decision-created-by");
+const decisionTargetGroup      = document.querySelector("#decision-target-group");
+const decisionTargetFriends    = document.querySelector("#decision-target-friends");
+const logoutButton             = document.querySelector("#decision-logout-btn");
+>>>>>>> f094ba3 (Fix auth and friendships backend issues; update frontend deployment docs)
 
 // ── LOGO / LOGOUT ─────────────────────────────────────────────────────────────
 function handleLogoClick(e) {
@@ -36,6 +50,7 @@ function getLatestDecision() {
 function getTodayDate() {
     const now = new Date();
     return `${String(now.getDate()).padStart(2, "0")}/${String(now.getMonth() + 1).padStart(2, "0")}/${now.getFullYear()}`;
+<<<<<<< HEAD
 }
 
 async function resolveGroupName(groupId) {
@@ -47,6 +62,8 @@ async function resolveGroupName(groupId) {
         console.warn("Não foi possível carregar nome do grupo:", err);
         return "";
     }
+=======
+>>>>>>> f094ba3 (Fix auth and friendships backend issues; update frontend deployment docs)
 }
 
 function formatIsoToDisplay(isoDate) {
@@ -65,6 +82,7 @@ function calculateDaysLeft(endDateIso) {
     return Math.ceil((endDate.getTime() - today.getTime()) / (1000 * 60 * 60 * 24));
 }
 
+<<<<<<< HEAD
 // ── GET VOTES COUNT FOR OPTION ────────────────────────────────────────────────
 async function getVotesForOption(optionId, decisionId) {
     try {
@@ -316,6 +334,10 @@ function showTiebreakerResult(winner, tiedOptions) {
 
 // ── RENDER OPTIONS ────────────────────────────────────────────────────────────
 async function renderOptionCard(option, index, userHasVoted = false, userVotedOptionId = null, tiebreakerWinnerId = null) {
+=======
+// ── RENDER OPTIONS ────────────────────────────────────────────────────────────
+function renderOptionCard(option, index) {
+>>>>>>> f094ba3 (Fix auth and friendships backend issues; update frontend deployment docs)
     const card = document.createElement("article");
     card.className = "option-card";
     if (index === 0) {
@@ -335,7 +357,12 @@ async function renderOptionCard(option, index, userHasVoted = false, userVotedOp
     }
 
     const name = document.createElement("p");
+<<<<<<< HEAD
     name.className = "option-name";
+=======
+    name.className   = "option-name";
+    // ✅ Suporta tanto option.name (criação) como option.option_text (API)
+>>>>>>> f094ba3 (Fix auth and friendships backend issues; update frontend deployment docs)
     name.textContent = option.option_text || option.name || "";
 
     const votesWrap = document.createElement("div");
@@ -349,6 +376,7 @@ async function renderOptionCard(option, index, userHasVoted = false, userVotedOp
     for (let i = 0; i < votesCount; i++) {
         const chip = document.createElement("button");
         chip.className = "vote-chip";
+<<<<<<< HEAD
         chip.type = "button";
         chip.setAttribute("data-option-id", option.id);
 
@@ -364,6 +392,9 @@ async function renderOptionCard(option, index, userHasVoted = false, userVotedOp
             continue;
         }
 
+=======
+        chip.type      = "button";
+>>>>>>> f094ba3 (Fix auth and friendships backend issues; update frontend deployment docs)
         chip.innerHTML = '<i class="fa-regular fa-thumbs-up"></i>';
 
         // ✅ SE UTILIZADOR JÁ VOTOU
@@ -399,7 +430,10 @@ async function renderOptionCard(option, index, userHasVoted = false, userVotedOp
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
+=======
+>>>>>>> 94946f3 (Fix auth and friendships backend issues; update frontend deployment docs)
 // ── HANDLE VOTE ───────────────────────────────────────────────────────────────
 async function handleVote(optionId, buttonElement) {
     const session = api.getSession();
@@ -537,7 +571,14 @@ function renderDecisionTargets(decision) {
 >>>>>>> 9224db4 (Fix auth and friendships backend issues; update frontend deployment docs)
 =======
 >>>>>>> fc68462 (feat:Decision-making feature and decisions listing page (frontend + backend + database))
+<<<<<<< HEAD
 >>>>>>> 1d52963 (feat:Decision-making feature and decisions listing page (frontend + backend + database))
+=======
+=======
+// ── RENDER TARGETS ────────────────────────────────────────────────────────────
+function renderDecisionTargets(decision) {
+>>>>>>> f094ba3 (Fix auth and friendships backend issues; update frontend deployment docs)
+>>>>>>> 94946f3 (Fix auth and friendships backend issues; update frontend deployment docs)
     if (decisionTargetGroup) {
         const groupName = decision?.target_group_name || "";
         decisionTargetGroup.textContent = groupName || "Sem grupo associado";
@@ -553,8 +594,11 @@ function renderDecisionTargets(decision) {
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> 1d52963 (feat:Decision-making feature and decisions listing page (frontend + backend + database))
+=======
+>>>>>>> 94946f3 (Fix auth and friendships backend issues; update frontend deployment docs)
     const targetFriends = Array.isArray(decision?.target_friends) ? decision.target_friends : [];
 <<<<<<< HEAD
 =======
@@ -598,7 +642,13 @@ function renderDecisionTargets(decision) {
         .map(f => normalizeEntityName(f, ""))
         .filter(n => n && n.length > 0);
 >>>>>>> fc68462 (feat:Decision-making feature and decisions listing page (frontend + backend + database))
+<<<<<<< HEAD
 >>>>>>> 1d52963 (feat:Decision-making feature and decisions listing page (frontend + backend + database))
+=======
+=======
+    const targetFriends = Array.isArray(decision?.target_friends) ? decision.target_friends : [];
+>>>>>>> f094ba3 (Fix auth and friendships backend issues; update frontend deployment docs)
+>>>>>>> 94946f3 (Fix auth and friendships backend issues; update frontend deployment docs)
 
     if (creatorName) {
         friendNames.push(creatorName);
@@ -617,20 +667,29 @@ function renderDecisionTargets(decision) {
 
     if (friendNames.length === 0) {
         const empty = document.createElement("span");
-        empty.className = "friend-empty";
+        empty.className   = "friend-empty";
         empty.textContent = "Sem amigos associados";
         decisionTargetFriends.appendChild(empty);
         return;
     }
 
+<<<<<<< HEAD
     friendNames.forEach((name) => {
         const chip = document.createElement("span");
         chip.className = "friend-chip";
         chip.textContent = name;
+=======
+    targetFriends.forEach(df => {
+        const friendName = df?.friendship?.friend?.name || "Amigo desconhecido";
+        const chip = document.createElement("span");
+        chip.className   = "friend-chip";
+        chip.textContent = friendName;
+>>>>>>> f094ba3 (Fix auth and friendships backend issues; update frontend deployment docs)
         decisionTargetFriends.appendChild(chip);
     });
 }
 
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -658,11 +717,19 @@ function renderDecisionTargets(decision) {
 // ── RENDER TEMPLATE ───────────────────────────────────────────────────────────
 >>>>>>> 9224db4 (Fix auth and friendships backend issues; update frontend deployment docs)
 =======
+=======
+>>>>>>> 94946f3 (Fix auth and friendships backend issues; update frontend deployment docs)
 // ── RENDER TEMPLATE ───────────────────────────────────────────────────────────
 =======
 // ── RENDERIZAR TEMPLATE DE DECISÃO ────────────────────────────────────────────
 >>>>>>> fc68462 (feat:Decision-making feature and decisions listing page (frontend + backend + database))
+<<<<<<< HEAD
 >>>>>>> 1d52963 (feat:Decision-making feature and decisions listing page (frontend + backend + database))
+=======
+=======
+// ── RENDER TEMPLATE ───────────────────────────────────────────────────────────
+>>>>>>> f094ba3 (Fix auth and friendships backend issues; update frontend deployment docs)
+>>>>>>> 94946f3 (Fix auth and friendships backend issues; update frontend deployment docs)
 async function renderDecisionTemplate() {
     const decision = getLatestDecision();
 
@@ -686,8 +753,12 @@ async function renderDecisionTemplate() {
         if (decisionTotalVotes)       decisionTotalVotes.textContent       = "0";
         if (decisionTotalOptions)     decisionTotalOptions.textContent     = "0";
         if (decisionCreatedBy)        decisionCreatedBy.textContent        = "-";
+<<<<<<< HEAD
         renderDecisionTargets(null, []);
 >>>>>>> fc68462 (feat:Decision-making feature and decisions listing page (frontend + backend + database))
+=======
+        renderDecisionTargets(null);
+>>>>>>> f094ba3 (Fix auth and friendships backend issues; update frontend deployment docs)
         return;
     }
 
@@ -696,10 +767,15 @@ async function renderDecisionTemplate() {
         try {
             const fresh = await api.getDecision(decision.id);
             if (fresh) {
+<<<<<<< HEAD
                 fresh.target_group_name = decision.target_group_name || "";
                 if (!fresh.target_group_name) {
                     fresh.target_group_name = await resolveGroupName(fresh.target_group_id);
                 }
+=======
+                // Preservar target_group_name do localStorage
+                fresh.target_group_name = decision.target_group_name || "";
+>>>>>>> f094ba3 (Fix auth and friendships backend issues; update frontend deployment docs)
                 localStorage.setItem("votesync.decision.latest", JSON.stringify(fresh));
                 return renderWithData(fresh);
             }
@@ -707,6 +783,15 @@ async function renderDecisionTemplate() {
             console.warn("Não foi possível buscar decisão da API, usando cache:", err);
         }
     }
+<<<<<<< HEAD
+=======
+
+    renderWithData(decision);
+}
+
+function renderWithData(decision) {
+    const options = Array.isArray(decision.options) ? decision.options : [];
+>>>>>>> f094ba3 (Fix auth and friendships backend issues; update frontend deployment docs)
 
     renderWithData(decision);
 }
@@ -749,11 +834,19 @@ async function renderWithData(decision) {
 
     if (decisionTimeLeft) {
         const daysLeft = calculateDaysLeft(decision.end_date || decision.endDate);
+<<<<<<< HEAD
         if (daysLeft === null) decisionTimeLeft.textContent = "Sem prazo";
         else if (daysLeft < 0) decisionTimeLeft.textContent = "Encerrada";
         else if (daysLeft === 0) decisionTimeLeft.textContent = "Termina hoje";
         else if (daysLeft === 1) decisionTimeLeft.textContent = "1 dia restante";
         else decisionTimeLeft.textContent = `${daysLeft} dias restantes`;
+=======
+        if      (daysLeft === null) decisionTimeLeft.textContent = "Sem prazo";
+        else if (daysLeft < 0)     decisionTimeLeft.textContent = "Encerrada";
+        else if (daysLeft === 0)   decisionTimeLeft.textContent = "Termina hoje";
+        else if (daysLeft === 1)   decisionTimeLeft.textContent = "1 dia restante";
+        else                       decisionTimeLeft.textContent = `${daysLeft} dias restantes`;
+>>>>>>> f094ba3 (Fix auth and friendships backend issues; update frontend deployment docs)
     }
 
     // ✅ Resultado de desempate guardado (se existir) para esta decisão
@@ -799,14 +892,13 @@ async function renderWithData(decision) {
         console.log(`📊 Total de votos: ${totalVotes}`);
     }
     if (decisionTotalOptions) decisionTotalOptions.textContent = String(options.length);
+<<<<<<< HEAD
     if (decisionCreatedBy) decisionCreatedBy.textContent = decision.created_by || decision.createdBy || "Utilizador";
+=======
+    if (decisionCreatedBy)    decisionCreatedBy.textContent    = decision.created_by || decision.createdBy || "Utilizador";
+>>>>>>> f094ba3 (Fix auth and friendships backend issues; update frontend deployment docs)
 
-    // ✅ NOVO: Buscar amigos da API e renderizar
-    let friendshipsData = [];
-    if (decision.targetFriends && Array.isArray(decision.targetFriends)) {
-        friendshipsData = await fetchFriendshipsByIds(decision.targetFriends);
-    }
-    renderDecisionTargets(decision, friendshipsData);
+    renderDecisionTargets(decision);
 }
 
 // ── INIT ──────────────────────────────────────────────────────────────────────

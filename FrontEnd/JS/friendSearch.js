@@ -170,7 +170,11 @@
     btn.disabled = true;
     btn.textContent = "...";
     try {
+<<<<<<< HEAD
       await api.acceptFriendship(friendshipId);
+=======
+      await api.updateFriendship(friendshipId, { status: "accepted" });
+>>>>>>> f094ba3 (Fix auth and friendships backend issues; update frontend deployment docs)
       btn.textContent = "Aceito";
       btn.style.background = "#1a7a52";
       btn.style.color = "#fff";
@@ -190,7 +194,11 @@
     btn.disabled = true;
     btn.textContent = "...";
     try {
+<<<<<<< HEAD
       await api.rejectFriendship(friendshipId);
+=======
+      await api.updateFriendship(friendshipId, { status: "rejected" });
+>>>>>>> f094ba3 (Fix auth and friendships backend issues; update frontend deployment docs)
       btn.textContent = "Recusado";
       btn.style.background = "#fff";
       btn.style.color = "#7c5cbf";

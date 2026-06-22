@@ -96,6 +96,9 @@ loginForm.addEventListener("submit", async (e) => {
     try {
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+=======
+>>>>>>> 94946f3 (Fix auth and friendships backend issues; update frontend deployment docs)
         
         const dataAuth = {
             email: document.getElementById("login-email").value.trim(),

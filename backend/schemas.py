@@ -68,6 +68,9 @@ class CreateFriendships(BaseModel):
     user_id: int
     friend_id: int
 <<<<<<< HEAD
+<<<<<<< HEAD
+=======
+>>>>>>> 94946f3 (Fix auth and friendships backend issues; update frontend deployment docs)
     status: str = "pending"
 
     class Config:
@@ -78,7 +81,11 @@ class CreateFriendships(BaseModel):
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 class FriendshipUpdate(BaseModel):
+=======
+class UpdateFriendships(BaseModel):
+>>>>>>> 94946f3 (Fix auth and friendships backend issues; update frontend deployment docs)
     status: str
 =======
 =======
@@ -129,13 +136,13 @@ class UpdateFriendships(BaseModel):
     class Config:
         from_attributes = True
 
-# ✅ NOVO: Schema com dados do amigo
 class FriendshipWithFriendData(BaseModel):
     id: int
     user_id: int
     friend_id: int
     status: str
-    friend: UserResponse  # ✅ Dados completos do amigo
+    user: UserResponse
+    friend: UserResponse
 
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -293,7 +300,12 @@ class CreateUserGroups(UserGroupsBase):
 class UserGroupsResponse(BaseModel):
     id: int
     name: str
+<<<<<<< HEAD
 >>>>>>> fc68462 (feat:Decision-making feature and decisions listing page (frontend + backend + database))
+=======
+    description: str | None = None
+    members: List[dict] = []  # ✅ Incluir membros
+>>>>>>> f094ba3 (Fix auth and friendships backend issues; update frontend deployment docs)
 
     class Config:
         from_attributes = True
@@ -363,10 +375,15 @@ class VotesResponse(BaseModel):
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> 9224db4 (Fix auth and friendships backend issues; update frontend deployment docs)
 =======
 >>>>>>> 1d52963 (feat:Decision-making feature and decisions listing page (frontend + backend + database))
+=======
+=======
+>>>>>>> f094ba3 (Fix auth and friendships backend issues; update frontend deployment docs)
+>>>>>>> 94946f3 (Fix auth and friendships backend issues; update frontend deployment docs)
 class DecisionFriendResponse(BaseModel):
     id: int
     friendship_id: int
@@ -375,6 +392,7 @@ class DecisionFriendResponse(BaseModel):
     class Config:
         from_attributes = True
 
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 =======
@@ -393,6 +411,12 @@ class DecisionFriendResponse(BaseModel):
 =======
 >>>>>>> fc68462 (feat:Decision-making feature and decisions listing page (frontend + backend + database))
 >>>>>>> 1d52963 (feat:Decision-making feature and decisions listing page (frontend + backend + database))
+=======
+=======
+>>>>>>> fc68462 (feat:Decision-making feature and decisions listing page (frontend + backend + database))
+=======
+>>>>>>> f094ba3 (Fix auth and friendships backend issues; update frontend deployment docs)
+>>>>>>> 94946f3 (Fix auth and friendships backend issues; update frontend deployment docs)
 class DecisionsBase(BaseModel):
     vote_id: str
     title: str
@@ -409,6 +433,7 @@ class DecisionsBase(BaseModel):
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
     target_friend_ids: List[int] = []  # ✅ IDs das friendships selecionadas
 =======
 >>>>>>> c3f90b4 (feat:Decision-making feature and decisions listing page (frontend + backend + database))
@@ -428,6 +453,14 @@ class DecisionsBase(BaseModel):
 =======
 >>>>>>> fc68462 (feat:Decision-making feature and decisions listing page (frontend + backend + database))
 >>>>>>> 1d52963 (feat:Decision-making feature and decisions listing page (frontend + backend + database))
+=======
+    target_friend_ids: List[int] = []  # ✅ IDs das friendships selecionadas
+=======
+>>>>>>> fc68462 (feat:Decision-making feature and decisions listing page (frontend + backend + database))
+=======
+    target_friend_ids: List[int] = []  # ✅ IDs das friendships selecionadas
+>>>>>>> f094ba3 (Fix auth and friendships backend issues; update frontend deployment docs)
+>>>>>>> 94946f3 (Fix auth and friendships backend issues; update frontend deployment docs)
 
     class Config:
         from_attributes = True
@@ -454,6 +487,7 @@ class DecisionsResponse(BaseModel):
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
     target_friends: List[DecisionFriendResponse] = []  # ✅ Amigos associados
 =======
 >>>>>>> c3f90b4 (feat:Decision-making feature and decisions listing page (frontend + backend + database))
@@ -473,6 +507,14 @@ class DecisionsResponse(BaseModel):
 =======
 >>>>>>> fc68462 (feat:Decision-making feature and decisions listing page (frontend + backend + database))
 >>>>>>> 1d52963 (feat:Decision-making feature and decisions listing page (frontend + backend + database))
+=======
+    target_friends: List[DecisionFriendResponse] = []  # ✅ Amigos associados
+=======
+>>>>>>> fc68462 (feat:Decision-making feature and decisions listing page (frontend + backend + database))
+=======
+    target_friends: List[DecisionFriendResponse] = []  # ✅ Amigos associados
+>>>>>>> f094ba3 (Fix auth and friendships backend issues; update frontend deployment docs)
+>>>>>>> 94946f3 (Fix auth and friendships backend issues; update frontend deployment docs)
 
     class Config:
         from_attributes = True

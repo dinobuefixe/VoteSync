@@ -54,6 +54,7 @@ class APIClient {
             // ✅ Handle 204 No Content
             if (res.status === 204) return null;
 
+<<<<<<< HEAD
             let responseData;
             const text = await res.text();
             try {
@@ -64,6 +65,12 @@ class APIClient {
 
             if (!res.ok) {
                 throw new Error(responseData?.detail || `Erro: ${res.status}`);
+=======
+            const responseData = await res.json();
+
+            if (!res.ok) {
+                throw new Error(responseData.detail || `Erro: ${res.status}`);
+>>>>>>> f094ba3 (Fix auth and friendships backend issues; update frontend deployment docs)
             }
 
             return responseData;
@@ -87,10 +94,13 @@ class APIClient {
         return this.request("PUT", path, data);
     }
 
+<<<<<<< HEAD
     patch(path, data = null) {
         return this.request("PATCH", path, data);
     }
 
+=======
+>>>>>>> f094ba3 (Fix auth and friendships backend issues; update frontend deployment docs)
     delete(path) {
         return this.request("DELETE", path);
     }
@@ -148,6 +158,7 @@ class APIClient {
         return this.put(`/friendships/${id}`, data);
     }
 
+<<<<<<< HEAD
     acceptFriendship(id) {
         return this.updateFriendship(id, { status: "accepted" });
     }
@@ -156,12 +167,17 @@ class APIClient {
         return this.updateFriendship(id, { status: "rejected" });
     }
 
+=======
+>>>>>>> f094ba3 (Fix auth and friendships backend issues; update frontend deployment docs)
     deleteFriendship(id) {
         return this.delete(`/friendships/${id}`);
     }
 
     // ── USER GROUPS ───────────────────────────────────────────────────────────
+<<<<<<< HEAD
     // ✅ ATUALIZADO: Suporta member_ids para adicionar amigos automaticamente
+=======
+>>>>>>> f094ba3 (Fix auth and friendships backend issues; update frontend deployment docs)
 
     getUserGroups() {
         return this.get("/user-groups/");
@@ -172,6 +188,7 @@ class APIClient {
     }
 
     createUserGroup(name, description = "", memberIds = []) {
+<<<<<<< HEAD
         return this.post("/user-groups/", {
             name,
             description,
@@ -185,6 +202,13 @@ class APIClient {
             description,
             member_ids: memberIds  // ✅ Atualiza membros do grupo
         });
+=======
+        return this.post("/user-groups/", { name, description, member_ids: memberIds });
+    }
+
+    updateUserGroup(id, name, description = "", memberIds = []) {
+        return this.put(`/user-groups/${id}`, { name, description, member_ids: memberIds });
+>>>>>>> f094ba3 (Fix auth and friendships backend issues; update frontend deployment docs)
     }
 
     deleteUserGroup(id) {
