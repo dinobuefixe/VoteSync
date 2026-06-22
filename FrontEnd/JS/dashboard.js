@@ -1020,4 +1020,4 @@ window.refreshFriendsCard = async function() {
 window.refreshFriendsCard = async function () {
 >>>>>>> e098cb0 (Fix group creation, decision target rendering, backend schema, and README documentation)
 	await updateFriendsCard();
-};
+}; 
