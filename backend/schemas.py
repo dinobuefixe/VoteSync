@@ -64,7 +64,7 @@ class CreateFriendships(BaseModel):
     class Config:
         from_attributes = True
 
-class UpdateFriendships(BaseModel):
+class FriendshipUpdate(BaseModel):
     status: str
 
     class Config:

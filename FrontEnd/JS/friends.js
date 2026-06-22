@@ -60,10 +60,10 @@ async function loadData() {
             f => f.user_id === myId || f.friend_id === myId
         );
         
-        const friendsIds = getMyFriendIds();
+        const friendsIds = getMyFriendIds("accepted");
         renderFriends(friendsIds, "accepted");
 
-        const pendingFriendsIds = getMyPendingFriendIds();
+        const pendingFriendsIds = getMyFriendIds("pending");
         renderFriends(pendingFriendsIds, "pending");
 
     } catch (err) {
@@ -72,17 +72,12 @@ async function loadData() {
 }
 
 // ── RENDER FRIENDS ────────────────────────────────────────────────────────────
-function getMyFriendIds() {
+function getMyFriendIds(type) {
     return myFriendships
-        .filter(f => f.status === "accepted")
+        .filter(f => f.status === type)
         .map(f => f.user_id === myId ? f.friend_id : f.user_id);
 }
 
-function getMyPendingFriendIds() {
-    return myFriendships
-        .filter(f => f.status === "pending")
-        .map(f => f.user_id === myId ? f.friend_id : f.user_id);
-}
 
 function renderFriends(friendsIds, whichfriends) {
 
@@ -145,7 +140,6 @@ function renderFriends(friendsIds, whichfriends) {
         `;
     }).join("");
 
-    renderPendingRequests();
 }
 
 // ── SEARCH ────────────────────────────────────────────────────────────────────
