@@ -26,7 +26,8 @@
   const dropdown = document.createElement("div");
   dropdown.id = "friend-search-dropdown";
   Object.assign(dropdown.style, {
-    position: "absolute",
+    position: "absolute",    
+    top: "calc(100% + 12px)",   
     background: "#fff",
     borderRadius: "14px",
     boxShadow: "0 8px 30px rgba(0,0,0,0.13)",

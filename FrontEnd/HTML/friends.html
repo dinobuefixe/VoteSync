@@ -37,7 +37,7 @@
 
     <main class="main-container">
         <a class="back-link" href="/static/HTML/dashboard.html">&larr; Voltar ao dashboard</a>
-        <h1 class="main-title">Friends</h1>
+        <h1 class="main-title">Friends and pending requests</h1>
         <p class="main-subtitle">0 friends in your network</p>
 
         <section class="empty-state-container" style="display:none;">
@@ -54,13 +54,12 @@
                 <h2>A tua rede de amigos está vazia</h2>
                 <p>Encontra os teus amigos pesquisando por eles na barra superior para os adicionares à tua rede e
                     começarem a votar em conjunto!</p>
-                <button class="btn-search-trigger"
-                    onclick="document.querySelector('.search-bar input').focus();">Procurar amigos</button>
             </div>
         </section>
     </main>
     <script src="/static/JS/Api.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <script src="/static/JS/friendSearch.js"></script>
     <script src="/static/JS/friends.js"></script>
 </body>
 
