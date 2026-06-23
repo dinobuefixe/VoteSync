@@ -169,7 +169,7 @@ class APIClient {
     }
 
     getUserGroup(id) {
-        return this.get(`/user-groups/${id}`);
+        return this.get(`/group-members/${id}`);
     }
 
     createUserGroup(name, description = "", memberIds = []) {

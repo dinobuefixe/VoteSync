@@ -150,8 +150,7 @@ async function renderGroups() {
     if (!groupsList || !groupsSubtitle || !groupsEmptyState) return;
 
     const groups = await api.getUserGroups(myId);
-
-    groupsSubtitle.textContent = `${groups.length} grupos`;
+    groupsSubtitle.textContent = groups.length === 1 ? "1 grupo" : `${groups.length} grupos`;
 
     if (groups.length === 0) {
         groupsEmptyState.hidden = false;
@@ -166,58 +165,32 @@ async function renderGroups() {
 
     groups.forEach((group) => {
         const members = Array.isArray(group.members) ? group.members : [];
-        const memberNames = members.map(m => m.user?.name || "");
+        const memberNames = members
+            .map(m => m.user?.name || "")
+            .filter(name => name !== "");
 
-        const card = document.createElement("article");
-        card.className = "group-card";
+        const visibleNames = memberNames.slice(0, 8);
+        const overflow = memberNames.length - 8;
 
-        const title = document.createElement("h3");
-        title.className = "group-card-title";
-        title.textContent = group.name || "Grupo sem nome";
-
-        const membersLabel = document.createElement("p");
-        membersLabel.className = "group-members-label";
-        membersLabel.textContent = members.length > 0
-            ? `${members.length} amigo(s) no grupo`
-            : "Sem amigos neste grupo";
-
-        const membersWrapper = document.createElement("div");
-        membersWrapper.className = "group-members";
-        memberNames.slice(0, 8).forEach((name) => {
-            const chip = document.createElement("span");
-            chip.className = "group-member-chip";
-            chip.textContent = name;
-            membersWrapper.appendChild(chip);
-        });
-        if (memberNames.length > 8) {
-            const chip = document.createElement("span");
-            chip.className = "group-member-chip";
-            chip.textContent = `+${memberNames.length - 8}`;
-            membersWrapper.appendChild(chip);
-        }
-
-        const actions = document.createElement("div");
-        actions.className = "group-card-actions";
-
-        const editButton = document.createElement("button");
-        editButton.type = "button";
-        editButton.className = "group-action-btn edit";
-        editButton.innerHTML = '<i class="fa-regular fa-pen-to-square"></i> Editar';
-        editButton.addEventListener("click", () => openEditModal(group));
-
-        const deleteButton = document.createElement("button");
-        deleteButton.type = "button";
-        deleteButton.className = "group-action-btn delete";
-        deleteButton.innerHTML = '<i class="fa-regular fa-trash-can"></i> Remover';
-        deleteButton.addEventListener("click", () => removeGroup(group.id));
-
-        actions.appendChild(editButton);
-        actions.appendChild(deleteButton);
-        card.appendChild(title);
-        card.appendChild(membersLabel);
-        card.appendChild(membersWrapper);
-        card.appendChild(actions);
-        groupsList.appendChild(card);
+        groupsList.innerHTML += `
+            <article class="group-card">
+                <h3 class="group-card-title">${group.name || "Grupo sem nome"}</h3>
+                <p class="group-members-label">
+                    ${members.length > 0 ? `${members.length} amigo(s) no grupo` : "Sem amigos neste grupo"}
+                </p>
+                <div class="group-members">
+                    ${visibleNames.map(name => `<span class="group-member-chip">${name}</span>`).join("")}
+                    ${overflow > 0 ? `<span class="group-member-chip">+${overflow}</span>` : ""}
+                </div>
+                <div class="group-card-actions">
+                    <button type="button" class="group-action-btn edit" onclick="openEditModal(${JSON.stringify(group).replace(/"/g, '&quot;')})">
+                        <i class="fa-regular fa-pen-to-square"></i> Editar
+                    </button>
+                    <button type="button" class="group-action-btn delete" onclick="removeGroup(${group.id})">
+                        <i class="fa-regular fa-trash-can"></i> Remover
+                    </button>
+                </div>
+            </article>`;
     });
 }
 
@@ -294,7 +267,8 @@ async function handleSubmit(event) {
     const name = groupNameInput ? groupNameInput.value.trim() : "";
     const description = groupDescriptionInput ? groupDescriptionInput.value.trim() : "";
     const selectedIds = getSelectedFriendIds();
-
+    const allMembers = selectedIds.push(myId); 
+    
     if (!name) {
         showValidationMessage("Indica um nome para o grupo.");
         return;
