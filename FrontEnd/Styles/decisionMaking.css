@@ -245,6 +245,7 @@ body {
 }
 
 .option-card {
+    position: relative;
     background: linear-gradient(135deg, #b49ae5, #a082db);
     border-radius: 18px;
     min-height: 76px;
@@ -254,6 +255,7 @@ body {
     justify-content: space-between;
     gap: 0.8rem;
     box-shadow: 0 14px 20px -20px rgba(15, 20, 40, 0.85);
+    transition: box-shadow 0.3s ease, transform 0.3s ease;
 }
 
 .option-name {
@@ -391,6 +393,7 @@ body {
         justify-content: space-between;
     }
 }
+
 /* ── VOTE CHIP STATES ─────────────────────────────────────────────────────── */
 
 /* Chip desabilitado (utilizador já votou) */
@@ -452,10 +455,12 @@ body {
         transform: scale(1);
         opacity: 0.8;
     }
+
     50% {
         transform: scale(1.25);
         opacity: 1;
     }
+
     100% {
         transform: scale(1);
         opacity: 0.8;
@@ -472,89 +477,231 @@ body {
     cursor: not-allowed;
 }
 
-/* ── TIEBREAKER DICE STYLES ───────────────────────────────────────────────────── */
+/* Chip que representa o voto de desempate atribuído pelo dado */
+.vote-chip.dice-vote-chip {
+    background: #fff3cc;
+    color: #b8860b;
+    border: 2px solid #f0ab00;
+    box-shadow: 0 0 10px rgba(240, 171, 0, 0.45);
+    cursor: default;
+}
 
-/* Container do dado ao lado do título */
-.tiebreaker-container {
+/* ── OPÇÃO VENCEDORA DO DESEMPATE ─────────────────────────────────────────────── */
+
+.option-card-winner {
+    background: linear-gradient(135deg, #ffe9a8, #ffd76b);
+    box-shadow: 0 0 0 2px #f0ab00, 0 16px 26px -16px rgba(170, 120, 0, 0.55);
+}
+
+.option-card-winner .option-name {
+    color: #4a3300;
+}
+
+.option-card-winner .vote-chip:not(.dice-vote-chip) {
+    background: rgba(255, 255, 255, 0.85);
+    color: #b8860b;
+}
+
+.winner-badge {
+    position: absolute;
+    top: -12px;
+    left: 16px;
+    background: linear-gradient(135deg, #f0ab00, #ffcc33);
+    color: #ffffff;
+    font-family: var(--font-ui);
+    font-size: 0.7rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.3px;
+    padding: 0.3rem 0.65rem;
+    border-radius: 999px;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.35rem;
+    box-shadow: 0 6px 14px -4px rgba(170, 120, 0, 0.65);
+}
+
+/* ── TOPBAR — alinhar título, dado e pills na mesma linha vertical ──────────── */
+
+.decision-topbar {
+    align-items: center;
+    flex-wrap: wrap;
+}
+
+/* ── TIEBREAKER WIDGET (cartão compacto no meio da topbar) ────────────────────── */
+
+.tiebreaker-inline {
     display: flex;
     align-items: center;
-    gap: 12px;
-    margin-left: 16px;
+    gap: 0.7rem;
+    background: rgba(255, 255, 255, 0.6);
+    border: 1px solid rgba(255, 255, 255, 0.75);
+    border-radius: 18px;
+    padding: 0.55rem 1rem;
+    box-shadow: 0 14px 26px -18px rgba(120, 90, 0, 0.5);
+    flex: 0 0 auto;
+    animation: tiebreakerIn 0.35s ease;
 }
 
-/* Label "Desempate:" */
-.tiebreaker-label {
-    font-size: 14px;
-    font-weight: 600;
-    color: #ff6b6b;
-    text-transform: uppercase;
-    letter-spacing: 0.5px;
+@keyframes tiebreakerIn {
+    from {
+        opacity: 0;
+        transform: scale(0.92);
+    }
+
+    to {
+        opacity: 1;
+        transform: scale(1);
+    }
 }
 
-/* Botão do dado */
-.tiebreaker-dice {
-    width: 44px;
-    height: 44px;
-    border-radius: 8px;
-    border: 2px solid #ffd700;
-    background: linear-gradient(135deg, #fff9e6 0%, #fffbf0 100%);
-    font-size: 24px;
-    cursor: pointer;
-    transition: all 0.3s ease;
-    box-shadow: 0 4px 12px rgba(255, 215, 0, 0.3);
+.tiebreaker-inline-icon {
+    width: 42px;
+    height: 42px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, #f0ab00, #ffd76b);
+    color: #ffffff;
     display: flex;
     align-items: center;
     justify-content: center;
-    padding: 0;
+    font-size: 1.15rem;
+    flex: 0 0 auto;
+    box-shadow: 0 8px 16px -6px rgba(170, 120, 0, 0.7);
 }
 
-.tiebreaker-dice:hover:not(:disabled) {
-    transform: scale(1.15) rotate(5deg);
-    box-shadow: 0 8px 20px rgba(255, 215, 0, 0.5);
-    background: linear-gradient(135deg, #ffffe0 0%, #fffef2 100%);
+.tiebreaker-inline-body {
+    display: flex;
+    flex-direction: column;
+    gap: 0.3rem;
+    min-width: 0;
 }
 
-.tiebreaker-dice:active:not(:disabled) {
-    transform: scale(0.95) rotate(-2deg);
+.tiebreaker-inline-label {
+    font-family: var(--font-ui);
+    font-size: 0.7rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.4px;
+    color: #8a6400;
+    white-space: nowrap;
 }
 
-/* Animação de rolo */
-.tiebreaker-dice.rolling {
-    animation: diceRoll 0.1s infinite;
+.tiebreaker-inline-winner {
+    font-family: var(--font-ui);
+    font-weight: 700;
+    font-size: 0.92rem;
+    color: #1f2942;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    max-width: 200px;
+}
+
+.tiebreaker-roll-btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.55rem;
+    border: none;
+    border-radius: 14px;
+    padding: 0.55rem 0.95rem;
+    background: linear-gradient(135deg, #5d7aff, #7d9aff);
+    color: #ffffff;
+    font-family: var(--font-ui);
+    font-weight: 700;
+    font-size: 0.85rem;
+    cursor: pointer;
+    box-shadow: 0 10px 22px -10px rgba(93, 122, 255, 0.7);
+    transition: transform 0.18s ease, box-shadow 0.18s ease, background 0.18s ease;
+    white-space: nowrap;
+    min-width: 155px;
+}
+
+.tiebreaker-roll-btn i {
+    font-size: 1.05rem;
+    display: inline-flex;
+    width: 1.35rem;
+    justify-content: center;
+}
+
+.tiebreaker-roll-btn span {
+    display: inline-block;
+    line-height: 1.1;
+}
+
+.tiebreaker-roll-btn:hover:not(:disabled) {
+    transform: translateY(-2px);
+    box-shadow: 0 14px 24px -10px rgba(93, 122, 255, 0.75);
+    background: linear-gradient(135deg, #5772ff, #8a9bff);
+}
+
+.tiebreaker-roll-btn:active:not(:disabled) {
+    transform: translateY(0);
+}
+
+.tiebreaker-roll-btn:disabled {
+    opacity: 0.8;
     cursor: wait;
+    background: linear-gradient(135deg, #94a8ff, #b9c9ff);
 }
 
-@keyframes diceRoll {
-    0% {
-        transform: rotateX(0deg) rotateY(0deg) rotateZ(0deg);
+/* Animação do ícone enquanto o dado "roda" */
+.tiebreaker-inline.rolling .tiebreaker-inline-icon {
+    animation: diceWobble 0.5s ease-in-out infinite;
+}
+
+.tiebreaker-inline.rolling .tiebreaker-inline-icon i {
+    animation: diceSpin 0.45s linear infinite;
+}
+
+@keyframes diceSpin {
+    from {
+        transform: rotate(0deg);
     }
-    25% {
-        transform: rotateX(360deg) rotateY(180deg) rotateZ(90deg);
+
+    to {
+        transform: rotate(360deg);
     }
-    50% {
-        transform: rotateX(180deg) rotateY(360deg) rotateZ(180deg);
-    }
-    75% {
-        transform: rotateX(360deg) rotateY(180deg) rotateZ(270deg);
-    }
+}
+
+@keyframes diceWobble {
+
+    0%,
     100% {
-        transform: rotateX(360deg) rotateY(360deg) rotateZ(360deg);
+        transform: scale(1);
+    }
+
+    50% {
+        transform: scale(1.08);
     }
 }
 
-/* Estado usado (após resolver) */
-.tiebreaker-dice.used {
-    opacity: 0.6;
-    cursor: not-allowed;
-    background: linear-gradient(135deg, #f0f0f0 0%, #e8e8e8 100%);
-    border-color: #ccc;
-    box-shadow: none;
+/* Estado resolvido */
+.tiebreaker-inline.resolved {
+    background: rgba(216, 247, 226, 0.8);
+    border-color: rgba(143, 211, 164, 0.85);
 }
 
-/* Dado desabilitado */
-.tiebreaker-dice:disabled {
-    opacity: 0.7;
-    cursor: not-allowed;
+.tiebreaker-inline.resolved .tiebreaker-inline-icon {
+    background: linear-gradient(135deg, #1f8a4c, #4cc785);
+}
+
+.tiebreaker-inline.resolved .tiebreaker-inline-label {
+    color: #1f5c33;
+}
+
+@media (max-width: 980px) {
+    .tiebreaker-inline {
+        width: 100%;
+        justify-content: center;
+        order: 2;
+    }
+}
+
+@media (max-width: 640px) {
+    .tiebreaker-inline-winner {
+        max-width: 140px;
+    }
 }
 
 /* ── TIEBREAKER MODAL ─────────────────────────────────────────────────────────── */
@@ -577,6 +724,7 @@ body {
     from {
         opacity: 0;
     }
+
     to {
         opacity: 1;
     }
@@ -597,19 +745,31 @@ body {
         transform: translateY(40px);
         opacity: 0;
     }
+
     to {
         transform: translateY(0);
         opacity: 1;
     }
 }
 
-.tiebreaker-modal-content h2 {
+.tiebreaker-modal-trophy {
+    width: 64px;
+    height: 64px;
+    margin: 0 auto 12px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, #ffd700, #ff6b6b);
+    color: #ffffff;
     font-size: 28px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    box-shadow: 0 10px 22px -8px rgba(255, 140, 0, 0.55);
+}
+
+.tiebreaker-modal-content h2 {
+    font-size: 26px;
     margin: 0 0 16px 0;
-    background: linear-gradient(135deg, #ff6b6b 0%, #ffd700 100%);
-    -webkit-background-clip: text;
-    -webkit-text-fill-color: transparent;
-    background-clip: text;
+    color: #2a2a3a;
 }
 
 .tiebreaker-modal-content p {
@@ -655,41 +815,26 @@ body {
     transform: translateY(0);
 }
 
-/* ── TITLE COM DADO ───────────────────────────────────────────────────────────── */
-
-#decision-title {
-    display: flex;
-    align-items: center;
-    flex-wrap: wrap;
-    gap: 12px;
-}
-
 /* Responsivo */
 @media (max-width: 768px) {
-    .tiebreaker-container {
-        margin-left: 0;
-        margin-top: 12px;
+    .tiebreaker-banner {
+        flex-wrap: wrap;
     }
-    
-    .tiebreaker-label {
-        font-size: 12px;
+
+    .tiebreaker-roll-btn {
+        width: 100%;
+        justify-content: center;
     }
-    
-    .tiebreaker-dice {
-        width: 40px;
-        height: 40px;
-        font-size: 20px;
-    }
-    
+
     .tiebreaker-modal-content {
         padding: 24px;
         margin: 16px;
     }
-    
+
     .tiebreaker-modal-content h2 {
-        font-size: 24px;
+        font-size: 22px;
     }
-    
+
     .tiebreaker-modal-content p {
         font-size: 16px;
     }

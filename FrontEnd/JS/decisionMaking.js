@@ -125,135 +125,213 @@ async function checkIfAllVoted(decision) {
     }
 }
 
-// ── TIEBREAKER DICE ───────────────────────────────────────────────────────────
-async function renderTiebreakerDice(decision) {
+// ── TIEBREAKER PERSISTENCE (localStorage) ─────────────────────────────────────
+// Guarda o resultado do dado para que sobreviva a refresh da página e seja
+// visível por todos os participantes que acedam à decisão neste dispositivo.
+function getTiebreakerKey(decisionId) {
+    return `votesync.tiebreaker.${decisionId}`;
+}
+
+function getStoredTiebreaker(decisionId) {
+    if (!decisionId) return null;
+    try {
+        const raw = localStorage.getItem(getTiebreakerKey(decisionId));
+        return raw ? JSON.parse(raw) : null;
+    } catch {
+        return null;
+    }
+}
+
+function storeTiebreaker(decisionId, data) {
+    if (!decisionId) return;
+    localStorage.setItem(getTiebreakerKey(decisionId), JSON.stringify(data));
+}
+
+function clearTiebreaker(decisionId) {
+    if (!decisionId) return;
+    localStorage.removeItem(getTiebreakerKey(decisionId));
+}
+
+// ── TIEBREAKER WIDGET ──────────────────────────────────────────────────────────
+// Cartão compacto, colocado no meio da barra superior (entre o título e a
+// data), em vez de um banner largo ou de um ícone minúsculo no título.
+async function renderTiebreakerWidget(decision) {
     const session = api.getSession();
     const isCreator = session?.user?.name === decision.created_by;
-    
-    if (!isCreator) return null; // Só o criador pode ver
-    
+    if (!isCreator) return null; // Só o criador pode lançar o dado
+
+    const stored = getStoredTiebreaker(decision.id);
     const hasTie = checkForTie(decision.options);
     const allVoted = await checkIfAllVoted(decision);
-    
-    console.log(`🎲 Empate: ${hasTie}, Todos votaram: ${allVoted}`);
-    
-    if (!hasTie || !allVoted) return null; // Mostrar só se empate + todos votaram
-    
-    const container = document.createElement("div");
-    container.className = "tiebreaker-container";
-    
+
+    // Se já houver um resultado guardado, mostra-o sempre (mesmo que os dados
+    // de "empate"/"todos votaram" mudem depois de resolvido).
+    if (!stored && (!hasTie || !allVoted)) return null;
+
+    const widget = document.createElement("div");
+    widget.className = "tiebreaker-inline";
+
+    const badge = document.createElement("div");
+    badge.className = "tiebreaker-inline-icon";
+
+    const body = document.createElement("div");
+    body.className = "tiebreaker-inline-body";
+
     const label = document.createElement("span");
-    label.className = "tiebreaker-label";
-    label.textContent = "Desempate:";
-    
-    const dice = document.createElement("button");
-    dice.className = "tiebreaker-dice";
-    dice.type = "button";
-    dice.innerHTML = "🎲";
-    dice.title = "Clica para resolver o empate!";
-    
-    dice.addEventListener("click", async (e) => {
+    label.className = "tiebreaker-inline-label";
+    body.appendChild(label);
+
+    if (stored) {
+        widget.classList.add("resolved");
+        badge.innerHTML = '<i class="fa-solid fa-trophy"></i>';
+        label.textContent = "Vencedor do desempate";
+
+        const winnerName = document.createElement("strong");
+        winnerName.className = "tiebreaker-inline-winner";
+        winnerName.textContent = stored.winnerText;
+        winnerName.title = stored.winnerText;
+        body.appendChild(winnerName);
+
+        widget.appendChild(badge);
+        widget.appendChild(body);
+        return widget;
+    }
+
+    badge.innerHTML = '<i class="fa-solid fa-scale-balanced"></i>';
+    label.textContent = "Há um empate";
+
+    const rollBtn = document.createElement("button");
+    rollBtn.type = "button";
+    rollBtn.className = "tiebreaker-roll-btn";
+    rollBtn.innerHTML = '<i class="fa-solid fa-dice"></i><span>Lançar o dado</span>';
+    rollBtn.addEventListener("click", async (e) => {
         e.preventDefault();
-        await handleTiebreakerRoll(decision, dice);
+        await handleTiebreakerRoll(decision, rollBtn, widget);
     });
-    
-    container.appendChild(label);
-    container.appendChild(dice);
-    
-    return container;
+    body.appendChild(rollBtn);
+
+    widget.appendChild(badge);
+    widget.appendChild(body);
+    return widget;
 }
 
 // ── HANDLE TIEBREAKER ROLL ─────────────────────────────────────────────────────
-async function handleTiebreakerRoll(decision, diceButton) {
-    const winningOptions = decision.options.filter(
-        o => (o.votes || 0) === Math.max(...decision.options.map(opt => opt.votes || 0))
-    );
-    
+async function handleTiebreakerRoll(decision, button, widget) {
+    const maxVotes = Math.max(...decision.options.map(opt => opt.votes || 0));
+    const winningOptions = decision.options.filter(o => (o.votes || 0) === maxVotes);
+
     if (winningOptions.length < 2) {
         console.warn("Não há empate para resolver");
         return;
     }
-    
+
     console.log(`🎲 Rodando dado... Opções em empate: ${winningOptions.map(o => o.option_text).join(", ")}`);
-    
-    // ✅ Animação de rolo
-    diceButton.classList.add("rolling");
-    diceButton.disabled = true;
-    
-    // Simular rolo por 2 segundos
-    const rollDuration = 2000;
-    const startTime = Date.now();
-    
+
+    button.disabled = true;
+    widget.classList.add("rolling");
+    const badgeIcon = widget.querySelector(".tiebreaker-inline-icon i");
+    const label = button.querySelector("span");
+    if (label) label.textContent = "A lançar...";
+
+    const faces = ["fa-dice-one", "fa-dice-two", "fa-dice-three", "fa-dice-four", "fa-dice-five", "fa-dice-six"];
     const rollInterval = setInterval(() => {
-        const randomIdx = Math.floor(Math.random() * 10) % winningOptions.length;
-        diceButton.innerHTML = `🎲 ${randomIdx + 1}`;
+        if (!badgeIcon) return;
+        const face = faces[Math.floor(Math.random() * faces.length)];
+        badgeIcon.className = `fa-solid ${face}`;
     }, 100);
-    
-    // Após 2 segundos, selecionar opção final
-    setTimeout(async () => {
-        clearInterval(rollInterval);
-        
-        const selectedIdx = Math.floor(Math.random() * winningOptions.length);
-        const selectedOption = winningOptions[selectedIdx];
-        
-        diceButton.classList.remove("rolling");
-        diceButton.innerHTML = "✨";
-        diceButton.title = `Vencedor: ${selectedOption.option_text}`;
-        
-        console.log(`✨ Empate resolvido! Vencedor: ${selectedOption.option_text}`);
-        
-        // ✅ Mostrar modal com resultado
-        showTiebreakerResult(selectedOption, winningOptions);
-        
-        // Desabilitar dado após usar
-        diceButton.disabled = true;
-        diceButton.classList.add("used");
-    }, rollDuration);
+
+    const rollDuration = 2000;
+    await new Promise((resolve) => setTimeout(resolve, rollDuration));
+    clearInterval(rollInterval);
+
+    const selectedIdx = Math.floor(Math.random() * winningOptions.length);
+    const selectedOption = winningOptions[selectedIdx];
+
+    console.log(`✨ Empate resolvido! Vencedor: ${selectedOption.option_text}`);
+
+    // ✅ Guardar resultado de forma persistente
+    storeTiebreaker(decision.id, {
+        winnerId: selectedOption.id,
+        winnerText: selectedOption.option_text,
+        tiedOptionIds: winningOptions.map(o => o.id),
+        tiedOptionTexts: winningOptions.map(o => o.option_text),
+        resolvedAt: new Date().toISOString(),
+        resolvedBy: api.getSession()?.user?.name || ""
+    });
+
+    // ✅ Mostrar modal com o resultado
+    showTiebreakerResult(selectedOption, winningOptions);
+
+    // ✅ Re-renderizar tudo (widget passa a estado "resolvido", card vencedor
+    // fica destacado e o total de votos passa a contar o voto do dado)
+    renderDecisionTemplate();
 }
 
 // ── SHOW TIEBREAKER RESULT ─────────────────────────────────────────────────────
 function showTiebreakerResult(winner, tiedOptions) {
     const modal = document.createElement("div");
     modal.className = "tiebreaker-modal";
-    
+
     const content = document.createElement("div");
     content.className = "tiebreaker-modal-content";
-    
+
+    const trophyIcon = document.createElement("div");
+    trophyIcon.className = "tiebreaker-modal-trophy";
+    trophyIcon.innerHTML = '<i class="fa-solid fa-trophy"></i>';
+
     const title = document.createElement("h2");
-    title.textContent = "✨ Empate Resolvido!";
-    
+    title.textContent = "Empate Resolvido!";
+
     const message = document.createElement("p");
-    message.innerHTML = `<strong>${winner.option_text}</strong> foi seleccionada aleatoriamente!`;
-    
+    const winnerStrong = document.createElement("strong");
+    winnerStrong.textContent = winner.option_text;
+    message.appendChild(winnerStrong);
+    message.appendChild(document.createTextNode(" foi seleccionada aleatoriamente!"));
+
     const tiedList = document.createElement("div");
     tiedList.className = "tiebreaker-modal-tied";
-    tiedList.innerHTML = `<small>Estavam em empate: ${tiedOptions.map(o => o.option_text).join(", ")}</small>`;
-    
+    const tiedSmall = document.createElement("small");
+    tiedSmall.textContent = `Estavam em empate: ${tiedOptions.map(o => o.option_text).join(", ")}`;
+    tiedList.appendChild(tiedSmall);
+
     const closeBtn = document.createElement("button");
     closeBtn.className = "tiebreaker-modal-close";
     closeBtn.textContent = "Fechar";
     closeBtn.addEventListener("click", () => modal.remove());
-    
+
+    content.appendChild(trophyIcon);
     content.appendChild(title);
     content.appendChild(message);
     content.appendChild(tiedList);
     content.appendChild(closeBtn);
     modal.appendChild(content);
-    
+
     document.body.appendChild(modal);
-    
-    // Auto-fechar após 5 segundos
+
+    // Auto-fechar após 6 segundos
     setTimeout(() => {
         if (modal.parentNode) modal.remove();
-    }, 5000);
+    }, 6000);
 }
 
 // ── RENDER OPTIONS ────────────────────────────────────────────────────────────
-async function renderOptionCard(option, index, userHasVoted = false, userVotedOptionId = null) {
+async function renderOptionCard(option, index, userHasVoted = false, userVotedOptionId = null, tiebreakerWinnerId = null) {
     const card = document.createElement("article");
     card.className = "option-card";
     if (index === 0) {
         card.style.boxShadow = "0 14px 20px -20px rgba(15,20,40,0.85), inset 0 0 0 2px rgba(93,122,255,0.45)";
+    }
+
+    const isTiebreakerWinner = !!tiebreakerWinnerId && option.id === tiebreakerWinnerId;
+    if (isTiebreakerWinner) {
+        card.classList.add("option-card-winner");
+        // Quando há vencedor de desempate, a sombra de destaque do índice 0 deixa de fazer sentido
+        card.style.boxShadow = "";
+
+        const badge = document.createElement("span");
+        badge.className = "winner-badge";
+        badge.innerHTML = '<i class="fa-solid fa-trophy"></i><span>Vencedor</span>';
+        card.appendChild(badge);
     }
 
     const name = document.createElement("p");
@@ -263,22 +341,37 @@ async function renderOptionCard(option, index, userHasVoted = false, userVotedOp
     const votesWrap = document.createElement("div");
     votesWrap.className = "option-votes";
 
-    // ✅ USAR option.votes (agora existe!)
-    const votesCount = Math.max(1, Math.min(5, option.votes || 0));
-    
+    // ✅ USAR option.votes, e somar +1 visualmente se esta opção venceu o desempate
+    const baseVotes = option.votes || 0;
+    const displayVotes = isTiebreakerWinner ? baseVotes + 1 : baseVotes;
+    const votesCount = Math.max(1, Math.min(6, displayVotes));
+
     for (let i = 0; i < votesCount; i++) {
         const chip = document.createElement("button");
         chip.className = "vote-chip";
         chip.type = "button";
-        chip.innerHTML = '<i class="fa-regular fa-thumbs-up"></i>';
         chip.setAttribute("data-option-id", option.id);
-        
+
+        // ✅ Último chip da opção vencedora representa o voto do dado
+        const isDiceChip = isTiebreakerWinner && i === votesCount - 1;
+
+        if (isDiceChip) {
+            chip.innerHTML = '<i class="fa-solid fa-dice"></i>';
+            chip.classList.add("dice-vote-chip");
+            chip.disabled = true;
+            chip.title = "Voto de desempate (dado)";
+            votesWrap.appendChild(chip);
+            continue;
+        }
+
+        chip.innerHTML = '<i class="fa-regular fa-thumbs-up"></i>';
+
         // ✅ SE UTILIZADOR JÁ VOTOU
         if (userHasVoted) {
             chip.disabled = true;
             chip.classList.add("disabled-vote");
             chip.title = "Já votou nesta decisão";
-            
+
             // ✅ DESTACAR A OPÇÃO QUE O UTILIZADOR VOTOU
             if (userVotedOptionId === option.id) {
                 chip.classList.add("user-voted");
@@ -294,7 +387,7 @@ async function renderOptionCard(option, index, userHasVoted = false, userVotedOp
                 await handleVote(option.id, chip);
             });
         }
-        
+
         votesWrap.appendChild(chip);
     }
 
@@ -354,6 +447,10 @@ async function handleVote(optionId, buttonElement) {
                 buttonElement.classList.add("voted");
                 buttonElement.innerHTML = '<i class="fa-solid fa-thumbs-up"></i>';
             }
+
+            // ✅ Uma nova votação muda a distribuição de votos: invalida um
+            // eventual resultado de desempate anterior para esta decisão.
+            clearTiebreaker(decision.id);
 
             // ✅ BUSCAR DADOS NOVOS
             console.log("🔄 Buscando decisão actualizada...");
@@ -463,21 +560,30 @@ async function renderWithData(decision) {
     const session = api.getSession();
     const userId = session?.user?.id;
 
-    // ✅ RENDERIZAR TÍTULO COM DADO DE DESEMPATE
     if (decisionTitle) {
-        decisionTitle.innerHTML = ""; // Limpar
-        
-        const titleText = document.createElement("span");
-        titleText.textContent = decision.title || "Decisão sem título";
-        decisionTitle.appendChild(titleText);
-        
-        // ✅ Tentar renderizar dado se houver empate
-        const diceElement = await renderTiebreakerDice(decision);
-        if (diceElement) {
-            decisionTitle.appendChild(diceElement);
-        }
+        decisionTitle.textContent = decision.title || "Decisão sem título";
     }
     if (decisionDescription) decisionDescription.textContent = decision.description || "Sem descrição disponível.";
+
+    // ✅ DADO DE DESEMPATE — cartão compacto inserido na barra superior,
+    // entre o título e os "pills" de data/tempo restante.
+    const oldWidget = document.querySelector(".tiebreaker-inline");
+    if (oldWidget) oldWidget.remove();
+    const tiebreakerWidget = await renderTiebreakerWidget(decision);
+    if (tiebreakerWidget) {
+        const topbar = document.querySelector(".decision-topbar");
+        const metaPills = document.querySelector(".meta-pills");
+        if (topbar) {
+            if (metaPills && metaPills.parentElement === topbar) {
+                topbar.insertBefore(tiebreakerWidget, metaPills);
+            } else {
+                topbar.appendChild(tiebreakerWidget);
+            }
+        } else if (decisionDescription) {
+            // Fallback: se não existir .decision-topbar, mostra a seguir à descrição
+            decisionDescription.insertAdjacentElement("afterend", tiebreakerWidget);
+        }
+    }
 
     if (decisionDate) {
         const endDateLabel = formatIsoToDisplay(decision.end_date || decision.endDate);
@@ -492,6 +598,13 @@ async function renderWithData(decision) {
         else if (daysLeft === 1) decisionTimeLeft.textContent = "1 dia restante";
         else decisionTimeLeft.textContent = `${daysLeft} dias restantes`;
     }
+
+    // ✅ Resultado de desempate guardado (se existir) para esta decisão
+    const storedTiebreaker = getStoredTiebreaker(decision.id);
+    const tiebreakerWinnerId = storedTiebreaker?.winnerId ?? null;
+    const winnerStillExists = tiebreakerWinnerId
+        ? options.some(o => o.id === tiebreakerWinnerId)
+        : false;
 
     if (decisionOptionsContainer) {
         decisionOptionsContainer.innerHTML = "";
@@ -510,13 +623,20 @@ async function renderWithData(decision) {
             option.votes = voteCount; // ✅ Adiciona o campo votes
             console.log(`👍 Opção ${option.option_text}: ${voteCount} votos`);
             decisionOptionsContainer.appendChild(
-                await renderOptionCard(option, i, userHasVoted, userVotedOptionId)
+                await renderOptionCard(
+                    option,
+                    i,
+                    userHasVoted,
+                    userVotedOptionId,
+                    winnerStillExists ? tiebreakerWinnerId : null
+                )
             );
         }
     }
 
-    // ✅ CALCULAR TOTAL DE VOTOS CORRECTAMENTE
-    const totalVotes = options.reduce((sum, o) => sum + (o.votes || 0), 0);
+    // ✅ CALCULAR TOTAL DE VOTOS — inclui o voto do dado quando há desempate resolvido
+    const baseTotalVotes = options.reduce((sum, o) => sum + (o.votes || 0), 0);
+    const totalVotes = baseTotalVotes + (winnerStillExists ? 1 : 0);
     if (decisionTotalVotes) {
         decisionTotalVotes.textContent = String(totalVotes);
         console.log(`📊 Total de votos: ${totalVotes}`);
