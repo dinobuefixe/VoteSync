@@ -119,6 +119,9 @@ async function fetchFriendshipsByIds(friendshipIds) {
 // ── RENDERIZAR TARGETS COM DADOS DOS AMIGOS ───────────────────────────────────
 function renderDecisionTargets(decision, friendshipsData = []) {
 <<<<<<< HEAD
+<<<<<<< HEAD
+>>>>>>> c3f90b4 (feat:Decision-making feature and decisions listing page (frontend + backend + database))
+=======
 >>>>>>> c3f90b4 (feat:Decision-making feature and decisions listing page (frontend + backend + database))
 =======
 >>>>>>> c3f90b4 (feat:Decision-making feature and decisions listing page (frontend + backend + database))
@@ -132,8 +135,11 @@ function renderDecisionTargets(decision, friendshipsData = []) {
 
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
     const targetFriends = Array.isArray(decision?.target_friends) ? decision.target_friends : [];
 =======
+=======
+>>>>>>> c3f90b4 (feat:Decision-making feature and decisions listing page (frontend + backend + database))
 =======
 >>>>>>> c3f90b4 (feat:Decision-making feature and decisions listing page (frontend + backend + database))
     // Usar dados da API para extrair nomes dos amigos
@@ -141,6 +147,9 @@ function renderDecisionTargets(decision, friendshipsData = []) {
         .map(f => normalizeEntityName(f, ""))
         .filter(n => n && n.length > 0);
 <<<<<<< HEAD
+<<<<<<< HEAD
+>>>>>>> c3f90b4 (feat:Decision-making feature and decisions listing page (frontend + backend + database))
+=======
 >>>>>>> c3f90b4 (feat:Decision-making feature and decisions listing page (frontend + backend + database))
 =======
 >>>>>>> c3f90b4 (feat:Decision-making feature and decisions listing page (frontend + backend + database))
@@ -164,7 +173,11 @@ function renderDecisionTargets(decision, friendshipsData = []) {
 
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 // ── RENDER TEMPLATE ───────────────────────────────────────────────────────────
+=======
+// ── RENDERIZAR TEMPLATE DE DECISÃO ────────────────────────────────────────────
+>>>>>>> c3f90b4 (feat:Decision-making feature and decisions listing page (frontend + backend + database))
 =======
 // ── RENDERIZAR TEMPLATE DE DECISÃO ────────────────────────────────────────────
 >>>>>>> c3f90b4 (feat:Decision-making feature and decisions listing page (frontend + backend + database))

@@ -65,9 +65,12 @@ class CreateFriendships(BaseModel):
         from_attributes = True
 
 <<<<<<< HEAD
+<<<<<<< HEAD
 class FriendshipUpdate(BaseModel):
     status: str
 =======
+=======
+>>>>>>> c3f90b4 (feat:Decision-making feature and decisions listing page (frontend + backend + database))
 # ✅ NOVO: Schema com dados do amigo
 class FriendshipWithFriendData(BaseModel):
     id: int
@@ -75,11 +78,15 @@ class FriendshipWithFriendData(BaseModel):
     friend_id: int
     status: str
     friend: UserResponse  # ✅ Dados completos do amigo
+<<<<<<< HEAD
+>>>>>>> c3f90b4 (feat:Decision-making feature and decisions listing page (frontend + backend + database))
+=======
 >>>>>>> c3f90b4 (feat:Decision-making feature and decisions listing page (frontend + backend + database))
 
     class Config:
         from_attributes = True
 
+<<<<<<< HEAD
 <<<<<<< HEAD
 class FriendshipWithFriendData(BaseModel):
     id: int
@@ -105,6 +112,9 @@ class FriendshipWithFriendData(BaseModel):
     class Config:
         from_attributes = True
 
+
+>>>>>>> c3f90b4 (feat:Decision-making feature and decisions listing page (frontend + backend + database))
+=======
 
 >>>>>>> c3f90b4 (feat:Decision-making feature and decisions listing page (frontend + backend + database))
 =======
@@ -146,8 +156,11 @@ class UserGroupsResponse(BaseModel):
     name: str
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
     description: str | None = None
     members: List[dict] = []  # ✅ Incluir membros
+=======
+>>>>>>> c3f90b4 (feat:Decision-making feature and decisions listing page (frontend + backend + database))
 =======
 >>>>>>> c3f90b4 (feat:Decision-making feature and decisions listing page (frontend + backend + database))
 =======
@@ -213,6 +226,7 @@ class VotesResponse(BaseModel):
 
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 class DecisionFriendResponse(BaseModel):
     id: int
     friendship_id: int
@@ -221,6 +235,8 @@ class DecisionFriendResponse(BaseModel):
     class Config:
         from_attributes = True
 
+=======
+>>>>>>> c3f90b4 (feat:Decision-making feature and decisions listing page (frontend + backend + database))
 =======
 >>>>>>> c3f90b4 (feat:Decision-making feature and decisions listing page (frontend + backend + database))
 =======
@@ -236,7 +252,10 @@ class DecisionsBase(BaseModel):
     created_at: str | None = None
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
     target_friend_ids: List[int] = []  # ✅ IDs das friendships selecionadas
+=======
+>>>>>>> c3f90b4 (feat:Decision-making feature and decisions listing page (frontend + backend + database))
 =======
 >>>>>>> c3f90b4 (feat:Decision-making feature and decisions listing page (frontend + backend + database))
 =======
@@ -262,7 +281,10 @@ class DecisionsResponse(BaseModel):
     options: List[OptionsResponse] = []
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
     target_friends: List[DecisionFriendResponse] = []  # ✅ Amigos associados
+=======
+>>>>>>> c3f90b4 (feat:Decision-making feature and decisions listing page (frontend + backend + database))
 =======
 >>>>>>> c3f90b4 (feat:Decision-making feature and decisions listing page (frontend + backend + database))
 =======
