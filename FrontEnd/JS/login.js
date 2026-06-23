@@ -95,6 +95,7 @@ loginForm.addEventListener("submit", async (e) => {
     setSubmitLoading(loginForm, true);
     try {
 <<<<<<< HEAD
+<<<<<<< HEAD
         
         const dataAuth = {
             email: document.getElementById("login-email").value.trim(),
@@ -114,13 +115,28 @@ loginForm.addEventListener("submit", async (e) => {
 =======
         // ✅ Usar api.login() — guarda sessão automaticamente
         const data = await api.login(result.email, result.password);
+=======
+>>>>>>> 7cbe1b4 (feat/friends:pending-friendship-requests)
 
-        // Limpar dados antigos
-        localStorage.removeItem("votesync.decisions");
-        localStorage.removeItem("votesync.decision.latest");
-        localStorage.removeItem("votesync.groups");
+        const dataAuth = {
+            email: document.getElementById("login-email").value.trim(),
+            password: document.getElementById("login-password").value
+        };
 
+<<<<<<< HEAD
 >>>>>>> 9224db4 (Fix auth and friendships backend issues; update frontend deployment docs)
+=======
+        const res = await fetch("/auth/login", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify(dataAuth),
+        });
+
+        const data = await res.json();
+        if (!res.ok) throw new Error(data.detail || "Credenciais inválidas.");
+
+        saveSession(data);
+>>>>>>> 7cbe1b4 (feat/friends:pending-friendship-requests)
         loginForm.reset();
         showSession(data.user);
         setStatus("Login successful.", "is-success");

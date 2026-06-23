@@ -1,14 +1,19 @@
-/* ── VoteSync — Friends JS (REFATORIZADO COM api.js) ── */
+/* ── VoteSync — Friends JS ligado à API real ── */
 
-// ✅ IMPORTANTE: Adiciona isto no HTML antes deste script:
-// <script src="./api.js"></script>
+const SESSION_KEY = "votesync.session";
+const API = "http://localhost:8000";
 
-// ── DOM REFS ──────────────────────────────────────────────────────────────────
-const searchInput = document.querySelector(".search-bar input");
-let searchResults = document.getElementById("search-results");
-const mainContainer = document.querySelector(".main-container");
+// ── SESSION ───────────────────────────────────────────────────────────────────
+function getSession() {
+    const raw = localStorage.getItem(SESSION_KEY);
+    if (!raw) return null;
+    try { return JSON.parse(raw); } catch { return null; }
+}
 
 <<<<<<< HEAD
+<<<<<<< HEAD
+=======
+>>>>>>> 7cbe1b4 (feat/friends:pending-friendship-requests)
 function ensureAuthenticated() {
     const session = getSession();
     if (!session || !session.user) window.location.href = "./index.html";
@@ -40,6 +45,7 @@ async function apiFetch(path, options = {}) {
     const data = await res.json();
     if (!res.ok) throw new Error(data.detail || "Erro na API");
     return data;
+<<<<<<< HEAD
 =======
 // Criar searchResults se não existir
 if (!searchResults) {
@@ -48,6 +54,8 @@ if (!searchResults) {
     searchResults.style.cssText = "width:min(100%,760px);display:flex;flex-direction:column;gap:10px;margin-top:1.5rem;";
     mainContainer.prepend(searchResults);
 >>>>>>> 9224db4 (Fix auth and friendships backend issues; update frontend deployment docs)
+=======
+>>>>>>> 7cbe1b4 (feat/friends:pending-friendship-requests)
 }
 
 // ── STATE ─────────────────────────────────────────────────────────────────────
@@ -69,6 +77,7 @@ async function loadData() {
             f => f.user_id === myId || f.friend_id === myId
         );
 <<<<<<< HEAD
+<<<<<<< HEAD
         
         const friendsIds = getMyFriendIds("accepted");
         renderFriends(friendsIds, "accepted");
@@ -80,6 +89,15 @@ async function loadData() {
 
         renderFriends();
 >>>>>>> 9224db4 (Fix auth and friendships backend issues; update frontend deployment docs)
+=======
+        
+        const friendsIds = getMyFriendIds();
+        renderFriends(friendsIds, "accepted");
+
+        const pendingFriendsIds = getMyPendingFriendIds();
+        renderFriends(pendingFriendsIds, "pending");
+
+>>>>>>> 7cbe1b4 (feat/friends:pending-friendship-requests)
     } catch (err) {
         showMessage("Erro ao carregar dados: " + err.message, "error");
     }
@@ -176,12 +194,24 @@ function renderPendingRequests() {
     }
 }
 
+<<<<<<< HEAD
 function renderFriends() {
     const friendIds = getMyFriendIds();
     const friendUsers = allUsers.filter(u => friendIds.includes(u.id));
 >>>>>>> 9224db4 (Fix auth and friendships backend issues; update frontend deployment docs)
 
 function renderFriends(friendsIds, whichfriends) {
+=======
+function getMyPendingFriendIds() {
+    return myFriendships
+        .filter(f => f.status === "pending")
+        .map(f => f.user_id === myId ? f.friend_id : f.user_id);
+}
+
+function renderFriends(friendsIds, whichfriends) {
+
+    const friendUsers = allUsers.filter(u => friendsIds.includes(u.id));
+>>>>>>> 7cbe1b4 (feat/friends:pending-friendship-requests)
 
     const friendUsers = allUsers.filter(u => friendsIds.includes(u.id));
     const emptySection = document.querySelector(".empty-state-container");
@@ -204,6 +234,7 @@ function renderFriends(friendsIds, whichfriends) {
     document.querySelector(".main-container").appendChild(friendsList);
 
 <<<<<<< HEAD
+<<<<<<< HEAD
     const text = `<h2>${whichfriends === "accepted" ? "Amigos" : "Solicitações Pendentes"}</h2>`;
     friendsList.innerHTML = text + friendUsers.map(u => {
 =======
@@ -216,8 +247,18 @@ function renderFriends(friendsIds, whichfriends) {
 
     friendsList.innerHTML = friendUsers.map(u => {
 >>>>>>> 9224db4 (Fix auth and friendships backend issues; update frontend deployment docs)
+=======
+    friendsList = document.createElement("div");
+    friendsList.id = "friends-list";
+    friendsList.style.cssText = "width:min(100%,760px);display:flex;flex-direction:column;gap:12px;margin-top:1rem;";
+    document.querySelector(".main-container").appendChild(friendsList);
+
+    const text = `<h2>${whichfriends === "accepted" ? "Amigos" : "Solicitações Pendentes"}</h2>`;
+    friendsList.innerHTML = text + friendUsers.map(u => {
+>>>>>>> 7cbe1b4 (feat/friends:pending-friendship-requests)
         const friendship = myFriendships.find(
             f => (f.user_id === myId && f.friend_id === u.id) ||
+                (f.friend_id === myId && f.user_id === u.id)
                 (f.friend_id === myId && f.user_id === u.id)
         );
 
@@ -306,11 +347,15 @@ searchInput?.addEventListener("input", () => {
 window.addFriend = async function (friendId) {
     try {
 <<<<<<< HEAD
+<<<<<<< HEAD
+=======
+>>>>>>> 7cbe1b4 (feat/friends:pending-friendship-requests)
         const newFriendship = await apiFetch("/friendships/", {
             method: "POST",
             body: JSON.stringify({ user_id: myId, friend_id: friendId, status: "pending" }),
         });
         myFriendships.push(newFriendship);
+<<<<<<< HEAD
         searchInput.value = "";
         searchResults.innerHTML = "";
 
@@ -330,11 +375,25 @@ window.addFriend = async function (friendId) {
         renderFriends();
         showSwal("success", "Pedido de amizade enviado!", 1500);
 >>>>>>> 9224db4 (Fix auth and friendships backend issues; update frontend deployment docs)
+=======
+        searchInput.value = "";
+        searchResults.innerHTML = "";
+
+        const friendsIds = getMyFriendIds();
+        renderFriends(friendsIds, "accepted");
+
+        const pendingFriendsIds = getMyPendingFriendIds();
+        renderFriends(pendingFriendsIds, "pending");
+
+        await(Swal.fire({ icon: "success", title: "Pedido de amizade enviado!", timer: 1500, showConfirmButton: false }));
+        window.location.reload();
+>>>>>>> 7cbe1b4 (feat/friends:pending-friendship-requests)
     } catch (err) {
         showMessage("Erro: " + err.message, "error");
     }
 };
 
+<<<<<<< HEAD
 <<<<<<< HEAD
 window.confirmFriendRequest = async function(id) {
     try {
@@ -358,16 +417,33 @@ window.confirmFriendRequest = async function(id) {
 =======
 window.acceptFriend = async function (friendshipId) {
     if (!friendshipId) return;
+=======
+window.confirmFriendRequest = async function(id) {
+>>>>>>> 7cbe1b4 (feat/friends:pending-friendship-requests)
     try {
-        await api.acceptFriendship(friendshipId);
-        await loadData();
-        renderFriends();
-        showSwal("success", "Pedido aceite!", 1500);
+        const updatedFriendship = await apiFetch(`/friendships/${id}`, {
+            method: "PUT",
+            body: JSON.stringify({ status: "accepted" }),
+        });
+
+        // Atualiza a friendship existente em vez de fazer push
+        const index = myFriendships.findIndex(f => f.id === id);
+        if (index !== -1) {
+            myFriendships[index] = updatedFriendship;
+        }
+
+        searchInput.value = "";
+        searchResults.innerHTML = "";
+        const friendsIds = getMyFriendIds();
+        renderFriends(friendsIds, "accepted");
+        await(Swal.fire({ icon: "success", title: "Pedido de amizade aceite!", timer: 1500, showConfirmButton: false }));
+        window.location.reload();
     } catch (err) {
         showMessage("Erro: " + err.message, "error");
     }
 };
 
+<<<<<<< HEAD
 window.rejectFriend = async function (friendshipId) {
     if (!friendshipId) return;
     try {
@@ -405,19 +481,42 @@ window.removeFriend = async function (friendshipId) {
     const result = await showSwal("confirm", "Remover amigo?", "Tens a certeza que queres remover este amigo?");
     if (!result) return;
 >>>>>>> 9224db4 (Fix auth and friendships backend issues; update frontend deployment docs)
+=======
+window.removeFriend = async function(friendshipId) {
+    if (!friendshipId) return;
+
+    const result = await Swal.fire({
+        title: "Cancelar Amizade?",
+        text: "Tens a certeza que queres cancelar esta Amizade?",
+        icon: "warning",
+        showCancelButton: true,
+        confirmButtonColor: "#7c5cbf",
+        cancelButtonColor: "#aaa",
+        confirmButtonText: "Sim, remover",
+        cancelButtonText: "Cancelar",
+    });
+
+    if (!result.isConfirmed) return;
+>>>>>>> 7cbe1b4 (feat/friends:pending-friendship-requests)
 
     try {
         await api.deleteFriendship(friendshipId);
         myFriendships = myFriendships.filter(f => f.id !== friendshipId);
 <<<<<<< HEAD
+<<<<<<< HEAD
+=======
+>>>>>>> 7cbe1b4 (feat/friends:pending-friendship-requests)
         const friendsIds = getMyFriendIds();
         renderFriends(friendsIds, "accepted");
         await(Swal.fire({ icon: "success", title: "Removido!!!!", text: "Amizade cancelado com sucesso.", timer: 1500, showConfirmButton: false }));
         window.location.reload();
+<<<<<<< HEAD
 =======
         renderFriends();
         showSwal("success", "Removido!", "Amigo removido com sucesso.", 1500);
 >>>>>>> 9224db4 (Fix auth and friendships backend issues; update frontend deployment docs)
+=======
+>>>>>>> 7cbe1b4 (feat/friends:pending-friendship-requests)
     } catch (err) {
         showMessage("Erro: " + err.message, "error");
     }

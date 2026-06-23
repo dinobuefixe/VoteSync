@@ -226,6 +226,7 @@ def create_friendship(friendship: schemas.CreateFriendships, db: Session = Depen
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 @router.put("/{friendship_id}")
 async def update_friendship(friendship_id: int, data: FriendshipUpdate, db: Session = Depends(get_db)):
     friendship = db.query(models.Friendships).filter(models.Friendships.id == friendship_id).first()
@@ -243,6 +244,8 @@ async def update_friendship(friendship_id: int, data: FriendshipUpdate, db: Sess
 =======
 >>>>>>> c3f90b4 (feat:Decision-making feature and decisions listing page (frontend + backend + database))
 =======
+=======
+>>>>>>> 7cbe1b4 (feat/friends:pending-friendship-requests)
 @router.patch("/{id}/accept", response_model=schemas.FriendshipWithFriendData)
 def accept_friendship(id: int, db: Session = Depends(get_db)):
     friendship = db.query(models.Friendships).filter(models.Friendships.id == id).first()
@@ -288,7 +291,22 @@ def update_friendship(id: int, updated: schemas.UpdateFriendships, db: Session =
     friendship_query.update({"status": updated.status}, synchronize_session=False)
     db.commit()
     return friendship_query.first()
+<<<<<<< HEAD
 >>>>>>> 9224db4 (Fix auth and friendships backend issues; update frontend deployment docs)
+=======
+=======
+@router.put("/{friendship_id}")
+async def update_friendship(friendship_id: int, data: FriendshipUpdate, db: Session = Depends(get_db)):
+    friendship = db.query(models.Friendships).filter(models.Friendships.id == friendship_id).first()
+    if not friendship:
+        raise HTTPException(status_code=404, detail="Friendship not found")
+    
+    friendship.status = data.status
+    db.commit()
+    db.refresh(friendship)
+    return friendship
+>>>>>>> 0f2ab96 (feat/friends:pending-friendship-requests)
+>>>>>>> 7cbe1b4 (feat/friends:pending-friendship-requests)
 
 
 @router.delete("/{id}", status_code=204)

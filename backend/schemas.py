@@ -52,10 +52,14 @@ class FriendsBase(BaseModel):
     user_id: int
     friend_id: int
 <<<<<<< HEAD
+<<<<<<< HEAD
     status: str 
 =======
     status: str = "pending"
 >>>>>>> 9224db4 (Fix auth and friendships backend issues; update frontend deployment docs)
+=======
+    status: str 
+>>>>>>> 7cbe1b4 (feat/friends:pending-friendship-requests)
 
     class Config:
         from_attributes = True
@@ -63,6 +67,7 @@ class FriendsBase(BaseModel):
 class CreateFriendships(BaseModel):
     user_id: int
     friend_id: int
+<<<<<<< HEAD
     status: str = "pending"
 
     class Config:
@@ -116,20 +121,19 @@ class FriendshipWithFriendData(BaseModel):
     friend: UserResponse
 =======
 class UpdateFriendships(BaseModel):
+=======
+>>>>>>> 7cbe1b4 (feat/friends:pending-friendship-requests)
     status: str
 >>>>>>> 9224db4 (Fix auth and friendships backend issues; update frontend deployment docs)
 
     class Config:
         from_attributes = True
 
-class FriendshipWithFriendData(BaseModel):
-    id: int
-    user_id: int
-    friend_id: int
-    status: str
-    user: UserResponse
-    friend: UserResponse
 
+class FriendshipUpdate(BaseModel):
+    status: str
+
+<<<<<<< HEAD
 <<<<<<< HEAD
 =======
     class Config:
@@ -162,6 +166,9 @@ class GroupMemberUser(BaseModel):
 
     class Config:
         from_attributes = True
+=======
+# members
+>>>>>>> 7cbe1b4 (feat/friends:pending-friendship-requests)
 
 class GroupMembersBase(BaseModel):
     id: int | None = None
