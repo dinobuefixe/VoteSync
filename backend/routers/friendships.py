@@ -1,7 +1,11 @@
 from fastapi import APIRouter, Depends, HTTPException
 <<<<<<< HEAD
+<<<<<<< HEAD
 from sqlalchemy import and_, or_
 from sqlalchemy.orm import Session, joinedload
+=======
+from sqlalchemy.orm import Session, joinedload  # ✅ Importar joinedload
+>>>>>>> c3f90b4 (feat:Decision-making feature and decisions listing page (frontend + backend + database))
 =======
 from sqlalchemy.orm import Session, joinedload  # ✅ Importar joinedload
 >>>>>>> c3f90b4 (feat:Decision-making feature and decisions listing page (frontend + backend + database))
@@ -16,12 +20,18 @@ router = APIRouter(prefix="/friendships", tags=["Friendships"])
 @router.get("/", response_model=List[schemas.FriendshipWithFriendData])
 def get_friendships(db: Session = Depends(get_db)):
 <<<<<<< HEAD
+<<<<<<< HEAD
     friendships = db.query(models.Friendships).options(
         joinedload(models.Friendships.friend),
         joinedload(models.Friendships.user)
     ).filter(
         models.Friendships.user.has(),
         models.Friendships.friend.has()
+=======
+    # ✅ Usar joinedload para carregar os dados do amigo
+    friendships = db.query(models.Friendships).options(
+        joinedload(models.Friendships.friend)
+>>>>>>> c3f90b4 (feat:Decision-making feature and decisions listing page (frontend + backend + database))
 =======
     # ✅ Usar joinedload para carregar os dados do amigo
     friendships = db.query(models.Friendships).options(
@@ -34,6 +44,7 @@ def get_friendships(db: Session = Depends(get_db)):
 @router.get("/{id}", response_model=schemas.FriendshipWithFriendData)
 def get_friendship(id: int, db: Session = Depends(get_db)):
 <<<<<<< HEAD
+<<<<<<< HEAD
     friendship = db.query(models.Friendships).options(
         joinedload(models.Friendships.friend),
         joinedload(models.Friendships.user)
@@ -43,10 +54,15 @@ def get_friendship(id: int, db: Session = Depends(get_db)):
         models.Friendships.friend.has()
     ).first()
 =======
+=======
+>>>>>>> c3f90b4 (feat:Decision-making feature and decisions listing page (frontend + backend + database))
     # ✅ Usar joinedload aqui também
     friendship = db.query(models.Friendships).options(
         joinedload(models.Friendships.friend)
     ).filter(models.Friendships.id == id).first()
+<<<<<<< HEAD
+>>>>>>> c3f90b4 (feat:Decision-making feature and decisions listing page (frontend + backend + database))
+=======
 >>>>>>> c3f90b4 (feat:Decision-making feature and decisions listing page (frontend + backend + database))
     
     if not friendship:
@@ -56,6 +72,7 @@ def get_friendship(id: int, db: Session = Depends(get_db)):
 
 @router.post("/", response_model=schemas.FriendshipWithFriendData)
 def create_friendship(friendship: schemas.CreateFriendships, db: Session = Depends(get_db)):
+<<<<<<< HEAD
 <<<<<<< HEAD
     if friendship.user_id == friendship.friend_id:
         raise HTTPException(400, "Cannot create friendship with yourself")
@@ -105,6 +122,8 @@ def create_friendship(friendship: schemas.CreateFriendships, db: Session = Depen
         status="pending"
     )
 =======
+=======
+>>>>>>> c3f90b4 (feat:Decision-making feature and decisions listing page (frontend + backend + database))
     new_friendship = models.Friendships(**friendship.dict())
 >>>>>>> c3f90b4 (feat:Decision-making feature and decisions listing page (frontend + backend + database))
     db.add(new_friendship)
@@ -114,6 +133,7 @@ def create_friendship(friendship: schemas.CreateFriendships, db: Session = Depen
 
 
 <<<<<<< HEAD
+<<<<<<< HEAD
 @router.put("/{friendship_id}")
 async def update_friendship(friendship_id: int, data: FriendshipUpdate, db: Session = Depends(get_db)):
     friendship = db.query(models.Friendships).filter(models.Friendships.id == friendship_id).first()
@@ -122,6 +142,8 @@ async def update_friendship(friendship_id: int, data: FriendshipUpdate, db: Sess
     
     friendship.status = data.status
 =======
+=======
+>>>>>>> c3f90b4 (feat:Decision-making feature and decisions listing page (frontend + backend + database))
 @router.put("/{id}", response_model=schemas.FriendshipWithFriendData)
 def update_friendship(id: int, updated: schemas.CreateFriendships, db: Session = Depends(get_db)):
     friendship = db.query(models.Friendships).filter(models.Friendships.id == id)

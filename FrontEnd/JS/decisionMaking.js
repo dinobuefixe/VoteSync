@@ -118,6 +118,9 @@ async function fetchFriendshipsByIds(friendshipIds) {
 
 // ── RENDERIZAR TARGETS COM DADOS DOS AMIGOS ───────────────────────────────────
 function renderDecisionTargets(decision, friendshipsData = []) {
+<<<<<<< HEAD
+>>>>>>> c3f90b4 (feat:Decision-making feature and decisions listing page (frontend + backend + database))
+=======
 >>>>>>> c3f90b4 (feat:Decision-making feature and decisions listing page (frontend + backend + database))
     if (decisionTargetGroup) {
         const groupName = decision?.target_group_name || "";
@@ -128,12 +131,18 @@ function renderDecisionTargets(decision, friendshipsData = []) {
     decisionTargetFriends.innerHTML = "";
 
 <<<<<<< HEAD
+<<<<<<< HEAD
     const targetFriends = Array.isArray(decision?.target_friends) ? decision.target_friends : [];
 =======
+=======
+>>>>>>> c3f90b4 (feat:Decision-making feature and decisions listing page (frontend + backend + database))
     // Usar dados da API para extrair nomes dos amigos
     const targetFriends = friendshipsData
         .map(f => normalizeEntityName(f, ""))
         .filter(n => n && n.length > 0);
+<<<<<<< HEAD
+>>>>>>> c3f90b4 (feat:Decision-making feature and decisions listing page (frontend + backend + database))
+=======
 >>>>>>> c3f90b4 (feat:Decision-making feature and decisions listing page (frontend + backend + database))
 
     if (targetFriends.length === 0) {
@@ -154,7 +163,11 @@ function renderDecisionTargets(decision, friendshipsData = []) {
 }
 
 <<<<<<< HEAD
+<<<<<<< HEAD
 // ── RENDER TEMPLATE ───────────────────────────────────────────────────────────
+=======
+// ── RENDERIZAR TEMPLATE DE DECISÃO ────────────────────────────────────────────
+>>>>>>> c3f90b4 (feat:Decision-making feature and decisions listing page (frontend + backend + database))
 =======
 // ── RENDERIZAR TEMPLATE DE DECISÃO ────────────────────────────────────────────
 >>>>>>> c3f90b4 (feat:Decision-making feature and decisions listing page (frontend + backend + database))

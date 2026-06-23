@@ -40,7 +40,10 @@ async function updateFriendsCard() {
 	const friendsListEl = document.querySelector("#friends-list-container");
 	try {
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
+=======
+>>>>>>> c3f90b4 (feat:Decision-making feature and decisions listing page (frontend + backend + database))
 		const session = getSession();
 		const myId = parseInt(session?.user?.id);
 		
@@ -910,6 +913,10 @@ setDecisionDate();
 initializeEndDateInput();
 
 <<<<<<< HEAD
+<<<<<<< HEAD
+=======
+// Aguarda completamente a atualização dos amigos
+>>>>>>> c3f90b4 (feat:Decision-making feature and decisions listing page (frontend + backend + database))
 =======
 // Aguarda completamente a atualização dos amigos
 >>>>>>> c3f90b4 (feat:Decision-making feature and decisions listing page (frontend + backend + database))
@@ -920,7 +927,10 @@ initializeEndDateInput();
 })();
 
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
+=======
+>>>>>>> c3f90b4 (feat:Decision-making feature and decisions listing page (frontend + backend + database))
 // EXPÕE A FUNÇÃO GLOBALMENTE
 // Para que friendSearch.js possa atualizar o card quando um amigo é adicionado
 >>>>>>> c3f90b4 (feat:Decision-making feature and decisions listing page (frontend + backend + database))
