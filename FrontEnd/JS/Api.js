@@ -163,8 +163,9 @@ class APIClient {
     // ── USER GROUPS ───────────────────────────────────────────────────────────
     // ✅ ATUALIZADO: Suporta member_ids para adicionar amigos automaticamente
 
-    getUserGroups() {
-        return this.get("/user-groups/");
+    getUserGroups(userId = null) {
+        const query = userId !== null && userId !== undefined ? `?user_id=${encodeURIComponent(userId)}` : "";
+        return this.get(`/user-groups/${query}`);
     }
 
     getUserGroup(id) {

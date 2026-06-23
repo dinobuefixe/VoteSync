@@ -82,7 +82,7 @@ async function updateGroupsCard() {
 	if (!groupsPreviewList || !groupsCardEmpty) return;
 
 	try {
-		const groups = await api.getUserGroups();
+		const groups = await api.getUserGroups(myId);
 
 		// Pegar apenas os 3 primeiros grupos
 		const preview = groups.slice(0, 3);
@@ -166,7 +166,7 @@ async function populateFriendsOptions(groups) {
 		const [users, friendships, groups] = await Promise.all([
 			api.getUsers(),
 			api.getFriendships(),
-			api.getUserGroups()
+			api.getUserGroups(myId)
 		]);
 
 		const myFriendIds = friendships
@@ -222,7 +222,7 @@ async function populateFriendsOptions(groups) {
 
 async function populateDecisionTargets() {
 	try {
-		const groups = await api.getUserGroups();
+		const groups = await api.getUserGroups(myId);
 		await populateGroupOptions(groups);
 		await populateFriendsOptions(groups);
 	} catch (err) {

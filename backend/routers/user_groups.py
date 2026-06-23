@@ -1,4 +1,4 @@
-from fastapi import APIRouter, Depends, HTTPException
+from fastapi import APIRouter, Depends, HTTPException, Query
 from sqlalchemy.orm import Session, joinedload
 from typing import List, Optional
 from backend import models, schemas
@@ -8,11 +8,14 @@ router = APIRouter(prefix="/user-groups", tags=["User Groups"])
 
 
 @router.get("/", response_model=List[schemas.UserGroupsResponse])
-def get_groups(db: Session = Depends(get_db)):
-    """Retorna todos os grupos com os seus membros"""
-    groups = db.query(models.User_Groups).options(
+def get_groups(user_id: int | None = Query(None), db: Session = Depends(get_db)):
+    """Retorna todos os grupos com os seus membros, ou apenas os grupos do utilizador se user_id for fornecido."""
+    query = db.query(models.User_Groups).options(
         joinedload(models.User_Groups.members).joinedload(models.Group_members.user)
-    ).all()
+    )
+    if user_id is not None:
+        query = query.join(models.Group_members).filter(models.Group_members.user_id == user_id).distinct()
+    groups = query.all()
     return groups
 
 

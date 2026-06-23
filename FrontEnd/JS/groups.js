@@ -149,7 +149,7 @@ function getSelectedFriendIds() {
 async function renderGroups() {
     if (!groupsList || !groupsSubtitle || !groupsEmptyState) return;
 
-    const groups = await api.getUserGroups();
+    const groups = await api.getUserGroups(myId);
 
     groupsSubtitle.textContent = `${groups.length} grupos`;
 
