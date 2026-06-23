@@ -39,6 +39,12 @@ const myId = parseInt(session?.user?.id);
 async function updateFriendsCard() {
 	const friendsListEl = document.querySelector("#friends-list-container");
 	try {
+<<<<<<< HEAD
+=======
+		const session = getSession();
+		const myId = parseInt(session?.user?.id);
+		
+>>>>>>> c3f90b4 (feat:Decision-making feature and decisions listing page (frontend + backend + database))
 		const [users, friendships] = await Promise.all([
 			api.getUsers(),
 			api.getFriendships()
@@ -221,6 +227,126 @@ async function populateFriendsOptions(groups) {
 }
 
 async function populateDecisionTargets() {
+<<<<<<< HEAD
+=======
+	const groups = getStoredGroups();
+	populateGroupOptions(groups);
+	await populateFriendsOptions(groups);
+}
+
+function getGroupSortTimestamp(group, fallbackIndex) {
+	if (!group || typeof group !== "object") return fallbackIndex;
+	const rawValue = group.createdAt || group.updatedAt || "";
+	const parsed = Date.parse(rawValue);
+	if (!Number.isNaN(parsed)) return parsed;
+	return fallbackIndex;
+}
+
+function updateGroupsCard() {
+	if (!groupsPreviewList || !groupsCardEmpty) return;
+	const groups = getStoredArray(GROUPS_KEY)
+		.map((group, index) => {
+			const normalizedName = normalizeEntityName(group, `Grupo ${index + 1}`);
+			const members = typeof group === "object" && group && Array.isArray(group.members)
+				? group.members.map((member) => normalizeEntityName(member, "")).filter((value) => value.length > 0)
+				: [];
+			return { ...group, name: normalizedName, members, sortTimestamp: getGroupSortTimestamp(group, index) };
+		})
+		.sort((a, b) => b.sortTimestamp - a.sortTimestamp)
+		.slice(0, 3);
+
+	groupsPreviewList.innerHTML = "";
+	if (groups.length === 0) { groupsCardEmpty.hidden = false; return; }
+	groupsCardEmpty.hidden = true;
+
+	groups.forEach((group) => {
+		const item = document.createElement("article");
+		item.className = "group-preview-item";
+		const main = document.createElement("div");
+		main.className = "group-preview-main";
+		const name = document.createElement("strong");
+		name.className = "group-preview-name";
+		name.textContent = group.name || "Grupo sem nome";
+		const meta = document.createElement("small");
+		meta.className = "group-preview-meta";
+		meta.textContent = group.members.length === 1 ? "1 membro" : `${group.members.length} membros`;
+		const badge = document.createElement("span");
+		badge.className = "group-preview-badge";
+		badge.textContent = "Recente";
+		main.appendChild(name);
+		main.appendChild(meta);
+		item.appendChild(main);
+		item.appendChild(badge);
+		groupsPreviewList.appendChild(item);
+	});
+}
+
+function syncTargetsIfModalOpen() {
+	if (!decisionModalOverlay || decisionModalOverlay.hidden) return;
+	populateDecisionTargets();
+}
+
+function hasSwal() {
+	return typeof window !== "undefined" && typeof window.Swal !== "undefined";
+}
+
+function clearSession() { localStorage.removeItem(SESSION_KEY); }
+function saveLatestDecision(decision) { localStorage.setItem(DECISION_TEMPLATE_KEY, JSON.stringify(decision)); }
+
+// ── DECISIONS (API) ───────────────────────────────────────────────────────────
+// Agora que o schemas.py/decisions.py aceitam e devolvem description, end_date,
+// created_by, target_group_id e created_at, a API é a fonte de verdade.
+// O localStorage deixa de ser necessário como fallback para estes campos —
+// só guardamos targetFriendIds localmente, pois ainda não há tabela para isso.
+async function createDecisionOnAPI(decision) {
+	const payload = {
+		vote_id: `decision_${Date.now()}`,
+		title: decision.title,
+		decision_text: decision.description || decision.title,
+		description: decision.description,
+		end_date: decision.endDate,
+		created_by: decision.createdBy,
+		target_group_id: decision.targetGroup?.id ? parseInt(decision.targetGroup.id) || null : null,
+		created_at: new Date().toISOString()
+	};
+
+	const created = await apiFetch("/decisions/", {
+		method: "POST",
+		body: JSON.stringify(payload)
+	});
+
+	// targetFriendIds ainda não tem tabela própria — guarda-se localmente por agora
+	if (decision.targetFriendIds && decision.targetFriendIds.length > 0) {
+		localStorage.setItem(`decision_friends_${created.id}`, JSON.stringify(decision.targetFriendIds));
+	}
+
+	// Criar as opções associadas a esta decisão
+	for (const option of decision.options) {
+		await apiFetch("/options/", {
+			method: "POST",
+			body: JSON.stringify({
+				vote_id: created.id,
+				option_text: option.name
+			})
+		});
+	}
+
+	return created;
+}
+
+async function getDecisionsFromAPI() {
+	try {
+		return await apiFetch("/decisions/");
+	} catch (err) {
+		console.error("Erro ao buscar decisões:", err);
+		return [];
+	}
+}
+
+function getDecisions() {
+	const raw = localStorage.getItem(DECISIONS_KEY);
+	if (!raw) return [];
+>>>>>>> c3f90b4 (feat:Decision-making feature and decisions listing page (frontend + backend + database))
 	try {
 		const groups = await api.getUserGroups();
 		await populateGroupOptions(groups);
@@ -547,6 +673,198 @@ function formatIsoDateToPt(isoDate) {
 	return `${day}/${month}/${year}`;
 }
 
+<<<<<<< HEAD
+=======
+function initializeEndDateInput() {
+	if (!decisionEndDateInput) return;
+	const todayIso = getTodayIsoDate();
+	decisionEndDateInput.min = todayIso;
+	if (!decisionEndDateInput.value) decisionEndDateInput.value = todayIso;
+}
+
+function setDecisionMessage(message, tone = "") {
+	if (!decisionFormMessage) return;
+	decisionFormMessage.textContent = message;
+	decisionFormMessage.classList.remove("is-error", "is-success");
+	if (tone === "error") decisionFormMessage.classList.add("is-error");
+	if (tone === "success") decisionFormMessage.classList.add("is-success");
+}
+
+function createDecisionOptionRow(iconClass, isPrimary = false) {
+	const row = document.createElement("div");
+	row.className = isPrimary ? "decision-option-row focus-blue" : "decision-option-row";
+	const inputWrapper = document.createElement("div");
+	inputWrapper.className = isPrimary ? "decision-option-input-wrapper dotted-border" : "decision-option-input-wrapper filled-bg";
+	const input = document.createElement("input");
+	input.type = "text";
+	input.className = "decision-input-option";
+	input.placeholder = "Nome da opção...";
+	inputWrapper.appendChild(input);
+	const iconBox = document.createElement("div");
+	iconBox.className = isPrimary ? "decision-option-icon-box dotted-border" : "decision-option-icon-box filled-bg";
+	const icon = document.createElement("i");
+	icon.className = `fa-solid ${iconClass}`;
+	iconBox.appendChild(icon);
+	row.appendChild(inputWrapper);
+	row.appendChild(iconBox);
+	return row;
+}
+
+function resetDecisionOptions() {
+	if (!decisionOptionsList) return;
+	decisionOptionsList.innerHTML = "";
+	decisionOptionsList.appendChild(createDecisionOptionRow(OPTION_ICONS[0], true));
+	decisionOptionsList.appendChild(createDecisionOptionRow(OPTION_ICONS[1], false));
+}
+
+function resetDecisionForm() {
+	if (decisionTitleInput) decisionTitleInput.value = "";
+	if (decisionDescriptionInput) decisionDescriptionInput.value = "";
+	if (decisionGroupSelect) decisionGroupSelect.value = "";
+	if (decisionFriendsSelect) Array.from(decisionFriendsSelect.options).forEach((o) => { o.selected = false; });
+	if (decisionEndDateInput) decisionEndDateInput.value = getTodayIsoDate();
+	setDecisionMessage("");
+	resetDecisionOptions();
+}
+
+function addDecisionOption() {
+	if (!decisionOptionsList) return;
+	const currentCount = decisionOptionsList.querySelectorAll(".decision-option-row").length;
+	const nextIcon = OPTION_ICONS[currentCount % OPTION_ICONS.length];
+	const newRow = createDecisionOptionRow(nextIcon, false);
+	decisionOptionsList.appendChild(newRow);
+	const newInput = newRow.querySelector(".decision-input-option");
+	if (newInput) newInput.focus();
+}
+
+function createDecisionListItem(decision, statusText = "Decisão criada", descriptionText = "", statusIconClass = "fa-circle-info", statusToneClass = "status-neutral", deadlineNote = "") {
+	const optionsCount = Array.isArray(decision.options) ? decision.options.length : 0;
+	const item = document.createElement("article");
+	item.className = "decision-list-item";
+	const infoBox = document.createElement("div");
+	infoBox.className = "info-box";
+	const infoLabel = document.createElement("span");
+	infoLabel.textContent = "Estado:";
+	const infoValue = document.createElement("strong");
+	infoValue.className = `decision-status-badge ${statusToneClass}`;
+	infoValue.innerHTML = `<i class="fa-solid ${statusIconClass} decision-status-icon" aria-hidden="true"></i><span>${statusText}</span>`;
+	infoBox.appendChild(infoLabel);
+	infoBox.appendChild(infoValue);
+	const winnerBox = document.createElement("div");
+	winnerBox.className = "winner-box";
+	const winnerDescription = document.createElement("small");
+	winnerDescription.textContent = descriptionText || `${optionsCount} opções prontas para votação.`;
+	const winnerValue = document.createElement("h3");
+	winnerValue.textContent = decision.title || "Decisão sem título";
+	winnerBox.appendChild(winnerDescription);
+	winnerBox.appendChild(winnerValue);
+	if (deadlineNote) {
+		const deadlineElement = document.createElement("p");
+		deadlineElement.className = "decision-deadline-note";
+		deadlineElement.innerHTML = `<i class="fa-regular fa-clock" aria-hidden="true"></i> ${deadlineNote}`;
+		winnerBox.appendChild(deadlineElement);
+	}
+	const viewMoreButton = document.createElement("button");
+	viewMoreButton.className = "view-btn decision-view-more-btn";
+	viewMoreButton.type = "button";
+	viewMoreButton.innerHTML = 'View More <i class="fa-solid fa-angle-right"></i>';
+	viewMoreButton.addEventListener("click", () => { saveLatestDecision(decision); redirectToDecisionTemplate(); });
+	item.appendChild(infoBox);
+	item.appendChild(winnerBox);
+	item.appendChild(viewMoreButton);
+	return item;
+}
+
+async function updateDecisionCards() {
+	// A API é agora a fonte de verdade (já guarda end_date, description, etc.)
+	let decisions = await getDecisionsFromAPI();
+
+	// Fallback apenas se a API estiver completamente inacessível
+	if (decisions.length === 0) {
+		decisions = getDecisions();
+	}
+
+	if (decisionSummaryText) {
+		if (decisions.length === 0)      decisionSummaryText.textContent = "Sem decisões";
+		else if (decisions.length === 1) decisionSummaryText.textContent = "1 decisão criada";
+		else                             decisionSummaryText.textContent = `${decisions.length} decisões criadas`;
+	}
+	if (!decisionList) return;
+	decisionList.innerHTML = "";
+	if (decisions.length === 0) { if (decisionListEmpty) decisionListEmpty.hidden = false; return; }
+	if (decisionListEmpty) decisionListEmpty.hidden = true;
+	const latestDecision = decisions[decisions.length - 1];
+	decisionList.appendChild(createDecisionListItem(latestDecision, "New", "", "fa-sparkles", "status-new"));
+	const soonestEnding = decisions
+		.map((decision, index) => ({ decision, index, daysLeft: calculateDaysUntilEnd(decision.endDate || decision.end_date) }))
+		.filter((entry) => entry.daysLeft !== null && entry.daysLeft >= 0 && entry.daysLeft <= 3)
+		.sort((a, b) => a.daysLeft - b.daysLeft)[0];
+	if (soonestEnding && soonestEnding.index !== decisions.length - 1) {
+		const daysLabel = soonestEnding.daysLeft === 0 ? "Termina hoje" : soonestEnding.daysLeft === 1 ? "Termina em 1 dia" : `Termina em ${soonestEnding.daysLeft} dias`;
+		const endDateLabel = formatIsoDateToPt(soonestEnding.decision.endDate || soonestEnding.decision.end_date);
+		decisionList.appendChild(createDecisionListItem(soonestEnding.decision, "Finishing", "", "fa-hourglass-half", "status-finishing", `${daysLabel} · Prazo final: ${endDateLabel}`));
+	}
+}
+
+async function handleCreateDecision() {
+	const title = decisionTitleInput ? decisionTitleInput.value.trim() : "";
+	const description = decisionDescriptionInput ? decisionDescriptionInput.value.trim() : "";
+	const endDate = decisionEndDateInput ? decisionEndDateInput.value : "";
+	const options = decisionOptionsList
+		? Array.from(decisionOptionsList.querySelectorAll(".decision-input-option")).map((i) => i.value.trim()).filter((v) => v.length > 0)
+		: [];
+	if (!title) { setDecisionMessage("Preenche o título da decisão.", "error"); if (decisionTitleInput) decisionTitleInput.focus(); return; }
+	if (options.length < 2) { setDecisionMessage("Adiciona pelo menos 2 opções para criar a decisão.", "error"); return; }
+	if (!endDate) { setDecisionMessage("Define uma data de término para a decisão.", "error"); if (decisionEndDateInput) decisionEndDateInput.focus(); return; }
+	if (endDate < getTodayIsoDate()) { setDecisionMessage("A data de término não pode ser no passado.", "error"); if (decisionEndDateInput) decisionEndDateInput.focus(); return; }
+
+	const session = getSession();
+	const groups = getStoredGroups();
+	const selectedGroup = decisionGroupSelect && decisionGroupSelect.value ? groups.find((g) => g.id === decisionGroupSelect.value) || null : null;
+	const selectedFriendIds = decisionFriendsSelect ? Array.from(decisionFriendsSelect.selectedOptions).map((o) => o.value).filter((v) => v) : [];
+
+	const decision = {
+		title, description,
+		date: decisionCurrentDate ? decisionCurrentDate.textContent : "",
+		endDate,
+		options: options.map((name) => ({ name, votes: 0 })),
+		targetGroup: selectedGroup ? { id: selectedGroup.id, name: selectedGroup.name } : null,
+		targetFriendIds: selectedFriendIds,
+		createdBy: session?.user?.name || "Utilizador"
+	};
+
+	try {
+		const created = await createDecisionOnAPI(decision);
+
+		// Mantém uma cópia local apenas como referência rápida (não é mais a fonte de verdade)
+		const decisions = getDecisions();
+		decisions.push(decision);
+		saveDecisions(decisions);
+		saveLatestDecision(decision);
+
+		updateDecisionCards();
+		setDecisionMessage("Decisão criada com sucesso.", "success");
+
+		if (hasSwal()) {
+			window.Swal.fire({ 
+				icon: "success", 
+				title: "Decisão criada", 
+				text: "A nova decisão foi criada com sucesso.", 
+				timer: 1700, 
+				showConfirmButton: false 
+			});
+		}
+		closeDecisionModal();
+		resetDecisionForm();
+	} catch (err) {
+		setDecisionMessage("Erro ao criar decisão: " + (err.message || "tenta novamente"), "error");
+		console.error(err);
+	}
+}
+
+function handleCancelDecision() { closeDecisionModal(); resetDecisionForm(); }
+
+>>>>>>> c3f90b4 (feat:Decision-making feature and decisions listing page (frontend + backend + database))
 function initializeDecisionModal() {
 	if (!decisionModalOverlay) return;
 	decisionModalOverlay.hidden = true;
@@ -591,12 +909,21 @@ initializeDecisionModal();
 setDecisionDate();
 initializeEndDateInput();
 
+<<<<<<< HEAD
+=======
+// Aguarda completamente a atualização dos amigos
+>>>>>>> c3f90b4 (feat:Decision-making feature and decisions listing page (frontend + backend + database))
 (async () => {
 	await updateFriendsCard();
 	await updateGroupsCard();
 	await updateDecisionCards();
 })();
 
+<<<<<<< HEAD
+=======
+// EXPÕE A FUNÇÃO GLOBALMENTE
+// Para que friendSearch.js possa atualizar o card quando um amigo é adicionado
+>>>>>>> c3f90b4 (feat:Decision-making feature and decisions listing page (frontend + backend + database))
 window.refreshFriendsCard = async function() {
 	await updateFriendsCard();
 };

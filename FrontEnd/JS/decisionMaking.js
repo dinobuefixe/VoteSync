@@ -84,8 +84,41 @@ function renderOptionCard(option, index) {
     return card;
 }
 
+<<<<<<< HEAD
 // ── RENDER TARGETS ────────────────────────────────────────────────────────────
 function renderDecisionTargets(decision) {
+=======
+function normalizeEntityName(entity, fallbackLabel) {
+    if (typeof entity === "string") return entity;
+    if (!entity || typeof entity !== "object") return fallbackLabel;
+    return entity.name || entity.title || entity.label || fallbackLabel;
+}
+
+// ── FETCH AMIGOS DA API ───────────────────────────────────────────────────────
+async function fetchFriendshipsByIds(friendshipIds) {
+    if (!Array.isArray(friendshipIds) || friendshipIds.length === 0) {
+        return [];
+    }
+
+    try {
+        // Buscar todos os friendships e filtrar pelos IDs
+        const allFriendships = await apiFetch("/friendships/");
+        
+        if (!Array.isArray(allFriendships)) {
+            return [];
+        }
+
+        // Filtrar pelos IDs solicitados
+        return allFriendships.filter(f => friendshipIds.includes(f.id));
+    } catch (error) {
+        console.error("Erro ao buscar amigos:", error);
+        return [];
+    }
+}
+
+// ── RENDERIZAR TARGETS COM DADOS DOS AMIGOS ───────────────────────────────────
+function renderDecisionTargets(decision, friendshipsData = []) {
+>>>>>>> c3f90b4 (feat:Decision-making feature and decisions listing page (frontend + backend + database))
     if (decisionTargetGroup) {
         const groupName = decision?.target_group_name || "";
         decisionTargetGroup.textContent = groupName || "Sem grupo associado";
@@ -94,7 +127,14 @@ function renderDecisionTargets(decision) {
     if (!decisionTargetFriends) return;
     decisionTargetFriends.innerHTML = "";
 
+<<<<<<< HEAD
     const targetFriends = Array.isArray(decision?.target_friends) ? decision.target_friends : [];
+=======
+    // Usar dados da API para extrair nomes dos amigos
+    const targetFriends = friendshipsData
+        .map(f => normalizeEntityName(f, ""))
+        .filter(n => n && n.length > 0);
+>>>>>>> c3f90b4 (feat:Decision-making feature and decisions listing page (frontend + backend + database))
 
     if (targetFriends.length === 0) {
         const empty = document.createElement("span");
@@ -113,7 +153,11 @@ function renderDecisionTargets(decision) {
     });
 }
 
+<<<<<<< HEAD
 // ── RENDER TEMPLATE ───────────────────────────────────────────────────────────
+=======
+// ── RENDERIZAR TEMPLATE DE DECISÃO ────────────────────────────────────────────
+>>>>>>> c3f90b4 (feat:Decision-making feature and decisions listing page (frontend + backend + database))
 async function renderDecisionTemplate() {
     const decision = getLatestDecision();
 
@@ -126,7 +170,7 @@ async function renderDecisionTemplate() {
         if (decisionTotalVotes)       decisionTotalVotes.textContent       = "0";
         if (decisionTotalOptions)     decisionTotalOptions.textContent     = "0";
         if (decisionCreatedBy)        decisionCreatedBy.textContent        = "-";
-        renderDecisionTargets(null);
+        renderDecisionTargets(null, []);
         return;
     }
 
@@ -178,7 +222,12 @@ function renderWithData(decision) {
     if (decisionTotalOptions) decisionTotalOptions.textContent = String(options.length);
     if (decisionCreatedBy)    decisionCreatedBy.textContent    = decision.created_by || decision.createdBy || "Utilizador";
 
-    renderDecisionTargets(decision);
+    // ✅ NOVO: Buscar amigos da API e renderizar
+    let friendshipsData = [];
+    if (decision.targetFriends && Array.isArray(decision.targetFriends)) {
+        friendshipsData = await fetchFriendshipsByIds(decision.targetFriends);
+    }
+    renderDecisionTargets(decision, friendshipsData);
 }
 
 // ── INIT ──────────────────────────────────────────────────────────────────────

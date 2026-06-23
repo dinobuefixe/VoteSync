@@ -81,7 +81,21 @@ class FriendshipWithFriendData(BaseModel):
     class Config:
         from_attributes = True
 
+# ✅ NOVO: Schema com dados do amigo
+class FriendshipWithFriendData(BaseModel):
+    id: int
+    user_id: int
+    friend_id: int
+    status: str
+    friend: UserResponse  # ✅ Dados completos do amigo
 
+<<<<<<< HEAD
+=======
+    class Config:
+        from_attributes = True
+
+
+>>>>>>> c3f90b4 (feat:Decision-making feature and decisions listing page (frontend + backend + database))
 # ────────────────────────────────────────────────────────────────────────────────
 # GROUP MEMBERS
 # ────────────────────────────────────────────────────────────────────────────────
@@ -116,8 +130,11 @@ class CreateUserGroups(UserGroupsBase):
 class UserGroupsResponse(BaseModel):
     id: int
     name: str
+<<<<<<< HEAD
     description: str | None = None
     members: List[dict] = []  # ✅ Incluir membros
+=======
+>>>>>>> c3f90b4 (feat:Decision-making feature and decisions listing page (frontend + backend + database))
 
     class Config:
         from_attributes = True
@@ -177,6 +194,7 @@ class VotesResponse(BaseModel):
 # DECISIONS
 # ────────────────────────────────────────────────────────────────────────────────
 
+<<<<<<< HEAD
 class DecisionFriendResponse(BaseModel):
     id: int
     friendship_id: int
@@ -185,6 +203,8 @@ class DecisionFriendResponse(BaseModel):
     class Config:
         from_attributes = True
 
+=======
+>>>>>>> c3f90b4 (feat:Decision-making feature and decisions listing page (frontend + backend + database))
 class DecisionsBase(BaseModel):
     vote_id: str
     title: str
@@ -194,7 +214,10 @@ class DecisionsBase(BaseModel):
     created_by: str | None = None
     target_group_id: int | None = None
     created_at: str | None = None
+<<<<<<< HEAD
     target_friend_ids: List[int] = []  # ✅ IDs das friendships selecionadas
+=======
+>>>>>>> c3f90b4 (feat:Decision-making feature and decisions listing page (frontend + backend + database))
 
     class Config:
         from_attributes = True
@@ -214,7 +237,10 @@ class DecisionsResponse(BaseModel):
     target_group_id: int | None = None
     created_at: str | None = None
     options: List[OptionsResponse] = []
+<<<<<<< HEAD
     target_friends: List[DecisionFriendResponse] = []  # ✅ Amigos associados
+=======
+>>>>>>> c3f90b4 (feat:Decision-making feature and decisions listing page (frontend + backend + database))
 
     class Config:
         from_attributes = True
