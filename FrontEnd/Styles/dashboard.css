@@ -1011,3 +1011,16 @@ body {
         gap: 0.6rem;
     }
 }
+
+.trash-icon {
+    width: 24px;
+    height: 24px;
+    transition: transform 0.15s ease, filter 0.2s ease;
+    cursor:pointer;
+}
+
+.trash-icon:hover {
+    filter: brightness(0.85);
+    transform: scale(1.25);
+    transition: transform 0.15s ease, filter 0.2s ease;
+}

@@ -12,7 +12,7 @@ class Users(Base):
     password = Column(String, nullable=False)
     name = Column(String, nullable=False)  
     profile_picture = Column(String, nullable=True)
-    is_admin = Column(Boolean, default=False, nullable=False)  # ✅ NOVO
+    is_admin = Column(Boolean, default=False, nullable=False)  
     
     # ✅ Relações
     friendships = relationship(
@@ -40,35 +40,24 @@ class Friendships(Base):
     user = relationship("Users", foreign_keys=[user_id], back_populates="friendships")
 
 
-class Group_members(Base):
-    __tablename__ = "group_members"
+class Members(Base):
+    __tablename__ = "members"
 
     id = Column(Integer, primary_key=True, nullable=False)
-    group_id = Column(Integer, ForeignKey("user_groups.id"), nullable=False)
+    group_id = Column(Integer, ForeignKey("groups.id"), nullable=False)
     user_id = Column(Integer, ForeignKey("users.id"), nullable=False)
     
     # ✅ Relações
-    group = relationship("User_Groups", backref="members")
-    user = relationship("Users", backref="group_memberships")  # ✅ NOVO
+    group = relationship("Groups", backref="members")
+    user = relationship("Users", backref="group_memberships") 
 
 
-class User_Groups(Base):
-    __tablename__ = "user_groups"
+class Groups(Base):
+    __tablename__ = "groups"
 
     id = Column(Integer, primary_key=True, nullable=False)
     name = Column(String, nullable=False)
     description = Column(String, nullable=True)
-
-
-class DecisionFriends(Base):
-    __tablename__ = "decision_friends"
-
-    id = Column(Integer, primary_key=True, nullable=False)
-    decision_id = Column(Integer, ForeignKey("decisions.id"), nullable=False)
-    friendship_id = Column(Integer, ForeignKey("friendships.id"), nullable=False)
-
-    # ✅ Relação para aceder aos dados da friendship
-    friendship = relationship("Friendships")
 
 
 class Decisions(Base):
@@ -81,15 +70,13 @@ class Decisions(Base):
     description = Column(String, nullable=True)
     end_date = Column(String, nullable=True)
     created_by = Column(String, nullable=True)
-    target_group_id = Column(Integer, ForeignKey("user_groups.id"), nullable=True)
+    group_id = Column(Integer, ForeignKey("groups.id"), nullable=True)
     created_at = Column(String, nullable=True)
     
     # ✅ Relações
     votes = relationship("Votes", backref="decision")
     options = relationship("Options", backref="decision")
-    target_group = relationship("User_Groups", backref="decisions")
-    target_friends = relationship("DecisionFriends", backref="decision_ref")  # ✅ NOVO
-
+    group = relationship("Groups", backref="decisions")
 
 class Votes(Base):
     __tablename__ = "votes"

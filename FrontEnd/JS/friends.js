@@ -36,6 +36,7 @@ async function loadData() {
         );
 
         renderFriends();
+
     } catch (err) {
         showMessage("Erro ao carregar dados: " + err.message, "error");
     }
@@ -48,88 +49,6 @@ function getMyFriendIds() {
         .map(f => f.user_id === myId ? f.friend_id : f.user_id);
 }
 
-function renderPendingRequests() {
-    const incoming = myFriendships.filter(f => f.status === "pending" && f.friend_id === myId);
-    const outgoing = myFriendships.filter(f => f.status === "pending" && f.user_id === myId);
-
-    let incomingSection = document.getElementById("incoming-requests");
-    if (!incomingSection) {
-        incomingSection = document.createElement("div");
-        incomingSection.id = "incoming-requests";
-        incomingSection.style.cssText = "width:min(100%,760px);display:flex;flex-direction:column;gap:12px;margin-top:1rem;";
-        mainContainer.insertBefore(incomingSection, mainContainer.querySelector(".empty-state-container") || mainContainer.firstChild);
-    }
-
-    if (incoming.length === 0) {
-        incomingSection.innerHTML = "";
-    } else {
-        incomingSection.innerHTML = `
-            <div style="display:flex;align-items:center;justify-content:space-between;gap:10px;">
-                <div>
-                    <h2 style=\"margin:0;font-size:1.1rem;color:#2d2248;\">Pedidos de amizade pendentes</h2>
-                    <p style=\"margin:6px 0 0;color:#5f6678;font-size:0.95rem;\">Aceita ou recusa pedidos recebidos.</p>
-                </div>
-            </div>
-            ${incoming.map(f => {
-            const user = allUsers.find(u => u.id === f.user_id);
-            return `
-                    <div style="background:#fff;border-radius:16px;padding:14px 18px;display:flex;align-items:center;justify-content:space-between;box-shadow:0 2px 10px rgba(0,0,0,0.06);">
-                        <div style="display:flex;align-items:center;gap:12px;">
-                            <div style="width:42px;height:42px;border-radius:50%;background:linear-gradient(135deg,#9b7dd4,#5bc8e8);display:flex;align-items:center;justify-content:center;color:#fff;font-weight:700;font-size:15px;">
-                                ${initials(user?.name || "?")}
-                            </div>
-                            <div>
-                                <div style="font-weight:700;color:#182033">${user?.name || "Utilizador"}</div>
-                                <div style="font-size:13px;color:#5f6678">${user?.email || ""}</div>
-                            </div>
-                        </div>
-                        <div style="display:flex;gap:8px;">
-                            <button onclick="acceptFriend(${f.id})" style="border:none;background:#1a7a52;color:#fff;padding:7px 16px;border-radius:20px;font-size:13px;font-weight:600;cursor:pointer;">Aceitar</button>
-                            <button onclick="rejectFriend(${f.id})" style="border:1px solid #e0d5f5;background:#f7f4fd;color:#7c5cbf;padding:7px 16px;border-radius:20px;font-size:13px;font-weight:600;cursor:pointer;">Recusar</button>
-                        </div>
-                    </div>`;
-        }).join("")}
-        `;
-    }
-
-    let outgoingSection = document.getElementById("outgoing-requests");
-    if (!outgoingSection) {
-        outgoingSection = document.createElement("div");
-        outgoingSection.id = "outgoing-requests";
-        outgoingSection.style.cssText = "width:min(100%,760px);display:flex;flex-direction:column;gap:12px;margin-top:1rem;";
-        mainContainer.insertBefore(outgoingSection, mainContainer.querySelector("#friends-list") || null);
-    }
-
-    if (outgoing.length === 0) {
-        outgoingSection.innerHTML = "";
-    } else {
-        outgoingSection.innerHTML = `
-            <div style="display:flex;align-items:center;justify-content:space-between;gap:10px;">
-                <div>
-                    <h2 style=\"margin:0;font-size:1.1rem;color:#2d2248;\">Pedidos enviados</h2>
-                    <p style=\"margin:6px 0 0;color:#5f6678;font-size:0.95rem;\">Aguarda resposta dos utilizadores que adicionaste.</p>
-                </div>
-            </div>
-            ${outgoing.map(f => {
-            const user = allUsers.find(u => u.id === f.friend_id);
-            return `
-                    <div style="background:#fff;border-radius:16px;padding:14px 18px;display:flex;align-items:center;justify-content:space-between;box-shadow:0 2px 10px rgba(0,0,0,0.06);">
-                        <div style="display:flex;align-items:center;gap:12px;">
-                            <div style="width:42px;height:42px;border-radius:50%;background:linear-gradient(135deg,#9b7dd4,#5bc8e8);display:flex;align-items:center;justify-content:center;color:#fff;font-weight:700;font-size:15px;">
-                                ${initials(user?.name || "?")}
-                            </div>
-                            <div>
-                                <div style="font-weight:700;color:#182033">${user?.name || "Utilizador"}</div>
-                                <div style="font-size:13px;color:#5f6678">${user?.email || ""}</div>
-                            </div>
-                        </div>
-                        <button disabled style="border:1px solid #d6d0e8;background:#f7f4fd;color:#7c5cbf;padding:7px 16px;border-radius:20px;font-size:13px;font-weight:600;">Pedido enviado</button>
-                    </div>`;
-        }).join("")}
-        `;
-    }
-}
-
 function renderFriends() {
     const friendIds = getMyFriendIds();
     const friendUsers = allUsers.filter(u => friendIds.includes(u.id));
@@ -137,22 +56,14 @@ function renderFriends() {
     const subtitle = document.querySelector(".main-subtitle");
     if (subtitle) {
         subtitle.textContent = friendUsers.length === 1
-            ? "1 friend in your network"
-            : `${friendUsers.length} friends in your network`;
+            ? "1 amigo na tua rede"
+            : `${friendUsers.length} amigos na tua rede`;
     }
 
     const emptySection = document.querySelector(".empty-state-container");
+
+    // ── 1. Amigos ─────────────────────────────────────────────────────────────
     let friendsList = document.getElementById("friends-list");
-
-    if (friendUsers.length === 0) {
-        if (emptySection) emptySection.style.display = "flex";
-        if (friendsList) friendsList.innerHTML = "";
-        renderPendingRequests();
-        return;
-    }
-
-    if (emptySection) emptySection.style.display = "none";
-
     if (!friendsList) {
         friendsList = document.createElement("div");
         friendsList.id = "friends-list";
@@ -160,79 +71,121 @@ function renderFriends() {
         mainContainer.appendChild(friendsList);
     }
 
-    friendsList.innerHTML = friendUsers.map(u => {
-        const friendship = myFriendships.find(
-            f => (f.user_id === myId && f.friend_id === u.id) ||
-                (f.friend_id === myId && f.user_id === u.id)
-        );
-        return `
-        <div style="background:#fff;border-radius:16px;padding:14px 18px;display:flex;align-items:center;justify-content:space-between;box-shadow:0 2px 10px rgba(0,0,0,0.06);">
-            <div style="display:flex;align-items:center;gap:12px;">
-                <div style="width:42px;height:42px;border-radius:50%;background:linear-gradient(135deg,#9b7dd4,#5bc8e8);display:flex;align-items:center;justify-content:center;color:#fff;font-weight:700;font-size:15px;">
-                    ${initials(u.name)}
-                </div>
+    if (friendUsers.length === 0) {
+        if (emptySection) emptySection.style.display = "flex";
+        friendsList.innerHTML = "";
+    } else {
+        if (emptySection) emptySection.style.display = "none";
+        friendsList.innerHTML = `
                 <div>
-                    <div style="font-weight:700;color:#182033">${u.name}</div>
-                    <div style="font-size:13px;color:#5f6678">${u.email}</div>
+                    <h2 style="margin:0;font-size:1.5rem;color:#2d2248;">Amigos</h2>
+                    <p style="margin:6px 0 0;color:#5f6678;font-size:0.95rem;">Pode adicionar novos amigos a qualquer momento.</p>
                 </div>
-            </div>
-            <button onclick="removeFriend(${friendship?.id})"
-                style="border:1px solid #e0d5f5;background:#f7f4fd;color:#7c5cbf;padding:7px 16px;border-radius:20px;font-size:13px;font-weight:600;cursor:pointer;">
-                Remover
-            </button>
-        </div>`;
-    }).join("");
+            ${friendUsers.map(u => {
+                const friendship = myFriendships.find(
+                    f => (f.user_id === myId && f.friend_id === u.id) ||
+                         (f.friend_id === myId && f.user_id === u.id)
+                );
+                return `
+                <div style="background:#fff;border-radius:16px;padding:14px 18px;display:flex;align-items:center;justify-content:space-between;box-shadow:0 2px 10px rgba(0,0,0,0.06);">
+                    <div style="display:flex;align-items:center;gap:12px;">
+                        <div style="width:42px;height:42px;border-radius:50%;background:linear-gradient(135deg,#9b7dd4,#5bc8e8);display:flex;align-items:center;justify-content:center;color:#fff;font-weight:700;font-size:15px;">
+                            ${initials(u.name)}
+                        </div>
+                        <div>
+                            <div style="font-weight:700;color:#182033">${u.name}</div>
+                            <div style="font-size:13px;color:#5f6678">${u.email}</div>
+                        </div>
+                    </div>
+                    <button onclick="removeFriend(${friendship?.id})"
+                        style="border:1px solid #e0d5f5;background:#f7f4fd;color:#7c5cbf;padding:7px 16px;border-radius:20px;font-size:13px;font-weight:600;cursor:pointer;">
+                        Remover
+                    </button>
+                </div>`;
+            }).join("")}
+        `;
+    }
 
-    renderPendingRequests();
+    // ── 2. Pedidos recebidos ──────────────────────────────────────────────────
+    const incoming = myFriendships.filter(f => f.status === "pending" && f.friend_id === myId);
+
+    let incomingSection = document.getElementById("incoming-requests");
+    if (!incomingSection) {
+        incomingSection = document.createElement("div");
+        incomingSection.id = "incoming-requests";
+        incomingSection.style.cssText = "width:min(100%,760px);display:flex;flex-direction:column;gap:12px;margin-top:1rem;";
+        mainContainer.appendChild(incomingSection);
+    }
+
+    if (incoming.length === 0) {
+        incomingSection.innerHTML = "";
+    } else {
+        incomingSection.innerHTML = `
+                <div>
+                    <h2 style="margin:0;font-size:1.5rem;color:#2d2248;">Pedidos de amizade pendentes</h2>
+                    <p style="margin:6px 0 0;color:#5f6678;font-size:0.95rem;">Aceita ou recusa pedidos recebidos.</p>
+                </div>
+            ${incoming.map(f => {
+                const user = allUsers.find(u => u.id === f.user_id);
+                return `
+                <div style="background:#fff;border-radius:16px;padding:14px 18px;display:flex;align-items:center;justify-content:space-between;box-shadow:0 2px 10px rgba(0,0,0,0.06);">
+                    <div style="display:flex;align-items:center;gap:12px;">
+                        <div style="width:42px;height:42px;border-radius:50%;background:linear-gradient(135deg,#9b7dd4,#5bc8e8);display:flex;align-items:center;justify-content:center;color:#fff;font-weight:700;font-size:15px;">
+                            ${initials(user?.name || "?")}
+                        </div>
+                        <div>
+                            <div style="font-weight:700;color:#182033">${user?.name || "Utilizador"}</div>
+                            <div style="font-size:13px;color:#5f6678">${user?.email || ""}</div>
+                        </div>
+                    </div>
+                    <div style="display:flex;gap:8px;">
+                        <button onclick="acceptFriend(${f.id})" style="border:none;background:#1a7a52;color:#fff;padding:7px 16px;border-radius:20px;font-size:13px;font-weight:600;cursor:pointer;">Aceitar</button>
+                        <button onclick="rejectFriend(${f.id})" style="border:1px solid #e0d5f5;background:#f7f4fd;color:#7c5cbf;padding:7px 16px;border-radius:20px;font-size:13px;font-weight:600;cursor:pointer;">Recusar</button>
+                    </div>
+                </div>`;
+            }).join("")}
+        `;
+    }
+
+    // ── 3. Pedidos enviados ───────────────────────────────────────────────────
+    const outgoing = myFriendships.filter(f => f.status === "pending" && f.user_id === myId);
+
+    let outgoingSection = document.getElementById("outgoing-requests");
+    if (!outgoingSection) {
+        outgoingSection = document.createElement("div");
+        outgoingSection.id = "outgoing-requests";
+        outgoingSection.style.cssText = "width:min(100%,760px);display:flex;flex-direction:column;gap:12px;margin-top:1rem;";
+        mainContainer.appendChild(outgoingSection);
+    }
+
+    if (outgoing.length === 0) {
+        outgoingSection.innerHTML = "";
+    } else {
+        outgoingSection.innerHTML = `
+                <div>
+                    <h2 style="margin:0;font-size:1.5rem;color:#2d2248;">Pedidos enviados</h2>
+                    <p style="margin:6px 0 0;color:#5f6678;font-size:0.95rem;">Aguarda resposta dos utilizadores que adicionaste.</p>
+                </div>
+            ${outgoing.map(f => {
+                const user = allUsers.find(u => u.id === f.friend_id);
+                return `
+                <div style="background:#fff;border-radius:16px;padding:14px 18px;display:flex;align-items:center;justify-content:space-between;box-shadow:0 2px 10px rgba(0,0,0,0.06);">
+                    <div style="display:flex;align-items:center;gap:12px;">
+                        <div style="width:42px;height:42px;border-radius:50%;background:linear-gradient(135deg,#9b7dd4,#5bc8e8);display:flex;align-items:center;justify-content:center;color:#fff;font-weight:700;font-size:15px;">
+                            ${initials(user?.name || "?")}
+                        </div>
+                        <div>
+                            <div style="font-weight:700;color:#182033">${user?.name || "Utilizador"}</div>
+                            <div style="font-size:13px;color:#5f6678">${user?.email || ""}</div>
+                        </div>
+                    </div>
+                    <button onclick="rejectFriend(${f.id})" style="border:1px solid #e0d5f5;background:#f7f4fd;color:#7c5cbf;padding:7px 16px;border-radius:20px;font-size:13px;font-weight:600;cursor:pointer;">Cancelar pedido</button>
+                </div>`;
+            }).join("")}
+        `;
+    }
 }
 
-// ── SEARCH ────────────────────────────────────────────────────────────────────
-searchInput?.addEventListener("input", () => {
-    const query = searchInput.value.trim().toLowerCase();
-    if (query.length < 2) { searchResults.innerHTML = ""; return; }
-
-    const friendIds = getMyFriendIds();
-    const filtered = allUsers.filter(u =>
-        (u.name.toLowerCase().includes(query) || u.email.toLowerCase().includes(query))
-        && !friendIds.includes(u.id)
-    );
-
-    if (filtered.length === 0) {
-        searchResults.innerHTML = `<p style="color:#5f6678;font-size:14px;text-align:center;">Nenhum utilizador encontrado.</p>`;
-        return;
-    }
-
-    searchResults.innerHTML = filtered.map(u => `
-        <div style="background:#fff;border-radius:16px;padding:14px 18px;display:flex;align-items:center;justify-content:space-between;box-shadow:0 2px 10px rgba(0,0,0,0.06);">
-            <div style="display:flex;align-items:center;gap:12px;">
-                <div style="width:42px;height:42px;border-radius:50%;background:linear-gradient(135deg,#9b7dd4,#5bc8e8);display:flex;align-items:center;justify-content:center;color:#fff;font-weight:700;font-size:15px;">
-                    ${initials(u.name)}
-                </div>
-                <div>
-                    <div style="font-weight:700;color:#182033">${u.name}</div>
-                    <div style="font-size:13px;color:#5f6678">${u.email}</div>
-                </div>
-            </div>
-            <button onclick="addFriend(${u.id})"
-                style="border:none;background:linear-gradient(90deg,#83b5f0,#69c4ee);color:#132338;padding:7px 16px;border-radius:20px;font-size:13px;font-weight:600;cursor:pointer;">
-                Adicionar
-            </button>
-        </div>`).join("");
-});
-
-// ── ADD FRIEND ────────────────────────────────────────────────────────────────
-window.addFriend = async function (friendId) {
-    try {
-        await api.createFriendship(myId, friendId, "pending");
-        searchInput.value = "";
-        searchResults.innerHTML = "";
-        await loadData();
-        renderFriends();
-        showSwal("success", "Pedido de amizade enviado!", 1500);
-    } catch (err) {
-        showMessage("Erro: " + err.message, "error");
-    }
-};
 
 window.acceptFriend = async function (friendshipId) {
     if (!friendshipId) return;
@@ -248,11 +201,12 @@ window.acceptFriend = async function (friendshipId) {
 
 window.rejectFriend = async function (friendshipId) {
     if (!friendshipId) return;
+    const result = await showSwal("confirm", "Remover Pedido?", "Tens a certeza que queres cancelar este pedido de amizade?");
     try {
         await api.rejectFriendship(friendshipId);
         await loadData();
         renderFriends();
-        showSwal("success", "Pedido recusado.", 1500);
+        showSwal("success", "Pedido removido!", 1500);
     } catch (err) {
         showMessage("Erro: " + err.message, "error");
     }

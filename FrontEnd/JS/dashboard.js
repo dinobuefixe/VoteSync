@@ -3,8 +3,6 @@
 // ✅ IMPORTANTE: Adiciona isto no HTML antes deste script:
 // <script src="./api.js"></script>
 
-const OPTION_ICONS = ["fa-sun", "fa-building-columns", "fa-heart", "fa-mug-hot", "fa-film", "fa-gamepad"];
-
 // ── DOM REFS ──────────────────────────────────────────────────────────────────
 const logoutButton = document.querySelector("#dashboard-logout-btn");
 const friendsViewMoreButton = document.querySelector("#friends-view-more-btn");
@@ -82,7 +80,7 @@ async function updateGroupsCard() {
 	if (!groupsPreviewList || !groupsCardEmpty) return;
 
 	try {
-		const groups = await api.getUserGroups(myId);
+		const groups = await api.getGroups(myId);
 
 		// Pegar apenas os 3 primeiros grupos
 		const preview = groups.slice(0, 3);
@@ -145,86 +143,10 @@ async function populateGroupOptions(groups) {
 	});
 }
 
-async function populateFriendsOptions(groups) {
-	if (!decisionFriendsSelect) return;
-	decisionFriendsSelect.innerHTML = "";
-
-	const selectedGroupId = decisionGroupSelect ? decisionGroupSelect.value : "";
-
-	// ✅ Sem grupo selecionado → select vazio com placeholder
-	if (!selectedGroupId) {
-		const option = document.createElement("option");
-		option.value = "";
-		option.textContent = "Seleciona um grupo primeiro";
-		option.disabled = true;
-		option.selected = true;
-		decisionFriendsSelect.appendChild(option);
-		return;
-	}
-
-	try {
-		const [users, friendships, groups] = await Promise.all([
-			api.getUsers(),
-			api.getFriendships(),
-			api.getUserGroups(myId)
-		]);
-
-		const myFriendIds = friendships
-			.filter(f => f.status === "accepted" && (f.user_id === myId || f.friend_id === myId))
-			.map(f => f.user_id === myId ? f.friend_id : f.user_id);
-
-		// ✅ Guardar o mapa friendship_id por user_id
-		window._friendshipMap = {};
-		friendships
-			.filter(f => f.status === "accepted" && (f.user_id === myId || f.friend_id === myId))
-			.forEach(f => {
-				const friendUserId = f.user_id === myId ? f.friend_id : f.user_id;
-				window._friendshipMap[friendUserId] = f.id;
-			});
-
-		// ✅ Filtrar amigos que pertencem ao grupo selecionado
-		const selectedGroup = groups.find((group) => group.id === parseInt(selectedGroupId));
-		const groupMemberIds = Array.isArray(selectedGroup?.members)
-			? selectedGroup.members.map(m => m.user_id || m.id)
-			: [];
-
-		const friends = users.filter(u =>
-			myFriendIds.includes(u.id) && groupMemberIds.includes(u.id)
-		);
-
-		if (friends.length === 0) {
-			const option = document.createElement("option");
-			option.value = "";
-			option.textContent = "Sem amigos neste grupo";
-			option.disabled = true;
-			option.selected = true;
-			decisionFriendsSelect.appendChild(option);
-			return;
-		}
-
-		// ✅ Adicionar amigos do grupo e selecioná-los automaticamente
-		friends.forEach((friend) => {
-			const option = document.createElement("option");
-			option.value = friend.id;
-			option.textContent = friend.name;
-			option.selected = true;
-			decisionFriendsSelect.appendChild(option);
-		});
-	} catch (err) {
-		console.error("Erro ao carregar amigos:", err);
-		const option = document.createElement("option");
-		option.value = "";
-		option.textContent = "Erro ao carregar amigos";
-		option.disabled = true;
-		decisionFriendsSelect.appendChild(option);
-	}
-}
-
 async function populateDecisionTargets() {
 	try {
-		const groups = await api.getUserGroups(myId);
+		const groups = await api.getGroups(myId);
 		await populateGroupOptions(groups);
-		await populateFriendsOptions(groups);
 	} catch (err) {
 		console.error("Erro ao popular targets:", err);
 	}
@@ -232,11 +154,6 @@ async function populateDecisionTargets() {
 
 // ── DECISIONS ─────────────────────────────────────────────────────────────────
 async function createDecisionOnAPI(decision) {
-	const friendshipIds = (decision.targetFriendIds || [])
-		.map(userId => window._friendshipMap?.[parseInt(userId)])
-		.filter(id => id !== undefined)
-		.map(id => parseInt(id));
-
 	const payload = {
 		vote_id: `decision_${Date.now()}`,
 		title: decision.title,
@@ -244,9 +161,8 @@ async function createDecisionOnAPI(decision) {
 		description: decision.description,
 		end_date: decision.endDate,
 		created_by: decision.createdBy,
-		target_group_id: decision.targetGroupId || null,
+		group_id: decision.GroupId || null,
 		created_at: new Date().toISOString(),
-		target_friend_ids: friendshipIds
 	};
 
 	const created = await api.post("/decisions/", payload);
@@ -407,7 +323,7 @@ function setDecisionMessage(message, tone = "") {
 }
 
 // ── DECISION OPTIONS ──────────────────────────────────────────────────────────
-function createDecisionOptionRow(iconClass, isPrimary = false) {
+function createDecisionOptionRow(isPrimary = false) {
 	const row = document.createElement("div");
 	row.className = isPrimary ? "decision-option-row focus-blue" : "decision-option-row";
 
@@ -416,13 +332,16 @@ function createDecisionOptionRow(iconClass, isPrimary = false) {
 	const input = document.createElement("input");
 	input.type = "text";
 	input.className = "decision-input-option";
-	input.placeholder = "Nome da opção...";
+	input.placeholder = "Opção...";
 	inputWrapper.appendChild(input);
 
 	const iconBox = document.createElement("div");
-	iconBox.className = isPrimary ? "decision-option-icon-box dotted-border" : "decision-option-icon-box filled-bg";
-	const icon = document.createElement("i");
-	icon.className = `fa-solid ${iconClass}`;
+	iconBox.className = "decision-option-icon-box dotted-border";
+
+	const icon = document.createElement("img");
+	icon.className = "trash-icon";
+	icon.src = "/static/IMG/trash.png"; 
+	icon.onclick = () => deleteDecisionOptionRow(row);
 	iconBox.appendChild(icon);
 
 	row.appendChild(inputWrapper);
@@ -430,18 +349,28 @@ function createDecisionOptionRow(iconClass, isPrimary = false) {
 	return row;
 }
 
+function deleteDecisionOptionRow(row) {
+	if (!row || !decisionOptionsList) return;
+	const rows = decisionOptionsList.querySelectorAll(".decision-option-row");
+	if (rows.length <= 2) {
+		setDecisionMessage("Deve haver pelo menos 2 opções.", "error");
+		return;
+	}
+	row.remove();
+	setDecisionMessage("");
+}
+
 function resetDecisionOptions() {
 	if (!decisionOptionsList) return;
 	decisionOptionsList.innerHTML = "";
-	decisionOptionsList.appendChild(createDecisionOptionRow(OPTION_ICONS[0], true));
-	decisionOptionsList.appendChild(createDecisionOptionRow(OPTION_ICONS[1], false));
+	decisionOptionsList.appendChild(createDecisionOptionRow(true));
+	decisionOptionsList.appendChild(createDecisionOptionRow(false));
 }
 
 function addDecisionOption() {
 	if (!decisionOptionsList) return;
 	const currentCount = decisionOptionsList.querySelectorAll(".decision-option-row").length;
-	const nextIcon = OPTION_ICONS[currentCount % OPTION_ICONS.length];
-	const newRow = createDecisionOptionRow(nextIcon, false);
+	const newRow = createDecisionOptionRow(false);
 	decisionOptionsList.appendChild(newRow);
 	const newInput = newRow.querySelector(".decision-input-option");
 	if (newInput) newInput.focus();
@@ -502,9 +431,8 @@ async function handleCreateDecision() {
 		date: decisionCurrentDate ? decisionCurrentDate.textContent : "",
 		endDate,
 		options: options.map((name) => ({ name, votes: 0 })),
-		targetGroupId: selectedGroupId,
-		target_group_name: selectedGroupName,
-		targetFriendIds: selectedFriendIds,
+		GroupId: selectedGroupId,
+		group_name: selectedGroupName,
 		createdBy: session?.user?.name || "Utilizador"
 	};
 
@@ -583,7 +511,6 @@ if (decisionViewAllButton) decisionViewAllButton.addEventListener("click", redir
 if (decisionModalCloseButton) decisionModalCloseButton.addEventListener("click", closeDecisionModal);
 if (decisionModalCancelButton) decisionModalCancelButton.addEventListener("click", () => { closeDecisionModal(); resetDecisionForm(); });
 if (decisionAddOptionButton) decisionAddOptionButton.addEventListener("click", addDecisionOption);
-if (decisionGroupSelect) decisionGroupSelect.addEventListener("change", () => populateFriendsOptions([]));
 if (decisionCreateConfirmButton) decisionCreateConfirmButton.addEventListener("click", handleCreateDecision);
 if (decisionModalOverlay) decisionModalOverlay.addEventListener("click", (e) => { if (e.target === decisionModalOverlay) closeDecisionModal(); });
 document.addEventListener("keydown", (e) => { if (e.key === "Escape") closeDecisionModal(); });

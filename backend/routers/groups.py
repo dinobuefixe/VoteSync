@@ -4,17 +4,17 @@ from typing import List, Optional
 from backend import models, schemas
 from backend.database import get_db
 
-router = APIRouter(prefix="/user-groups", tags=["User Groups"])
+router = APIRouter(prefix="/groups", tags=["Groups"])
 
 
 @router.get("/", response_model=List[schemas.UserGroupsResponse])
 def get_groups(user_id: int | None = Query(None), db: Session = Depends(get_db)):
     """Retorna todos os grupos com os seus membros, ou apenas os grupos do utilizador se user_id for fornecido."""
-    query = db.query(models.User_Groups).options(
-        joinedload(models.User_Groups.members).joinedload(models.Group_members.user)
+    query = db.query(models.Groups).options(
+        joinedload(models.Groups.members).joinedload(models.Members.user)
     )
     if user_id is not None:
-        query = query.join(models.Group_members).filter(models.Group_members.user_id == user_id).distinct()
+        query = query.join(models.Groups.members).filter(models.Members.user_id == user_id).distinct()
     groups = query.all()
     return groups
 
@@ -22,9 +22,9 @@ def get_groups(user_id: int | None = Query(None), db: Session = Depends(get_db))
 @router.get("/{id}", response_model=schemas.UserGroupsResponse)
 def get_group(id: int, db: Session = Depends(get_db)):
     """Retorna um grupo específico com os seus membros"""
-    group = db.query(models.User_Groups).options(
-        joinedload(models.User_Groups.members).joinedload(models.Group_members.user)
-    ).filter(models.User_Groups.id == id).first()
+    group = db.query(models.Groups).options(
+        joinedload(models.Groups.members).joinedload(models.Members.user)
+    ).filter(models.Groups.id == id).first()
     
     if not group:
         raise HTTPException(404, "Group not found")
@@ -42,7 +42,7 @@ def create_group(group: schemas.UserGroupsCreate, db: Session = Depends(get_db))
             raise HTTPException(400, "One or more users not found")
     
     # Criar o grupo
-    new_group = models.User_Groups(
+    new_group = models.Groups(
         name=group.name,
         description=getattr(group, 'description', None)
     )
@@ -52,7 +52,7 @@ def create_group(group: schemas.UserGroupsCreate, db: Session = Depends(get_db))
     # Adicionar membros
     if group.member_ids:
         for user_id in group.member_ids:
-            member = models.Group_members(
+            member = models.Members(
                 group_id=new_group.id,
                 user_id=user_id
             )
@@ -61,9 +61,9 @@ def create_group(group: schemas.UserGroupsCreate, db: Session = Depends(get_db))
     db.commit()
 
     # Recarregar o grupo com membros e utilizador aninhado
-    group = db.query(models.User_Groups).options(
-        joinedload(models.User_Groups.members).joinedload(models.Group_members.user)
-    ).filter(models.User_Groups.id == new_group.id).first()
+    group = db.query(models.Groups).options(
+        joinedload(models.Groups.members).joinedload(models.Members.user)
+    ).filter(models.Groups.id == new_group.id).first()
     return group
 
 
@@ -71,7 +71,7 @@ def create_group(group: schemas.UserGroupsCreate, db: Session = Depends(get_db))
 def update_group(id: int, updated: schemas.UserGroupsCreate, db: Session = Depends(get_db)):
     """Atualiza um grupo e os seus membros"""
     
-    group = db.query(models.User_Groups).filter(models.User_Groups.id == id).first()
+    group = db.query(models.Groups).filter(models.Groups.id == id).first()
     if not group:
         raise HTTPException(404, "Group not found")
     
@@ -87,12 +87,12 @@ def update_group(id: int, updated: schemas.UserGroupsCreate, db: Session = Depen
         group.description = updated.description
     
     # Remover membros antigos
-    db.query(models.Group_members).filter(models.Group_members.group_id == id).delete()
+    db.query(models.Members).filter(models.Members.group_id == id).delete()
     
     # Adicionar novos membros
     if updated.member_ids:
         for user_id in updated.member_ids:
-            member = models.Group_members(
+            member = models.Members(
                 group_id=group.id,
                 user_id=user_id
             )
@@ -100,21 +100,21 @@ def update_group(id: int, updated: schemas.UserGroupsCreate, db: Session = Depen
     
     db.commit()
 
-    group = db.query(models.User_Groups).options(
-        joinedload(models.User_Groups.members).joinedload(models.Group_members.user)
-    ).filter(models.User_Groups.id == id).first()
+    group = db.query(models.Groups).options(
+        joinedload(models.Groups.members).joinedload(models.Members.user)
+    ).filter(models.Groups.id == id).first()
     return group
 
 
 @router.delete("/{id}", status_code=204)
 def delete_group(id: int, db: Session = Depends(get_db)):
     """Remove um grupo e todos os seus membros"""
-    group = db.query(models.User_Groups).filter(models.User_Groups.id == id)
+    group = db.query(models.Groups).filter(models.Groups.id == id)
     if not group.first():
         raise HTTPException(404, "Group not found")
     
     # Remover membros primeiro (FK constraint)
-    db.query(models.Group_members).filter(models.Group_members.group_id == id).delete()
+    db.query(models.Members).filter(models.Members.group_id == id).delete()
     
     # Remover grupo
     group.delete()
