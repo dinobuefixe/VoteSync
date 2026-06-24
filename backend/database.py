@@ -1,6 +1,8 @@
 import os
 from sqlalchemy import create_engine, text
 from sqlalchemy.orm import sessionmaker, declarative_base
+from .models import * 
+
 
 DATABASE_URL = os.getenv("DATABASE_URL")
 
@@ -13,8 +15,6 @@ Base = declarative_base()
 SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
 
 def init_db():
-    # Importa os modelos aqui para a Base os conhecer
-    # from app.models.user import User  # ← adiciona os teus modelos
     Base.metadata.create_all(bind=engine)  # cria as tabelas que não existem
     print("✅ Tabelas criadas/verificadas!")
 

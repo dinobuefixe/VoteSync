@@ -72,6 +72,7 @@ class Decisions(Base):
     created_by = Column(String, nullable=True)
     group_id = Column(Integer, ForeignKey("groups.id"), nullable=True)
     created_at = Column(String, nullable=True)
+    status = Column(String, nullable=True)
     
     # ✅ Relações
     votes = relationship("Votes", backref="decision")

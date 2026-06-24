@@ -64,6 +64,17 @@ function calculateDaysLeft(endDateIso) {
     return Math.ceil((endDate.getTime() - today.getTime()) / (1000 * 60 * 60 * 24));
 }
 
+// ── STATUS HELPERS ────────────────────────────────────────────────────────────
+function isDecisionClosed(decision) {
+    return decision?.status === "closed";
+}
+
+async function closeDecisionOnServer(decisionId, status) {
+    const decision = await api.getDecision(decisionId);
+    if (!decision) throw new Error("Decisão não encontrada");
+    await api.updateDecision(decisionId, { ...decision, status });
+}
+
 // ── GET VOTES COUNT FOR OPTION ────────────────────────────────────────────────
 async function getVotesForOption(optionId, decisionId) {
     try {
@@ -79,14 +90,11 @@ async function getVotersForOption(optionId, decisionId) {
     try {
         const allVotes = await api.getVotes();
         const optionVotes = allVotes.filter(v => v.option_id === optionId && v.decision_id === decisionId);
-
-        // Buscar info dos utilizadores
         const voters = [];
         for (const vote of optionVotes) {
             const user = await api.getUser(vote.user_id);
             if (user?.name) voters.push(user.name);
         }
-
         return voters;
     } catch (err) {
         console.warn("Erro ao obter votantes:", err);
@@ -106,32 +114,38 @@ async function getUserVoteForDecision(userId, decisionId) {
 }
 
 // ── CHECK IF DECISION HAS A REAL TIE ─────────────────────────────────────────
-// Só considera empate se houver pelo menos 1 voto E duas ou mais opções
-// partilharem o número máximo de votos.
 function checkForTie(options) {
     if (!options || options.length < 2) return false;
-
     const maxVotes = Math.max(...options.map(o => o.votes || 0));
-    if (maxVotes === 0) return false; // sem votos não há empate real
-
+    if (maxVotes === 0) return false;
     const optionsWithMaxVotes = options.filter(o => (o.votes || 0) === maxVotes);
     return optionsWithMaxVotes.length > 1;
 }
 
+// ── COUNT PARTICIPANTS ────────────────────────────────────────────────────────
 async function countDecisionParticipants(decision) {
     try {
         const groupInfo = await api.getUserGroup(decision.group_id);
         const members = groupInfo?.members || [];
-        const creator = decision.created_by ? [decision.created_by] : [];
-        const uniqueParticipants = new Set([
-            ...creator,
-            ...members.map(m => m.user?.name || m.name)
-        ]);
-        console.log(`👥 Contagem de participantes: ${uniqueParticipants.size} (criador + membros do grupo)`);
+
+        if (members.length === 0) {
+            console.warn("⚠️ Grupo sem membros — não é possível determinar participantes.");
+            return Infinity;
+        }
+
+        const memberIds = members.map(m => m.user?.id || m.id).filter(Boolean);
+
+        if (memberIds.length === 0) {
+            console.warn("⚠️ Membros sem IDs reconhecíveis:", members[0]);
+            return Infinity;
+        }
+
+        const uniqueParticipants = new Set(memberIds);
+        console.log(`👥 Participantes: ${uniqueParticipants.size}`);
         return uniqueParticipants.size;
     } catch (err) {
         console.warn("Erro ao contar participantes:", err);
-        return 1;
+        return Infinity;
     }
 }
 
@@ -141,9 +155,7 @@ async function checkIfAllVoted(decision) {
         const allVotes = await api.getVotes();
         const decisionVotes = allVotes.filter(v => v.decision_id === decision.id);
         const totalParticipants = await countDecisionParticipants(decision);
-
         console.log(`📊 Votos: ${decisionVotes.length} / Participantes: ${totalParticipants}`);
-        console.log("todos votaram");
         return decisionVotes.length >= totalParticipants;
     } catch (err) {
         console.warn("Erro ao contar votos:", err);
@@ -176,38 +188,94 @@ function clearTiebreaker(decisionId) {
     localStorage.removeItem(getTiebreakerKey(decisionId));
 }
 
+// ── CLOSE VOTING BUTTON ───────────────────────────────────────────────────────
+async function renderCloseVotingButton(decision) {
+    const session = api.getSession();
+    const currentUserName = session?.user?.name || "";
+    const isCreator = currentUserName && currentUserName === decision.created_by;
+
+    if (!isCreator) return null;
+    if (isDecisionClosed(decision)) return null;
+
+    const stored = getStoredTiebreaker(decision.id);
+    if (stored) return null;
+
+    const allVoted = await checkIfAllVoted(decision);
+    if (!allVoted) return null;
+
+    const wrapper = document.createElement("div");
+    wrapper.className = "close-voting-wrapper";
+
+    const btn = document.createElement("button");
+    btn.type = "button";
+    btn.className = "close-voting-btn";
+    btn.innerHTML = '<i class="fa-solid fa-lock"></i><span>Encerrar Votação</span>';
+
+    btn.addEventListener("click", async (e) => {
+        e.preventDefault();
+        btn.disabled = true;
+        btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i><span>A encerrar...</span>';
+
+        try {
+            await closeDecisionOnServer(decision.id, "closed");
+            console.log("✅ Decisão encerrada no servidor");
+
+            // Actualizar cache local com status closed
+            const cached = getLatestDecision();
+            if (cached && cached.id === decision.id) {
+                cached.status = "closed";
+                localStorage.setItem("votesync.decision.latest", JSON.stringify(cached));
+            }
+
+            // Recarregar decisão fresca do servidor
+            const fresh = await api.getDecision(decision.id);
+            if (fresh) {
+                fresh.group_name = decision.group_name || "";
+                localStorage.setItem("votesync.decision.latest", JSON.stringify(fresh));
+            }
+
+            const updatedDecision = fresh || { ...decision, status: "closed" };
+            const hasTie = checkForTie(updatedDecision.options || decision.options || []);
+
+            if (hasTie) {
+                await handleTiebreakerRoll(updatedDecision, btn, wrapper);
+            } else {
+                renderDecisionTemplate();
+            }
+        } catch (err) {
+            console.error("❌ Erro ao encerrar votação:", err);
+            alert("Não foi possível encerrar a votação. Tente novamente.");
+            btn.disabled = false;
+            btn.innerHTML = '<i class="fa-solid fa-lock"></i><span>Encerrar Votação</span>';
+        }
+    });
+
+    wrapper.appendChild(btn);
+    return wrapper;
+}
+
 // ── TIEBREAKER WIDGET ──────────────────────────────────────────────────────────
-// Só é mostrado ao criador da decisão.
-// Regras de visibilidade:
-//   • Resultado já guardado  → mostra "Vencedor do desempate" (estado resolvido)
-//   • Empate real + todos votaram → mostra botão "Lançar o dado"
-//   • Qualquer outro caso    → não mostra nada
 async function renderTiebreakerWidget(decision) {
     const session = api.getSession();
-
-    // ── Apenas o criador vê este widget ──────────────────────────────────────
     const currentUserName = session?.user?.name || "";
     const isCreator = currentUserName && currentUserName === decision.created_by;
     if (!isCreator) return null;
 
     const stored = getStoredTiebreaker(decision.id);
 
-    // ── Estado resolvido: mostrar vencedor ────────────────────────────────────
     if (stored) {
-        // Validar que o vencedor ainda existe nas opções actuais
         const winnerStillExists = Array.isArray(decision.options)
             && decision.options.some(o => o.id === stored.winnerId);
-
         if (!winnerStillExists) {
-            // Opção vencedora foi removida — limpar resultado guardado
             clearTiebreaker(decision.id);
             return null;
         }
-
         return buildResolvedWidget(stored.winnerText);
     }
 
-    // ── Avaliar se existe empate real e todos votaram ─────────────────────────
+    // Só mostra widget de empate pendente se já estiver encerrada
+    if (!isDecisionClosed(decision)) return null;
+
     const hasTie = checkForTie(decision.options || []);
     if (!hasTie) return null;
 
@@ -289,14 +357,13 @@ async function handleTiebreakerRoll(decision, button, widget) {
 
     console.log(`🎲 Rodando dado... Opções em empate: ${winningOptions.map(o => o.option_text).join(", ")}`);
 
-    button.disabled = true;
+    if (button) button.disabled = true;
     widget.classList.add("rolling");
 
     const badgeIcon = widget.querySelector(".tiebreaker-inline-icon i");
-    const label = button.querySelector("span");
+    const label = button?.querySelector("span");
     if (label) label.textContent = "A lançar...";
 
-    // Animação do dado
     const faces = ["fa-dice-one", "fa-dice-two", "fa-dice-three", "fa-dice-four", "fa-dice-five", "fa-dice-six"];
     const rollInterval = setInterval(() => {
         if (badgeIcon) {
@@ -367,7 +434,7 @@ function showTiebreakerResult(winner, tiedOptions) {
 }
 
 // ── RENDER OPTION CARD ────────────────────────────────────────────────────────
-async function renderOptionCard(option, index, userHasVoted = false, userVotedOptionId = null, tiebreakerWinnerId = null) {
+async function renderOptionCard(option, index, userHasVoted = false, userVotedOptionId = null, tiebreakerWinnerId = null, isClosed = false) {
     const card = document.createElement("article");
     card.className = "option-card";
 
@@ -379,8 +446,7 @@ async function renderOptionCard(option, index, userHasVoted = false, userVotedOp
         badge.className = "winner-badge";
         badge.innerHTML = '<i class="fa-solid fa-trophy"></i><span>Vencedor</span>';
         card.appendChild(badge);
-    } else if (index === 0) {
-        // Destaque apenas ao primeiro card quando não há vencedor de desempate
+    } else if (index === 0 && !tiebreakerWinnerId) {
         card.style.boxShadow = "0 14px 20px -20px rgba(15,20,40,0.85), inset 0 0 0 2px rgba(93,122,255,0.45)";
     }
 
@@ -392,9 +458,7 @@ async function renderOptionCard(option, index, userHasVoted = false, userVotedOp
     votesWrap.className = "option-votes";
 
     const baseVotes = option.votes || 0;
-    // +1 visual pelo voto do dado apenas se esta opção ganhou o desempate
     const displayVotes = isTiebreakerWinner ? baseVotes + 1 : baseVotes;
-    // Garante pelo menos 1 chip visível e limita a 6 (faces do dado)
     const chipCount = Math.max(1, Math.min(6, displayVotes));
 
     for (let i = 0; i < chipCount; i++) {
@@ -403,7 +467,6 @@ async function renderOptionCard(option, index, userHasVoted = false, userVotedOp
         chip.type = "button";
         chip.setAttribute("data-option-id", option.id);
 
-        // O último chip da opção vencedora representa o voto do dado
         const isDiceChip = isTiebreakerWinner && i === chipCount - 1;
 
         if (isDiceChip) {
@@ -417,10 +480,10 @@ async function renderOptionCard(option, index, userHasVoted = false, userVotedOp
 
         chip.innerHTML = '<i class="fa-regular fa-thumbs-up"></i>';
 
-        if (userHasVoted) {
+        if (isClosed || userHasVoted) {
             chip.disabled = true;
             chip.classList.add("disabled-vote");
-            chip.title = "Já votou nesta decisão";
+            chip.title = isClosed ? "Votação encerrada" : "Já votou nesta decisão";
 
             if (userVotedOptionId === option.id) {
                 chip.classList.add("user-voted");
@@ -441,7 +504,7 @@ async function renderOptionCard(option, index, userHasVoted = false, userVotedOp
 
     card.appendChild(name);
     card.appendChild(votesWrap);
-    
+
     const voters = await getVotersForOption(option.id, getLatestDecision()?.id);
 
     if (voters.length > 0) {
@@ -470,7 +533,7 @@ async function handleVote(optionId, buttonElement) {
 
     if (!session?.user?.id) {
         console.warn("❌ Utilizador não autenticado");
-        alert("Debes estar autenticado para votar.");
+        alert("Deves estar autenticado para votar.");
         if (buttonElement) buttonElement.disabled = false;
         return;
     }
@@ -478,6 +541,12 @@ async function handleVote(optionId, buttonElement) {
     if (!decision?.id) {
         console.warn("❌ Decisão não encontrada");
         alert("Decisão não encontrada.");
+        if (buttonElement) buttonElement.disabled = false;
+        return;
+    }
+
+    if (isDecisionClosed(decision)) {
+        alert("A votação já foi encerrada.");
         if (buttonElement) buttonElement.disabled = false;
         return;
     }
@@ -509,7 +578,6 @@ async function handleVote(optionId, buttonElement) {
                 buttonElement.innerHTML = '<i class="fa-solid fa-thumbs-up"></i>';
             }
 
-            // Um novo voto invalida qualquer resultado de desempate anterior
             clearTiebreaker(decision.id);
 
             const updated = await api.getDecision(decision.id);
@@ -527,24 +595,19 @@ async function handleVote(optionId, buttonElement) {
     }
 }
 
-// ── RENDER TARGETS // groups ────────────────────────────────────────────────────────────
+// ── RENDER TARGETS ────────────────────────────────────────────────────────────
 async function renderDecisionTargets(decision) {
-
     decisionTargetGroup.textContent = "Sem grupo associado";
 
-    try{
+    try {
         const group = await api.getGroup(decision?.group_id);
-    
         decisionTargetGroup.textContent = group.name;
-
-    }catch(err){
-        console.log("ocorreu um erro")
+    } catch (err) {
+        console.log("ocorreu um erro");
         decisionTargetGroup.textContent = "Sem grupo";
     }
 
-    
     const creatorName = decision?.created_by || decision?.createdBy || "";
-    
 }
 
 // ── RENDER TEMPLATE ───────────────────────────────────────────────────────────
@@ -588,14 +651,31 @@ async function renderWithData(decision) {
     const options = Array.isArray(decision.options) ? decision.options : [];
     const session = api.getSession();
     const userId = session?.user?.id;
+    const closed = isDecisionClosed(decision);
 
     if (decisionTitle) decisionTitle.textContent = decision.title || "Decisão sem título";
     if (decisionDescription) decisionDescription.textContent = decision.description || "Sem descrição disponível.";
 
-    // ── Tiebreaker widget ─────────────────────────────────────────────────────
-    // Remove widget anterior antes de (possivelmente) inserir um novo
+    // Limpar widgets anteriores
     document.querySelector(".tiebreaker-inline")?.remove();
+    document.querySelector(".close-voting-wrapper")?.remove();
+    document.querySelector(".voting-closed-banner")?.remove();
 
+    // Banner encerrada (visível a todos)
+    if (closed) {
+        const banner = document.createElement("div");
+        banner.className = "voting-closed-banner";
+        banner.innerHTML = '<i class="fa-solid fa-lock"></i><span>Votação encerrada</span>';
+        const topbar = document.querySelector(".decision-topbar");
+        const metaPills = document.querySelector(".meta-pills");
+        if (topbar) {
+            topbar.insertBefore(banner, metaPills ?? null);
+        } else {
+            decisionDescription?.insertAdjacentElement("afterend", banner);
+        }
+    }
+
+    // Tiebreaker widget (só criador)
     const tiebreakerWidget = await renderTiebreakerWidget(decision);
     if (tiebreakerWidget) {
         const topbar = document.querySelector(".decision-topbar");
@@ -607,29 +687,45 @@ async function renderWithData(decision) {
         }
     }
 
-    // ── Data e tempo restante ─────────────────────────────────────────────────
+    // Botão encerrar (só criador, só se aberta e todos votaram)
+    const closeBtn = await renderCloseVotingButton(decision);
+    if (closeBtn) {
+        const topbar = document.querySelector(".decision-topbar");
+        const metaPills = document.querySelector(".meta-pills");
+        if (topbar) {
+            topbar.insertBefore(closeBtn, metaPills ?? null);
+        } else {
+            decisionDescription?.insertAdjacentElement("afterend", closeBtn);
+        }
+    }
+
+    // Data e tempo restante
     if (decisionDate) {
         const endDateLabel = formatIsoToDisplay(decision.end_date || decision.endDate);
         decisionDate.textContent = endDateLabel || decision.date || getTodayDate();
     }
 
     if (decisionTimeLeft) {
-        const daysLeft = calculateDaysLeft(decision.end_date || decision.endDate);
-        if (daysLeft === null) decisionTimeLeft.textContent = "Sem prazo";
-        else if (daysLeft < 0) decisionTimeLeft.textContent = "Encerrada";
-        else if (daysLeft === 0) decisionTimeLeft.textContent = "Termina hoje";
-        else if (daysLeft === 1) decisionTimeLeft.textContent = "1 dia restante";
-        else decisionTimeLeft.textContent = `${daysLeft} dias restantes`;
+        if (closed) {
+            decisionTimeLeft.textContent = "Encerrada";
+        } else {
+            const daysLeft = calculateDaysLeft(decision.end_date || decision.endDate);
+            if (daysLeft === null) decisionTimeLeft.textContent = "Sem prazo";
+            else if (daysLeft < 0) decisionTimeLeft.textContent = "Encerrada";
+            else if (daysLeft === 0) decisionTimeLeft.textContent = "Termina hoje";
+            else if (daysLeft === 1) decisionTimeLeft.textContent = "1 dia restante";
+            else decisionTimeLeft.textContent = `${daysLeft} dias restantes`;
+        }
     }
 
-    // ── Resultado de desempate guardado ───────────────────────────────────────
+    // Resultado de desempate guardado
     const storedTiebreaker = getStoredTiebreaker(decision.id);
     const tiebreakerWinnerId = storedTiebreaker?.winnerId ?? null;
     const winnerStillExists = tiebreakerWinnerId
         ? options.some(o => o.id === tiebreakerWinnerId)
         : false;
 
-    // ── Opções ────────────────────────────────────────────────────────────────
+    // Opções
     if (decisionOptionsContainer) {
         decisionOptionsContainer.innerHTML = "";
 
@@ -642,7 +738,6 @@ async function renderWithData(decision) {
         for (let i = 0; i < options.length; i++) {
             const option = options[i];
             option.votes = await getVotesForOption(option.id, decision.id);
-            console.log(option.votes)
             console.log(`👍 Opção "${option.option_text}": ${option.votes} votos`);
             decisionOptionsContainer.appendChild(
                 await renderOptionCard(
@@ -650,13 +745,14 @@ async function renderWithData(decision) {
                     i,
                     userHasVoted,
                     userVotedOptionId,
-                    winnerStillExists ? tiebreakerWinnerId : null
+                    winnerStillExists ? tiebreakerWinnerId : null,
+                    closed
                 )
             );
         }
     }
 
-    // ── Totais ────────────────────────────────────────────────────────────────
+    // Totais
     const baseTotalVotes = options.reduce((sum, o) => sum + (o.votes || 0), 0);
     const totalVotes = baseTotalVotes + (winnerStillExists ? 1 : 0);
 
