@@ -163,33 +163,37 @@ class APIClient {
     // ── USER GROUPS ───────────────────────────────────────────────────────────
     // ✅ ATUALIZADO: Suporta member_ids para adicionar amigos automaticamente
 
-    getUserGroups(userId = null) {
+    getGroups(userId = null) {
         const query = userId !== null && userId !== undefined ? `?user_id=${encodeURIComponent(userId)}` : "";
-        return this.get(`/user-groups/${query}`);
+        return this.get(`/groups/${query}`);
     }
 
-    getUserGroup(id) {
-        return this.get(`/group-members/${id}`);
+    getUsersFromCertainGroup(groupId){
+        return this.get(`/group/${groupId}`)
+    }
+     
+    getGroup(id) {
+        return this.get(`/members/${id}`);
     }
 
     createUserGroup(name, description = "", memberIds = []) {
-        return this.post("/user-groups/", {
+        return this.post("/groups/", {
             name,
             description,
             member_ids: memberIds  // ✅ Envia IDs dos amigos
         });
     }
 
-    updateUserGroup(id, name, description = "", memberIds = []) {
-        return this.put(`/user-groups/${id}`, {
+    updateGroup(id, name, description = "", memberIds = []) {
+        return this.put(`/groups/${id}`, {
             name,
             description,
             member_ids: memberIds  // ✅ Atualiza membros do grupo
         });
     }
 
-    deleteUserGroup(id) {
-        return this.delete(`/user-groups/${id}`);
+    deleteGroup(id) {
+        return this.delete(`/groups/${id}`);
     }
 
     // ── DECISIONS ─────────────────────────────────────────────────────────────
@@ -202,7 +206,7 @@ class APIClient {
         return this.get(`/decisions/${id}`);
     }
 
-    createDecision(voteId, title, decisionText, description, endDate, createdBy, targetGroupId = null, targetFriendIds = []) {
+    createDecision(voteId, title, decisionText, description, endDate, createdBy, GroupId = null) {
         return this.post("/decisions/", {
             vote_id: voteId,
             title,
@@ -210,13 +214,12 @@ class APIClient {
             description,
             end_date: endDate,
             created_by: createdBy,
-            target_group_id: targetGroupId,
+            group_id: GroupId,
             created_at: new Date().toISOString(),
-            target_friend_ids: targetFriendIds
         });
     }
 
-    updateDecision(id, voteId, title, decisionText, description, endDate, createdBy, targetGroupId = null, targetFriendIds = []) {
+    updateDecision(id, voteId, title, decisionText, description, endDate, createdBy, GroupId = null) {
         return this.put(`/decisions/${id}`, {
             vote_id: voteId,
             title,
@@ -224,9 +227,8 @@ class APIClient {
             description,
             end_date: endDate,
             created_by: createdBy,
-            target_group_id: targetGroupId,
+            group_id: GroupId,
             created_at: new Date().toISOString(),
-            target_friend_ids: targetFriendIds
         });
     }
 

@@ -131,9 +131,8 @@ async function saveEditedDecision() {
             description,
             end_date: endDate,
             created_by: editingDecision.created_by,
-            target_group_id: editingDecision.target_group_id,
+            group_id: editingDecision.roup_id,
             created_at: editingDecision.created_at,
-            target_friend_ids: []
         });
 
         await syncDecisionOptions(editingDecision, optionNames);

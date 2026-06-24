@@ -149,7 +149,7 @@ function getSelectedFriendIds() {
 async function renderGroups() {
     if (!groupsList || !groupsSubtitle || !groupsEmptyState) return;
 
-    const groups = await api.getUserGroups(myId);
+    const groups = await api.getGroups(myId);
     groupsSubtitle.textContent = groups.length === 1 ? "1 grupo" : `${groups.length} grupos`;
 
     if (groups.length === 0) {
@@ -176,7 +176,7 @@ async function renderGroups() {
             <article class="group-card">
                 <h3 class="group-card-title">${group.name || "Grupo sem nome"}</h3>
                 <p class="group-members-label">
-                    ${members.length > 0 ? `${members.length} amigo(s) no grupo` : "Sem amigos neste grupo"}
+                    ${members.length > 0 ? `${members.length} Utilizadores no grupo` : "Sem amigos neste grupo"}
                 </p>
                 <div class="group-members">
                     ${visibleNames.map(name => `<span class="group-member-chip">${name}</span>`).join("")}

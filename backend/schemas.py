@@ -220,9 +220,8 @@ class DecisionsBase(BaseModel):
     description: str | None = None
     end_date: str | None = None
     created_by: str | None = None
-    target_group_id: int | None = None
+    group_id: int | None = None
     created_at: str | None = None
-    target_friend_ids: List[int] = []  # ✅ IDs das friendships selecionadas
 
     class Config:
         from_attributes = True
@@ -239,10 +238,9 @@ class DecisionsResponse(BaseModel):
     description: str | None = None
     end_date: str | None = None
     created_by: str | None = None
-    target_group_id: int | None = None
+    group_id: int | None = None
     created_at: str | None = None
     options: List[OptionsResponse] = []
-    target_friends: List[DecisionFriendResponse] = []  # ✅ Amigos associados
 
     class Config:
         from_attributes = True
