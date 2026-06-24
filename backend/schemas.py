@@ -222,6 +222,7 @@ class DecisionsBase(BaseModel):
     created_by: str | None = None
     group_id: int | None = None
     created_at: str | None = None
+    status: str | None = None
 
     class Config:
         from_attributes = True
@@ -241,6 +242,8 @@ class DecisionsResponse(BaseModel):
     group_id: int | None = None
     created_at: str | None = None
     options: List[OptionsResponse] = []
+    status: str | None = None
+
 
     class Config:
         from_attributes = True

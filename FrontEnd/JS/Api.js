@@ -216,10 +216,11 @@ class APIClient {
             created_by: createdBy,
             group_id: GroupId,
             created_at: new Date().toISOString(),
+            status: "open"
         });
     }
 
-    updateDecision(id, voteId, title, decisionText, description, endDate, createdBy, GroupId = null) {
+    updateDecision(id, voteId, title, decisionText, description, endDate, createdBy, GroupId = null, status) {
         return this.put(`/decisions/${id}`, {
             vote_id: voteId,
             title,
@@ -229,6 +230,13 @@ class APIClient {
             created_by: createdBy,
             group_id: GroupId,
             created_at: new Date().toISOString(),
+            status: status
+        });
+    }
+
+    closeDecision(id, status) {
+        return this.put(`/decisions/${id}`, {
+            status: status
         });
     }
 
