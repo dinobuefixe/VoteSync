@@ -208,76 +208,7 @@ function clearTiebreaker(decisionId) {
     localStorage.removeItem(getTiebreakerKey(decisionId));
 }
 
-// ── CLOSE VOTING BUTTON ───────────────────────────────────────────────────────
-async function renderCloseVotingButton(decision) {
-    const session = api.getSession();
-    const currentUserName = session?.user?.name || "";
-    const isCreator = currentUserName && currentUserName === decision.created_by;
 
-    if (!isCreator) return null;
-    if (isDecisionClosed(decision)) return null;
-
-    const stored = getStoredTiebreaker(decision.id);
-    if (stored) return null;
-
-    const allVoted = await checkIfAllVoted(decision);
-    if (!allVoted) return null;
-
-    const wrapper = document.createElement("div");
-    wrapper.className = "close-voting-wrapper";
-
-    const btn = document.createElement("button");
-    btn.type = "button";
-    btn.className = "close-voting-btn";
-    btn.innerHTML = '<i class="fa-solid fa-lock"></i><span>Encerrar Votação</span>';
-
-    btn.addEventListener("click", async (e) => {
-        e.preventDefault();
-        btn.disabled = true;
-        btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i><span>A encerrar...</span>';
-
-        try {
-            await closeDecisionOnServer(decision.id, "closed");
-            console.log("✅ Decisão encerrada no servidor");
-
-            // Actualizar cache local com status closed
-            const cached = getLatestDecision();
-            if (cached && cached.id === decision.id) {
-                cached.status = "closed";
-                localStorage.setItem("votesync.decision.latest", JSON.stringify(cached));
-            }
-
-            // Recarregar decisão fresca do servidor
-            const fresh = await api.getDecision(decision.id);
-            if (fresh) {
-                fresh.group_name = decision.group_name || "";
-                localStorage.setItem("votesync.decision.latest", JSON.stringify(fresh));
-            }
-
-            const updatedDecision = fresh || { ...decision, status: "closed" };
-            const updatedDecisionWithVotes = {
-                ...updatedDecision,
-                options: await getOptionsWithVotes(updatedDecision.options || [], decision.id)
-            };
-
-            const hasTie = checkForTie(updatedDecisionWithVotes.options);
-
-            if (hasTie) {
-                await handleTiebreakerRoll(updatedDecisionWithVotes, btn, wrapper);
-            } else {
-                renderDecisionTemplate();
-            }
-        } catch (err) {
-            console.error("❌ Erro ao encerrar votação:", err);
-            alert("Não foi possível encerrar a votação. Tente novamente.");
-            btn.disabled = false;
-            btn.innerHTML = '<i class="fa-solid fa-lock"></i><span>Encerrar Votação</span>';
-        }
-    });
-
-    wrapper.appendChild(btn);
-    return wrapper;
-}
 
 // ── TIEBREAKER WIDGET ──────────────────────────────────────────────────────────
 async function renderTiebreakerWidget(decision) {
@@ -715,17 +646,6 @@ async function renderWithData(decision) {
         }
     }
 
-    // Botão encerrar (só criador, só se aberta e todos votaram)
-    const closeBtn = await renderCloseVotingButton(decision);
-    if (closeBtn) {
-        const topbar = document.querySelector(".decision-topbar");
-        const metaPills = document.querySelector(".meta-pills");
-        if (topbar) {
-            topbar.insertBefore(closeBtn, metaPills ?? null);
-        } else {
-            decisionDescription?.insertAdjacentElement("afterend", closeBtn);
-        }
-    }
 
     // Data e tempo restante
     if (decisionDate) {
