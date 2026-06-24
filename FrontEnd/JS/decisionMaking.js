@@ -1,5 +1,4 @@
 /* ── VoteSync — decisionMaking.js ── */
-
 // ── DOM REFS ──────────────────────────────────────────────────────────────────
 const decisionTitle = document.querySelector("#decision-title");
 const decisionDescription = document.querySelector("#decision-description");
@@ -73,6 +72,25 @@ async function getVotesForOption(optionId, decisionId) {
     } catch (err) {
         console.warn("Erro ao contar votos:", err);
         return 0;
+    }
+}
+
+async function getVotersForOption(optionId, decisionId) {
+    try {
+        const allVotes = await api.getVotes();
+        const optionVotes = allVotes.filter(v => v.option_id === optionId && v.decision_id === decisionId);
+
+        // Buscar info dos utilizadores
+        const voters = [];
+        for (const vote of optionVotes) {
+            const user = await api.getUser(vote.user_id);
+            if (user?.name) voters.push(user.name);
+        }
+
+        return voters;
+    } catch (err) {
+        console.warn("Erro ao obter votantes:", err);
+        return [];
     }
 }
 
@@ -423,6 +441,25 @@ async function renderOptionCard(option, index, userHasVoted = false, userVotedOp
 
     card.appendChild(name);
     card.appendChild(votesWrap);
+    
+    const voters = await getVotersForOption(option.id, getLatestDecision()?.id);
+
+    if (voters.length > 0) {
+        const votersBox = document.createElement("div");
+        votersBox.className = "option-voters-box";
+
+        const votersLabel = document.createElement("small");
+        votersLabel.textContent = "Votaram:";
+
+        const votersList = document.createElement("small");
+        votersList.className = "option-voters-list";
+        votersList.textContent = voters.join(", ");
+
+        votersBox.appendChild(votersLabel);
+        votersBox.appendChild(votersList);
+        card.appendChild(votersBox);
+    }
+
     return card;
 }
 
@@ -491,45 +528,23 @@ async function handleVote(optionId, buttonElement) {
 }
 
 // ── RENDER TARGETS // groups ────────────────────────────────────────────────────────────
-function renderDecisionTargets(decision) {
+async function renderDecisionTargets(decision) {
 
     decisionTargetGroup.textContent = "Sem grupo associado";
 
-    if (decision?.group) {
-        resolveGroupName(decision.group.id)
-            .then(name => {
-                decisionTargetGroup.textContent = name || "Sem nome de grupo";
-            })
-            .catch(err => {
-                console.warn("Não foi possível carregar nome do grupo:", err);
-                decisionTargetGroup.textContent = "Erro ao carregar grupo";
-            });
+    try{
+        const group = await api.getGroup(decision?.group_id);
+    
+        decisionTargetGroup.textContent = group.name;
+
+    }catch(err){
+        console.log("ocorreu um erro")
+        decisionTargetGroup.textContent = "Sem grupo";
     }
-    console.log("Grupo alvo:", decision?.group_id);
-    const group = api.getUserGroup(decision?.group_id)
-    console.log("Grupo alvo:", group.name);
-    console.log(decision?.group.name);
-    const usersFromGroup = api.getUsersFromCertainGroup(group.id);
-    console.log(usersFromGroup);
+
+    
     const creatorName = decision?.created_by || decision?.createdBy || "";
-    const friendNames = [];
-
-    if (creatorName) friendNames.push(creatorName);
-
-    if (friendNames.length === 0) {
-        const empty = document.createElement("span");
-        empty.className = "friend-empty";
-        empty.textContent = "Sem amigos associados";
-        decisionTargetFriends.appendChild(empty);
-        return;
-    }
-
-    friendNames.forEach(name => {
-        const chip = document.createElement("span");
-        chip.className = "friend-chip";
-        chip.textContent = name;
-        decisionTargetFriends.appendChild(chip);
-    });
+    
 }
 
 // ── RENDER TEMPLATE ───────────────────────────────────────────────────────────
@@ -627,6 +642,7 @@ async function renderWithData(decision) {
         for (let i = 0; i < options.length; i++) {
             const option = options[i];
             option.votes = await getVotesForOption(option.id, decision.id);
+            console.log(option.votes)
             console.log(`👍 Opção "${option.option_text}": ${option.votes} votos`);
             decisionOptionsContainer.appendChild(
                 await renderOptionCard(

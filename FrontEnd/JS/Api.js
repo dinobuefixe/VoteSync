@@ -168,11 +168,11 @@ class APIClient {
         return this.get(`/groups/${query}`);
     }
 
-    getUsersFromCertainGroup(groupId){
-        return this.get(`/group/${groupId}`)
+    getGroup(groupId){
+        return this.get(`/groups/${groupId}`)
     }
      
-    getGroup(id) {
+    getMemberFromGroup(id) {
         return this.get(`/members/${id}`);
     }
 

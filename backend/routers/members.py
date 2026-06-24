@@ -15,12 +15,17 @@ def get_group_members(db: Session = Depends(get_db)):
 
 @router.get("/{memberId}", response_model=List[schemas.UserGroupsResponse])
 def get_groups_by_user(memberId: int, db: Session = Depends(get_db)):
-    groups = db.query(models.Groups).options(
-        joinedload(models.Members.group).joinedload(models.Groups.members).joinedload(models.Members.user)
-    ).filter(
-        models.Members.user_id == memberId
-    ).all()
+    groups = (
+        db.query(models.Groups)
+        .join(models.Members, models.Members.group_id == models.Groups.id)
+        .filter(models.Members.user_id == memberId)
+        .options(
+            joinedload(models.Groups.members).joinedload(models.Members.user),
+        )
+        .all()
+    )
     return groups
+
 
 
 @router.post("/", response_model=schemas.GroupMembersBase)
