@@ -168,10 +168,14 @@ class APIClient {
         return this.get(`/groups/${query}`);
     }
 
-    getGroup(groupId){
+    getGroup(groupId) {
         return this.get(`/groups/${groupId}`)
     }
-     
+
+    getUserGroup(groupId) {
+        return this.getGroup(groupId);
+    }
+
     getMemberFromGroup(id) {
         return this.get(`/members/${id}`);
     }
@@ -194,6 +198,10 @@ class APIClient {
 
     deleteGroup(id) {
         return this.delete(`/groups/${id}`);
+    }
+
+    deleteUserGroup(id) {
+        return this.deleteGroup(id);
     }
 
     // ── DECISIONS ─────────────────────────────────────────────────────────────

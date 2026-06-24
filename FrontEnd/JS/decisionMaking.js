@@ -86,6 +86,26 @@ async function getVotesForOption(optionId, decisionId) {
     }
 }
 
+async function getOptionsWithVotes(options = [], decisionId) {
+    if (!Array.isArray(options) || !decisionId) return [];
+    try {
+        const allVotes = await api.getVotes();
+        const votesByOption = allVotes.reduce((acc, vote) => {
+            if (vote.decision_id === decisionId) {
+                acc[vote.option_id] = (acc[vote.option_id] || 0) + 1;
+            }
+            return acc;
+        }, {});
+        return options.map(option => ({
+            ...option,
+            votes: votesByOption[option.id] || 0
+        }));
+    } catch (err) {
+        console.warn("Erro ao carregar votos das opções:", err);
+        return options.map(option => ({ ...option, votes: option.votes || 0 }));
+    }
+}
+
 async function getVotersForOption(optionId, decisionId) {
     try {
         const allVotes = await api.getVotes();
@@ -235,10 +255,15 @@ async function renderCloseVotingButton(decision) {
             }
 
             const updatedDecision = fresh || { ...decision, status: "closed" };
-            const hasTie = checkForTie(updatedDecision.options || decision.options || []);
+            const updatedDecisionWithVotes = {
+                ...updatedDecision,
+                options: await getOptionsWithVotes(updatedDecision.options || [], decision.id)
+            };
+
+            const hasTie = checkForTie(updatedDecisionWithVotes.options);
 
             if (hasTie) {
-                await handleTiebreakerRoll(updatedDecision, btn, wrapper);
+                await handleTiebreakerRoll(updatedDecisionWithVotes, btn, wrapper);
             } else {
                 renderDecisionTemplate();
             }
@@ -256,11 +281,6 @@ async function renderCloseVotingButton(decision) {
 
 // ── TIEBREAKER WIDGET ──────────────────────────────────────────────────────────
 async function renderTiebreakerWidget(decision) {
-    const session = api.getSession();
-    const currentUserName = session?.user?.name || "";
-    const isCreator = currentUserName && currentUserName === decision.created_by;
-    if (!isCreator) return null;
-
     const stored = getStoredTiebreaker(decision.id);
 
     if (stored) {
@@ -273,16 +293,17 @@ async function renderTiebreakerWidget(decision) {
         return buildResolvedWidget(stored.winnerText);
     }
 
-    // Só mostra widget de empate pendente se já estiver encerrada
-    if (!isDecisionClosed(decision)) return null;
-
-    const hasTie = checkForTie(decision.options || []);
-    if (!hasTie) return null;
+    const session = api.getSession();
+    const currentUserName = session?.user?.name || "";
+    const isCreator = currentUserName && currentUserName === decision.created_by;
 
     const allVoted = await checkIfAllVoted(decision);
     if (!allVoted) return null;
 
-    return buildPendingWidget(decision);
+    const hasTie = checkForTie(decision.options || []);
+    if (!hasTie) return null;
+
+    return buildPendingWidget(decision, isCreator);
 }
 
 // ── Cria o widget no estado "resolvido" ───────────────────────────────────────
@@ -314,7 +335,7 @@ function buildResolvedWidget(winnerText) {
 }
 
 // ── Cria o widget no estado "pendente" (botão lançar dado) ────────────────────
-function buildPendingWidget(decision) {
+function buildPendingWidget(decision, isCreator) {
     const widget = document.createElement("div");
     widget.className = "tiebreaker-inline";
 
@@ -333,10 +354,15 @@ function buildPendingWidget(decision) {
     rollBtn.type = "button";
     rollBtn.className = "tiebreaker-roll-btn";
     rollBtn.innerHTML = '<i class="fa-solid fa-dice"></i><span>Lançar o dado</span>';
-    rollBtn.addEventListener("click", async (e) => {
-        e.preventDefault();
-        await handleTiebreakerRoll(decision, rollBtn, widget);
-    });
+    rollBtn.disabled = !isCreator;
+    if (!isCreator) {
+        rollBtn.title = "Apenas o criador pode lançar o desempate";
+    } else {
+        rollBtn.addEventListener("click", async (e) => {
+            e.preventDefault();
+            await handleTiebreakerRoll(decision, rollBtn, widget);
+        });
+    }
 
     body.appendChild(label);
     body.appendChild(rollBtn);
@@ -649,6 +675,8 @@ async function renderDecisionTemplate() {
 // ── RENDER WITH DATA ──────────────────────────────────────────────────────────
 async function renderWithData(decision) {
     const options = Array.isArray(decision.options) ? decision.options : [];
+    const optionsWithVotes = await getOptionsWithVotes(options, decision.id);
+    decision.options = optionsWithVotes;
     const session = api.getSession();
     const userId = session?.user?.id;
     const closed = isDecisionClosed(decision);
@@ -722,7 +750,7 @@ async function renderWithData(decision) {
     const storedTiebreaker = getStoredTiebreaker(decision.id);
     const tiebreakerWinnerId = storedTiebreaker?.winnerId ?? null;
     const winnerStillExists = tiebreakerWinnerId
-        ? options.some(o => o.id === tiebreakerWinnerId)
+        ? optionsWithVotes.some(o => o.id === tiebreakerWinnerId)
         : false;
 
     // Opções
@@ -735,9 +763,8 @@ async function renderWithData(decision) {
 
         console.log(`👤 Utilizador ${userId}: ${userHasVoted ? "JÁ VOTOU" : "Ainda não votou"}`);
 
-        for (let i = 0; i < options.length; i++) {
-            const option = options[i];
-            option.votes = await getVotesForOption(option.id, decision.id);
+        for (let i = 0; i < optionsWithVotes.length; i++) {
+            const option = optionsWithVotes[i];
             console.log(`👍 Opção "${option.option_text}": ${option.votes} votos`);
             decisionOptionsContainer.appendChild(
                 await renderOptionCard(
@@ -753,7 +780,7 @@ async function renderWithData(decision) {
     }
 
     // Totais
-    const baseTotalVotes = options.reduce((sum, o) => sum + (o.votes || 0), 0);
+    const baseTotalVotes = optionsWithVotes.reduce((sum, o) => sum + (o.votes || 0), 0);
     const totalVotes = baseTotalVotes + (winnerStillExists ? 1 : 0);
 
     if (decisionTotalVotes) {

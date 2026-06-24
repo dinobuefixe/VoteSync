@@ -84,8 +84,12 @@ def update_decision(id: int, updated: schemas.DecisionsBase, db: Session = Depen
 
 @router.delete("/{id}", status_code=204)
 def delete_decision(id: int, db: Session = Depends(get_db)):
-    query = db.query(models.Decisions).filter(models.Decisions.id == id)
-    if not query.first():
+    decision_query = db.query(models.Decisions).filter(models.Decisions.id == id)
+    if not decision_query.first():
         raise HTTPException(404, "Decision not found")
-    query.delete()
+
+    # Remover votos e opções associados antes de remover a decisão
+    db.query(models.Votes).filter(models.Votes.decision_id == id).delete(synchronize_session=False)
+    db.query(models.Options).filter(models.Options.vote_id == id).delete(synchronize_session=False)
+    decision_query.delete(synchronize_session=False)
     db.commit()
