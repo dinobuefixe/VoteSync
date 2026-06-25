@@ -169,9 +169,9 @@ async function removeDecisionById(decisionId) {
     }
 }
 
-// ── RENDER ────────────────────────────────────────────────────────────────────
-function createDecisionListItem(decision) {
+function createDecisionListItem(decision, userName) {
     const optionsCount = Array.isArray(decision.options) ? decision.options.length : 0;
+    const isCreator = decision.created_by === userName;
 
     const item = document.createElement("article");
     item.className = "decision-list-item";
@@ -207,25 +207,29 @@ function createDecisionListItem(decision) {
         window.location.href = "./decisionMaking.html";
     });
 
+    // ── Botões só visíveis para o criador ────────────────────────────────────
     const actionsWrap = document.createElement("div");
     actionsWrap.className = "decision-item-actions";
 
-    const editButton = document.createElement("button");
-    editButton.className = "decision-action-btn decision-edit-btn";
-    editButton.type      = "button";
-    editButton.innerHTML = '<i class="fa-solid fa-pen-to-square" aria-hidden="true"></i>';
-    editButton.setAttribute("aria-label", "Alterar decisão");
-    editButton.addEventListener("click", () => openEditModal(decision.id));
+    if (isCreator) {
+        const editButton = document.createElement("button");
+        editButton.className = "decision-action-btn decision-edit-btn";
+        editButton.type      = "button";
+        editButton.innerHTML = '<i class="fa-solid fa-pen-to-square" aria-hidden="true"></i>';
+        editButton.setAttribute("aria-label", "Alterar decisão");
+        editButton.addEventListener("click", () => openEditModal(decision.id));
 
-    const removeButton = document.createElement("button");
-    removeButton.className = "decision-action-btn decision-remove-btn";
-    removeButton.type      = "button";
-    removeButton.innerHTML = '<i class="fa-solid fa-trash" aria-hidden="true"></i>';
-    removeButton.setAttribute("aria-label", "Remover decisão");
-    removeButton.addEventListener("click", () => removeDecisionById(decision.id));
+        const removeButton = document.createElement("button");
+        removeButton.className = "decision-action-btn decision-remove-btn";
+        removeButton.type      = "button";
+        removeButton.innerHTML = '<i class="fa-solid fa-trash" aria-hidden="true"></i>';
+        removeButton.setAttribute("aria-label", "Remover decisão");
+        removeButton.addEventListener("click", () => removeDecisionById(decision.id));
 
-    actionsWrap.appendChild(editButton);
-    actionsWrap.appendChild(removeButton);
+        actionsWrap.appendChild(editButton);
+        actionsWrap.appendChild(removeButton);
+    }
+
     item.appendChild(infoBox);
     item.appendChild(winnerBox);
     item.appendChild(viewMoreButton);
@@ -234,7 +238,15 @@ function createDecisionListItem(decision) {
 }
 
 async function renderAllDecisions() {
-    const decisions = await api.getDecisions();
+    const session = api.getSession();
+    const userId = session?.user?.id;
+    const user = await api.getUser(userId);
+    const userGroups = await api.getGroups(userId);
+    const userGroupIds = new Set(userGroups.map(g => g.id));
+
+    const allDecisions = await api.getDecisions();
+    const decisions = allDecisions.filter(d => userGroupIds.has(d.group_id));
+    
     cachedDecisions = decisions;
 
     const orderedDecisions = [...decisions].sort((a, b) => (b.id || 0) - (a.id || 0));
@@ -254,9 +266,8 @@ async function renderAllDecisions() {
     }
 
     if (decisionsListEmpty) decisionsListEmpty.hidden = true;
-    orderedDecisions.forEach((decision) => decisionsList.appendChild(createDecisionListItem(decision)));
+    orderedDecisions.forEach((decision) => decisionsList.appendChild(createDecisionListItem(decision, user.name)));
 
-    // Sync latest para decisionMaking.html
     localStorage.setItem("votesync.decision.latest", JSON.stringify(orderedDecisions[0]));
 }
 

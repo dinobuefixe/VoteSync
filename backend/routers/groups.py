@@ -30,6 +30,20 @@ def get_group(id: int, db: Session = Depends(get_db)):
         raise HTTPException(404, "Group not found")
     return group
 
+@router.get("/user/{user_id}", response_model=list[schemas.UserGroupsResponse])
+def get_user_groups(user_id: int, db: Session = Depends(get_db)):
+    user = db.query(models.Users).filter(models.Users.id == user_id).first()
+    if not user:
+        raise HTTPException(status_code=404, detail="Utilizador não encontrado")
+
+    groups = (
+        db.query(models.Groups)
+        .join(models.Members, models.Members.group_id == models.Groups.id)
+        .filter(models.Members.user_id == user_id)
+        .all()
+    )
+
+    return groups
 
 @router.post("/", response_model=schemas.UserGroupsResponse)
 def create_group(group: schemas.UserGroupsCreate, db: Session = Depends(get_db)):
