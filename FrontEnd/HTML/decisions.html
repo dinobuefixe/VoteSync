@@ -1,0 +1,104 @@
+<!DOCTYPE html>
+<html lang="pt">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>VoteSync - Decisões</title>
+    <link rel="stylesheet" href="/static/Styles/dashboard.css">
+    <link rel="stylesheet" href="/static/Styles/decisions.css">
+
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link
+        href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700;800&family=Sora:wght@400;600;700&display=swap"
+        rel="stylesheet">
+
+    <!-- Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+
+</head>
+
+<body>
+
+    <!-- Navbar -->
+    <header class="navbar">
+        <div class="brand">
+            <span class="brand-icon" aria-hidden="true">
+                <a href="#" onclick="handleLogoClick(event)">
+                    <img src="/static/IMG/votesync_logo.png" alt="VoteSync logo" />
+                </a>
+            </span>
+            <span>VoteSync</span>
+        </div>
+
+        <div class="search-box">
+            <i class="fa-solid fa-magnifying-glass"></i>
+            <input type="text" placeholder="Search for friends">
+        </div>
+
+        <div class="nav-actions">
+            <button class="logout-btn" id="decisions-logout-btn" type="button">
+                <img class="logout-icon" src="/static/IMG/Logout.png" alt="Logout icon" />
+                Logout
+            </button>
+        </div>
+    </header>
+
+    <!-- Página de Decisões -->
+    <main class="decisions-page">
+
+        <section class="card decisions-card">
+            <div class="card-header">
+                <h1>Todas as Decisões</h1>
+                <a class="back-link" href="./dashboard.html">← Voltar ao dashboard</a>
+            </div>
+
+            <div class="decision-summary">
+                <span id="decisions-summary-text">Sem decisões</span>
+            </div>
+
+            <p class="decision-list-empty" id="decisions-list-empty">Quando criares uma decisão, vai aparecer aqui.</p>
+            <div class="decision-list" id="decisions-list"></div>
+        </section>
+
+    </main>
+
+    <!-- Modal de edição de decisão -->
+    <div class="decision-edit-overlay" id="decision-edit-overlay" hidden>
+        <div class="decision-edit-modal" role="dialog" aria-modal="true" aria-labelledby="decision-edit-title">
+            <div class="decision-edit-header">
+                <h2 id="decision-edit-title">Alterar Decisão</h2>
+                <button class="decision-edit-close" id="decision-edit-close" type="button"
+                    aria-label="Fechar modal">×</button>
+            </div>
+
+            <div class="decision-edit-body">
+                <label for="decision-edit-title-input">Título</label>
+                <input type="text" id="decision-edit-title-input" placeholder="Título da decisão...">
+
+                <label for="decision-edit-description-input">Descrição</label>
+                <textarea id="decision-edit-description-input" placeholder="Descreve a decisão..."></textarea>
+
+                <label for="decision-edit-end-date-input">Data de término</label>
+                <input type="date" id="decision-edit-end-date-input">
+
+                <label for="decision-edit-options-input">Opções (separadas por vírgula)</label>
+                <input type="text" id="decision-edit-options-input" placeholder="Praia, Montanha, Cidade...">
+            </div>
+
+            <p class="decision-edit-message" id="decision-edit-message" aria-live="polite"></p>
+
+            <footer class="decision-edit-actions">
+                <button class="decision-edit-cancel" id="decision-edit-cancel" type="button">Cancelar</button>
+                <button class="decision-edit-save" id="decision-edit-save" type="button">Guardar alterações</button>
+            </footer>
+        </div>
+    </div>
+    <script src="/static/JS/Api.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <script src="/static/JS/decisions.js"></script>
+
+</body>
+
+</html>

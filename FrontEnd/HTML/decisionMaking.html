@@ -1,0 +1,86 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>VoteSync - Decisão</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link
+        href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700;800&family=Sora:wght@400;600;700&display=swap"
+        rel="stylesheet">
+    <link rel="stylesheet" href="/static/Styles/decisionMaking.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+</head>
+
+<body>
+    <div class="page-shell">
+        <header class="main-header">
+            <div class="brand">
+            <a href="#" onclick="handleLogoClick(event)" style="display:flex;align-items:center;gap:0.75rem;text-decoration:none;color:inherit;">
+                <img src="/static/IMG/votesync_logo.png" alt="VoteSync logo" style="width:60px;height:60px;object-fit:contain;" />
+                <span>VoteSync</span>
+            </a>
+            </div>
+
+            <div class="search-box">
+                <i class="fa-solid fa-magnifying-glass"></i>
+                <input type="text" placeholder="Search">
+            </div>
+
+            <button class="btn-logout" id="decision-logout-btn" type="button">
+                <img class="logout-icon" src="/static/IMG/Logout.png" alt="Logout icon">
+                Logout
+            </button>
+        </header>
+
+        <main class="content">
+            <a class="back-link" href="/static/HTML/dashboard.html">&larr; Voltar para decisões</a>
+
+            <section class="decision-card">
+                <div class="decision-topbar">
+                    <h1 id="decision-title">Decisão sem título</h1>
+                    <div class="meta-pills">
+                        <span class="pill-date" id="decision-date">--/--/----</span>
+                        <span class="pill-time" id="decision-time-left">3 dias restantes</span>
+                    </div>
+                </div>
+
+                <p class="decision-description" id="decision-description">Sem descrição disponível.</p>
+
+                <section class="participants-section" aria-label="Participantes da decisão">
+                    <div class="participant-block">
+                        <p class="participant-label"><i class="fa-solid fa-users"></i> Grupo</p>
+                        <p class="participant-group" id="decision-target-group">Sem grupo associado</p>
+                    </div>
+                </section>
+
+                <hr class="divider">
+
+                <section class="options-section">
+                    <h2>Vote na sua opção preferida:</h2>
+                    <div class="options-grid" id="decision-options-container"></div>
+                </section>
+
+                <footer class="decision-footer">
+                    <div class="stats">
+                        <div class="stat-item">
+                            <strong id="decision-total-votes">0</strong>
+                            <span>Total de Votos</span>
+                        </div>
+                        <div class="stat-item">
+                            <strong id="decision-total-options">0</strong>
+                            <span>Opções</span>
+                        </div>
+                    </div>
+                    <p class="creator">Criado por: <strong id="decision-created-by">-</strong></p>
+                </footer>
+            </section>
+        </main>
+    </div>
+    <script src="/static/JS/Api.js"></script>
+    <script src="/static/JS/decisionMaking.js"></script>
+</body>
+
+</html>

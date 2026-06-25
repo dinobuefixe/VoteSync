@@ -1,5 +1,8 @@
 run:
-	docker-compose up --build
+	DOCKER_BUILDKIT=0 docker-compose up --build
+
+build:
+	DOCKER_BUILDKIT=0 docker-compose build
 
 down:
 	docker-compose down

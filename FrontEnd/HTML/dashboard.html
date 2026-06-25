@@ -1,0 +1,177 @@
+<!DOCTYPE html>
+<html lang="pt">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>VoteSync</title>
+    <link rel="stylesheet" href="/static/Styles/dashboard.css">
+
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link
+        href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700;800&family=Sora:wght@400;600;700&display=swap"
+        rel="stylesheet">
+
+    <!-- Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+
+</head>
+
+<body>
+
+    <!-- Navbar -->
+    <header class="navbar">
+        <div class="brand">
+            <span class="brand-icon" aria-hidden="true">
+                <a href="#" onclick="handleLogoClick(event)">
+                    <img src="/static/IMG/votesync_logo.png" alt="VoteSync logo" />
+                </a>
+            </span>
+            <span>VoteSync</span>
+        </div>
+
+        <div class="search-box">
+            <i class="fa-solid fa-magnifying-glass"></i>
+            <input type="text" placeholder="Search for friends">
+        </div>
+
+        <div class="nav-actions">
+            <button class="logout-btn" id="dashboard-logout-btn" type="button">
+                <img class="logout-icon" src="/static/IMG/Logout.png" alt="Logout icon" />
+                Logout
+            </button>
+        </div>
+    </header>
+
+    <!-- Dashboard -->
+    <main class="dashboard">
+
+        <!-- Amigos -->
+        <section class="card friends-card">
+            <div class="card-header">
+                <h2><i class="fa-regular fa-user"></i> Amigos</h2>
+                <button class="small-btn" type="button">+</button>
+            </div>
+
+            <div class="list-item" id="friends-list-container" style="display: flex; flex-direction: column; gap: 0; padding: 0; margin: 0 -8px; padding: 0 8px;">
+                <span>Sem amigos</span>
+            </div>
+
+            <button class="view-btn" id="friends-view-more-btn" type="button">
+                View More <i class="fa-solid fa-angle-right"></i>
+            </button>
+        </section>
+
+        <!-- Próximo Destino -->
+        <section class="card decision-card-main">
+            <div class="card-header">
+                <h2>Decisões Criadas</h2>
+                <div class="decision-actions">
+                    <button class="decision-view-all-btn" id="decision-view-all-btn" type="button">Ver
+                        todas</button>
+                    <button class="decision-create-btn" type="button"><i class="fa-solid fa-circle-plus"
+                            aria-hidden="true"></i> Criar novo</button>
+                </div>
+            </div>
+
+            <div class="decision-summary">
+                <span id="decision-summary-text">Sem decisões</span>
+            </div>
+
+            <p class="decision-list-empty" id="decision-list-empty">Quando criares uma decisão, vai aparecer aqui.</p>
+            <div class="decision-list" id="decision-list"></div>
+        </section>
+
+        <!-- Grupos -->
+        <section class="card groups-card">
+            <div class="card-header">
+                <h2><i class="fa-regular fa-user"></i> Grupos</h2>
+                <button class="small-btn" id="groups-create-btn" type="button">+</button>
+            </div>
+
+            <p class="groups-empty" id="groups-card-empty">Sem grupos</p>
+            <div class="groups-preview-list" id="groups-preview-list"></div>
+
+            <button class="view-btn" id="groups-view-more-btn" type="button">
+                View More <i class="fa-solid fa-angle-right"></i>
+            </button>
+        </section>
+
+    </main>
+
+    <div class="decision-modal-overlay" id="decision-modal-overlay" hidden>
+        <div class="decision-modal" role="dialog" aria-modal="true" aria-labelledby="decision-modal-title">
+            <div class="decision-modal-header-row">
+                <h3 id="decision-modal-title">Criar Decisão</h3>
+                <button class="decision-modal-close" id="decision-modal-close" type="button"
+                    aria-label="Fechar modal">×</button>
+            </div>
+
+            <div class="decision-modal-header">
+                <input type="text" class="decision-input-title" id="decision-title-input"
+                    placeholder="Título da decisão...">
+                <span class="decision-current-date" id="decision-current-date">--/--/----</span>
+            </div>
+
+            <div class="decision-end-date-row">
+                <label class="decision-end-date-label" for="decision-end-date-input">Data de término</label>
+                <input class="decision-end-date-input" id="decision-end-date-input" type="date">
+            </div>
+
+            <div class="decision-targets-row">
+                <div class="decision-target-field">
+                    <label class="decision-end-date-label" for="decision-group-select">Selecionar grupo</label>
+                    <select class="decision-select" id="decision-group-select">
+                        <option value="">Sem grupo selecionado</option>
+                    </select>
+                </div>
+            </div>
+
+            <textarea class="decision-textarea-description" id="decision-description-input"
+                placeholder="Descreva sua decisão aqui. Forneça contexto e detalhes relevantes..."></textarea>
+            <p class="decision-form-message" id="decision-form-message" aria-live="polite"></p>
+
+            <section class="decision-voting-section">
+                <label class="decision-section-label">Vote na sua opção preferida:</label>
+
+                <div id="decision-options-list">
+                    <div class="decision-option-row focus-blue">
+                        <div class="decision-option-input-wrapper dotted-border">
+                            <input type="text" class="decision-input-option" placeholder="Nome da opção...">
+                        </div>
+                        <div class="decision-option-icon-box dotted-border">
+                            <i class="fa-solid fa-sun"></i>
+                        </div>
+                    </div>
+
+                    <div class="decision-option-row">
+                        <div class="decision-option-input-wrapper filled-bg">
+                            <input type="text" class="decision-input-option" placeholder="Nome da opção...">
+                        </div>
+                        <div class="decision-option-icon-box filled-bg">
+                            <i class="fa-solid fa-building-columns"></i>
+                        </div>
+                    </div>
+                </div>
+
+                <button class="decision-btn-add-option" id="decision-add-option-btn" type="button">
+                    <i class="fa-solid fa-plus"></i> Adicionar opção
+                </button>
+            </section>
+
+            <footer class="decision-card-footer">
+                <button class="decision-btn-cancel" id="decision-cancel-btn" type="button">Cancelar</button>
+                <button class="decision-btn-create" id="decision-create-confirm-btn" type="button">Criar
+                    Decisão</button>
+            </footer>
+        </div>
+    </div>
+    <script src="/static/JS/Api.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <script src="/static/JS/dashboard.js"></script>
+    <script src="/static/JS/friendSearch.js"></script>
+
+</body>
+
+</html>

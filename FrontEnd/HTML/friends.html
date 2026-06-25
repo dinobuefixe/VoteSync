@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+<html lang="pt">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>VoteSync - Amigos</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link
+        href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700;800&family=Sora:wght@400;600;700&display=swap"
+        rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    <link rel="stylesheet" href="/static/Styles/friends.css">
+</head>
+
+<body>
+
+    <header class="navbar">
+        <a class="logo-area" href="#" onclick="handleLogoClick(event)">
+            <img class="logo-icon" src="/static/IMG/votesync_logo.png" alt="VoteSync logo" />
+            <span class="logo-text">VoteSync</span>
+        </a>
+
+        <div class="search-bar">
+            <i class="fa-solid fa-magnifying-glass search-icon"></i>
+            <input type="text" placeholder="Search for friends">
+        </div>
+
+        <div class="nav-actions">
+            <button class="btn-logout">
+                <img class="logout-icon" src="/static/IMG/Logout.png" alt="Logout icon" />
+                Logout
+            </button>
+        </div>
+    </header>
+
+    <main class="main-container">
+        <a class="back-link" href="/static/HTML/dashboard.html">&larr; Voltar ao dashboard</a>
+        <h1 class="main-title">Friends and pending requests</h1>
+        <p class="main-subtitle">0 friends in your network</p>
+
+        <section class="empty-state-container" style="display:none;">
+            <div class="empty-state-card">
+                <div class="empty-icon">
+                    <svg width="64" height="64" viewBox="0 0 24 24" fill="none" stroke="#BDB2FF" stroke-width="1.5"
+                        stroke-linecap="round" stroke-linejoin="round">
+                        <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2" />
+                        <circle cx="9" cy="7" r="4" />
+                        <path d="M23 21v-2a4 4 0 0 0-3-3.87" />
+                        <path d="M16 3.13a4 4 0 0 1 0 7.75" />
+                    </svg>
+                </div>
+                <h2>A tua rede de amigos está vazia</h2>
+                <p>Encontra os teus amigos pesquisando por eles na barra superior para os adicionares à tua rede e
+                    começarem a votar em conjunto!</p>
+            </div>
+        </section>
+    </main>
+    <script src="/static/JS/Api.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <script src="/static/JS/friendSearch.js"></script>
+    <script src="/static/JS/friends.js"></script>
+</body>
+
+</html>

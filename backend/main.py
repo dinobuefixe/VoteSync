@@ -1,49 +1,30 @@
 from fastapi import FastAPI
-import os
-import sqlalchemy
+from fastapi.staticfiles import StaticFiles
+from fastapi.responses import FileResponse
+from backend.routers import users, friendships, members, groups, decisions, votes, options, auth
+from backend.database import Base, engine, init_db
+from backend import models 
 
 app = FastAPI()
 
-DATABASE_URL = os.getenv("DATABASE_URL")
+app.mount("/static", StaticFiles(directory="FrontEnd"), name="static")
 
-engine = sqlalchemy.create_engine(
-    DATABASE_URL,
-    connect_args={"sslmode": "disable"}
-)
-
-# Criar tabela se não existir
-with engine.connect() as conn:
-    conn.execute(sqlalchemy.text("""
-        CREATE TABLE IF NOT EXISTS items (
-            id SERIAL PRIMARY KEY,
-            name TEXT NOT NULL
-        );
-    """))
-    conn.commit()
-
+@app.on_event("startup")
+def startup():
+    init_db()
 
 @app.get("/")
-def root():
-    return {"message": "API online e ligada ao PostgreSQL"}
+def serve_frontend():
+    return FileResponse("FrontEnd/HTML/index.html")
+
+app.include_router(users.router)
+app.include_router(friendships.router)
+app.include_router(members.router)
+app.include_router(groups.router)
+app.include_router(decisions.router)
+app.include_router(votes.router)
+app.include_router(options.router)
+app.include_router(auth.router)
 
 
-@app.post("/add/{name}")
-def add_item(name: str):
-    try:
-        with engine.connect() as conn:
-            conn.execute(sqlalchemy.text("INSERT INTO items (name) VALUES (:name)"), {"name": name})
-            conn.commit()
-        return {"status": "success", "added": name}
-    except Exception as e:
-        return {"status": "error", "details": str(e)}
-
-
-@app.get("/items")
-def list_items():
-    try:
-        with engine.connect() as conn:
-            result = conn.execute(sqlalchemy.text("SELECT * FROM items"))
-            items = [dict(row) for row in result]
-        return {"items": items}
-    except Exception as e:
-        return {"status": "error", "details": str(e)}
+Base.metadata.create_all(bind=engine)

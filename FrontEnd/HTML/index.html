@@ -1,86 +1,90 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>VoteSync</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700;800&family=Sora:wght@400;600;700&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="../Styles/index.css">
+    <link
+        href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700;800&family=Sora:wght@400;600;700&display=swap"
+        rel="stylesheet">
+    <link rel="stylesheet" href="/static/Styles/index.css">
 </head>
+
 <body>
     <main class="page-shell">
         <header class="topbar">
             <div class="brand">
                 <span class="brand-icon" aria-hidden="true">
-                    <img src="../IMG/koala_logo.png" alt="Koala logo" />
+                    <a href="#" onclick="handleLogoClick(event)"><img src="/static/IMG/votesync_logo.png" alt="VoteSync logo" /></a>                
                 </span>
                 <span>VoteSync</span>
             </div>
 
-            <a href="#" class="top-link">Help/About us</a>
-
-            <button class="login-btn" type="button" aria-label="Login">
-                <span aria-hidden="true">↪</span>
+            <a href="#" onclick="handleLoginClick(event)" class="login-btn" aria-label="Login">
+                <span aria-hidden="true"><img class="loginIMG" src="/static/IMG/Login.png" alt="Login icon"></span>
                 Login
-            </button>
+            </a>
         </header>
 
-        <section class="hero-grid">
-            <article class="hero-copy">
-                <p class="eyebrow">✧ Your Ultimate Friend Hub</p>
-                <h1>
-                    Where Your
-                    <span>Squad Lives</span>
-                </h1>
-                <p class="subtitle">
-                    Plan hangouts, share memories, and stay connected with the people who matter most.
-                </p>
-
-                <form class="hero-form" id="hero-form">
-                    <input id="username" type="text" placeholder="What's your name?" required>
-                    <button type="submit">Let's Go! →</button>
-                </form>
-
-                <p class="social-proof">♥ Join 10,000+ friend groups already connected</p>
-
-                <div class="pill-row">
-                    <span class="pill">▣ Smart Scheduling</span>
-                    <span class="pill">◍ Group Vibes</span>
-                    <span class="pill">◧ Memory Lane</span>
-                </div>
-            </article>
-
-            <aside class="hero-media">
-                <div class="fade-layer" aria-hidden="true"></div>
-
-                <section class="glass-card main-card">
-                    <h2>⚡ Zero Drama</h2>
-                    <p>
-                        Built specifically for friend groups. No ads, no algorithms, no corporate BS.
-                        Just you and your squad.
+        <section class="hero-stage">
+            <div class="hero-grid">
+                <article class="hero-copy">
+                    <p class="eyebrow">✧ Your Ultimate Friend Hub</p>
+                    <h1>
+                        Where Your
+                        <span>Squad Lives</span>
+                    </h1>
+                    <p class="subtitle">
+                        Plan hangouts, share memories, and stay connected with the people who matter most.
                     </p>
-                </section>
 
-                <div class="stats-row">
-                    <div class="glass-card stat-card">
-                        <strong>10K+</strong>
-                        <span>Squads</span>
+                    <form class="hero-form" onsubmit="return false;">
+                        <input id="hero-name" type="text" placeholder="What's your name?">
+                        <button type="button" onclick="window.location.href='/static/HTML/register.html'">Let's Go! →</button>
+                    </form>
+
+                    <p class="social-proof">♥ Join 10,000+ friend groups already connected</p>
+
+                    <div class="pill-row">
+                        <span class="pill">▣ Smart Scheduling</span>
+                        <span class="pill">◍ Group Vibes</span>
+                        <span class="pill">◧ Memory Lane</span>
                     </div>
-                    <div class="glass-card stat-card">
-                        <strong>50K+</strong>
-                        <span>Hangouts</span>
+                </article>
+
+                <aside class="hero-media">
+                    <div class="fade-layer" aria-hidden="true"></div>
+
+                    <section class="glass-card main-card">
+                        <h2>⚡ Zero Drama</h2>
+                        <p>
+                            Built specifically for friend groups. No ads, no algorithms, no corporate BS.
+                            Just you and your squad.
+                        </p>
+                    </section>
+
+                    <div class="stats-row">
+                        <div class="glass-card stat-card">
+                            <strong>10K+</strong>
+                            <span>Squads</span>
+                        </div>
+                        <div class="glass-card stat-card">
+                            <strong>50K+</strong>
+                            <span>Hangouts</span>
+                        </div>
+                        <div class="glass-card stat-card">
+                            <strong>100K+</strong>
+                            <span>Memories</span>
+                        </div>
                     </div>
-                    <div class="glass-card stat-card">
-                        <strong>100K+</strong>
-                        <span>Memories</span>
-                    </div>
-                </div>
-            </aside>
+                </aside>
+            </div>
         </section>
     </main>
-
-    <script src="../JS/index.js"></script>
+    <script src="/static/JS/Api.js"></script>
+    <script src="/static/JS/index.js"></script>
 </body>
 </html>
