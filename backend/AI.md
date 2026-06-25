@@ -27,3 +27,13 @@
 * **Tool Utilized:** Claude / stack overflow
 * **Support Requested:** How could i not push pycache
 * **Project Outcome:** Awfull, made me a file that didn't work, had to search about it later and correct it.
+
+### 7. Correcting models and schemas
+* **Tool Utilized:** Claude
+* **Support Requested:** Tell me which schemas were needed and which weren't
+* **Project Outcome:** Really good, helped me understand models with fastapi
+
+### 8. Fixes on what the user sees, from groups to decisions
+* **Tool Utilized:** Claude
+* **Support Requested:** The user is seeing groups hes not in and decisions from the same groups 
+* **Project Outcome:** Perfect

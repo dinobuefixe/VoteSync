@@ -80,9 +80,9 @@ async function updateGroupsCard() {
 	if (!groupsPreviewList || !groupsCardEmpty) return;
 
 	try {
+
 		const groups = await api.getGroups(myId);
 
-		// Pegar apenas os 3 primeiros grupos
 		const preview = groups.slice(0, 3);
 
 		groupsPreviewList.innerHTML = "";
@@ -175,58 +175,67 @@ async function createDecisionOnAPI(decision) {
 }
 
 async function updateDecisionCards() {
-	try {
-		const decisions = await api.getDecisions();
+    try {
+        const session = api.getSession();
+        const userId = session?.user?.id;
 
-		if (decisionSummaryText) {
-			if (decisions.length === 0) decisionSummaryText.textContent = "Sem decisões";
-			else if (decisions.length === 1) decisionSummaryText.textContent = "1 decisão criada";
-			else decisionSummaryText.textContent = `${decisions.length} decisões criadas`;
-		}
+        // 1. Buscar grupos onde o user é membro
+        const userGroups = await api.getGroups(userId);
+        const userGroupIds = new Set(userGroups.map(g => g.id));
 
-		if (!decisionList) return;
-		decisionList.innerHTML = "";
+        // 2. Buscar todas as decisões e filtrar pelas dos grupos do user
+        const allDecisions = await api.getDecisions();
+        const decisions = allDecisions.filter(d => userGroupIds.has(d.group_id));
 
-		if (decisions.length === 0) {
-			if (decisionListEmpty) decisionListEmpty.hidden = false;
-			return;
-		}
+        if (decisionSummaryText) {
+            if (decisions.length === 0) decisionSummaryText.textContent = "Sem decisões";
+            else if (decisions.length === 1) decisionSummaryText.textContent = "1 decisão criada";
+            else decisionSummaryText.textContent = `${decisions.length} decisões criadas`;
+        }
 
-		if (decisionListEmpty) decisionListEmpty.hidden = true;
+        if (!decisionList) return;
+        decisionList.innerHTML = "";
 
-		const latestDecision = decisions[decisions.length - 1];
-		decisionList.appendChild(createDecisionListItem(latestDecision, "New", "", "fa-sparkles", "status-new"));
+        if (decisions.length === 0) {
+            if (decisionListEmpty) decisionListEmpty.hidden = false;
+            return;
+        }
 
-		const soonestEnding = decisions
-			.map((decision, index) => ({
-				decision,
-				index,
-				daysLeft: calculateDaysUntilEnd(decision.end_date || decision.endDate)
-			}))
-			.filter((entry) => entry.daysLeft !== null && entry.daysLeft >= 0 && entry.daysLeft <= 3)
-			.sort((a, b) => a.daysLeft - b.daysLeft)[0];
+        if (decisionListEmpty) decisionListEmpty.hidden = true;
 
-		if (soonestEnding && soonestEnding.index !== decisions.length - 1) {
-			const daysLabel = soonestEnding.daysLeft === 0
-				? "Termina hoje"
-				: soonestEnding.daysLeft === 1
-					? "Termina em 1 dia"
-					: `Termina em ${soonestEnding.daysLeft} dias`;
-			const endDateLabel = formatIsoDateToPt(soonestEnding.decision.end_date || soonestEnding.decision.endDate);
-			decisionList.appendChild(
-				createDecisionListItem(
-					soonestEnding.decision,
-					"Finishing",
-					"",
-					"fa-hourglass-half",
-					"status-finishing",
-					`${daysLabel} · Prazo final: ${endDateLabel}`
-				)
-			);
-		}
-	} catch (err) {
-		console.error("Erro ao carregar decisões:", err);
-	}
+        const latestDecision = decisions[decisions.length - 1];
+        decisionList.appendChild(createDecisionListItem(latestDecision, "New", "", "fa-sparkles", "status-new"));
+
+        const soonestEnding = decisions
+            .map((decision, index) => ({
+                decision,
+                index,
+                daysLeft: calculateDaysUntilEnd(decision.end_date || decision.endDate)
+            }))
+            .filter((entry) => entry.daysLeft !== null && entry.daysLeft >= 0 && entry.daysLeft <= 3)
+            .sort((a, b) => a.daysLeft - b.daysLeft)[0];
+
+        if (soonestEnding && soonestEnding.index !== decisions.length - 1) {
+            const daysLabel = soonestEnding.daysLeft === 0
+                ? "Termina hoje"
+                : soonestEnding.daysLeft === 1
+                    ? "Termina em 1 dia"
+                    : `Termina em ${soonestEnding.daysLeft} dias`;
+            const endDateLabel = formatIsoDateToPt(soonestEnding.decision.end_date || soonestEnding.decision.endDate);
+            decisionList.appendChild(
+                createDecisionListItem(
+                    soonestEnding.decision,
+                    "Finishing",
+                    "",
+                    "fa-hourglass-half",
+                    "status-finishing",
+                    `${daysLabel} · Prazo final: ${endDateLabel}`
+                )
+            );
+        }
+    } catch (err) {
+        console.error("Erro ao carregar decisões:", err);
+    }
 }
 
 // ── DECISION LIST RENDERING ───────────────────────────────────────────────────
@@ -420,6 +429,13 @@ async function handleCreateDecision() {
 
 	const session = api.getSession();
 	const selectedGroupId = decisionGroupSelect?.value ? parseInt(decisionGroupSelect.value) : null;
+
+	if (selectedGroupId === null) {
+		setDecisionMessage("Grupo não selecionado.", "error");
+		if (decisionEndDateInput) decisionEndDateInput.focus();
+		return;
+	}
+
 	const selectedGroupName = decisionGroupSelect?.selectedOptions?.[0]?.textContent || "";
 	const selectedFriendIds = decisionFriendsSelect
 		? Array.from(decisionFriendsSelect.selectedOptions).map((o) => o.value).filter((v) => v)

@@ -175,7 +175,7 @@ class APIClient {
     getMemberFromGroup(id) {
         return this.get(`/members/${id}`);
     }
-
+    
     createUserGroup(name, description = "", memberIds = []) {
         return this.post("/groups/", {
             name,

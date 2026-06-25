@@ -15,7 +15,7 @@ Base = declarative_base()
 SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
 
 def init_db():
-    Base.metadata.create_all(bind=engine)  # cria as tabelas que não existem
+    Base.metadata.create_all(bind=engine)  
     print("✅ Tabelas criadas/verificadas!")
 
 def get_db():
