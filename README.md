@@ -107,6 +107,7 @@ votesync/
 Abrir o docker
 Abrir o container 
 ```bash
+make create-db
 make all
 ```
 
